@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Navigate, Outlet } from 'react-router-dom';
 import { AuthGate } from './components/AuthGate';
 import { AppShell } from './components/AppShell';
 import { LoginView } from './views/LoginView';
@@ -7,23 +7,21 @@ import { ListView } from './views/ListView';
 
 const router = createBrowserRouter([
   {
-    path: '/login',
     element: (
       <AuthGate>
-        <LoginView />
-      </AuthGate>
-    ),
-  },
-  {
-    element: (
-      <AuthGate>
-        <AppShell />
+        <Outlet />
       </AuthGate>
     ),
     children: [
-      { index: true, element: <Navigate to="/my-day" replace /> },
-      { path: '/my-day', element: <MyDayView /> },
-      { path: '/list/:listId', element: <ListView /> },
+      { path: '/login', element: <LoginView /> },
+      {
+        element: <AppShell />,
+        children: [
+          { index: true, element: <Navigate to="/my-day" replace /> },
+          { path: '/my-day', element: <MyDayView /> },
+          { path: '/list/:listId', element: <ListView /> },
+        ],
+      },
     ],
   },
 ]);

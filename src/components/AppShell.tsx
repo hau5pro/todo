@@ -5,7 +5,7 @@ import { SyncDot } from './SyncDot';
 import { useSync } from '../hooks/useSync';
 
 export function AppShell() {
-  const { pendingCount, isSyncing } = useSync();
+  const { pendingCount, isSyncing, syncError: _syncError } = useSync();
 
   return (
     <div className="app-shell">

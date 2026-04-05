@@ -20,12 +20,11 @@ export function AuthGate({ children }: Props) {
     const unsub = onAuthStateChange(async (u) => {
       const prev = prevUserRef.current;
       prevUserRef.current = u;
+      setUser(u); // unblock UI immediately
       if (u && prev === null) {
-        // Fresh login — run initial sync
         const db = await getDB();
-        await initialSync(db, supabase);
+        await initialSync(db, supabase); // background — failure won't freeze auth
       }
-      setUser(u);
     });
     return unsub;
   }, []);

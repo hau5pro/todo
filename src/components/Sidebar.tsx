@@ -5,14 +5,14 @@ import type { List } from '../types';
 
 export function Sidebar() {
   const [lists, setLists] = useState<List[]>([]);
+  const [templatesOpen, setTemplatesOpen] = useState(false);
 
   useEffect(() => {
-    getLists().then(setLists);
+    getLists().then(setLists).catch((err) => console.error('Failed to load lists', err));
   }, []);
 
   const userLists = lists.filter((l) => l.type !== 'template');
   const templates = lists.filter((l) => l.type === 'template');
-  const [templatesOpen, setTemplatesOpen] = useState(false);
 
   return (
     <nav className="sidebar">

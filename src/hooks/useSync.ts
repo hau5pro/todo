@@ -28,6 +28,7 @@ async function countPending(): Promise<number> {
 export function useSync() {
   const [pendingCount, setPendingCount] = useState(0);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [syncError, setSyncError] = useState<Error | null>(null);
   const syncingRef = useRef(false);
 
   const refreshPending = useCallback(async () => {
@@ -38,6 +39,7 @@ export function useSync() {
     if (syncingRef.current) return;
     syncingRef.current = true;
     setIsSyncing(true);
+    setSyncError(null);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -45,6 +47,8 @@ export function useSync() {
       await pushPending(db, supabase, user.id);
       await pullFromSupabase(db, supabase);
       await refreshPending();
+    } catch (e) {
+      setSyncError(e instanceof Error ? e : new Error(String(e)));
     } finally {
       syncingRef.current = false;
       setIsSyncing(false);
@@ -52,12 +56,12 @@ export function useSync() {
   }, [refreshPending]);
 
   useEffect(() => {
-    refreshPending();
+    // sync() calls refreshPending() internally on success
     sync();
     const onFocus = () => sync();
     window.addEventListener('focus', onFocus);
     return () => window.removeEventListener('focus', onFocus);
-  }, [sync, refreshPending]);
+  }, [sync]);
 
-  return { pendingCount, isSyncing, sync, refreshPending };
+  return { pendingCount, isSyncing, sync, refreshPending, syncError };
 }
