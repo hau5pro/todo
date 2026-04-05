@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom';
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useHabits } from '../hooks/useHabits';
 import { useList } from '../hooks/useList';
 import { HabitItem } from '../components/HabitItem';
@@ -8,9 +8,8 @@ import { createTask } from '../db/tasks';
 
 export function DailyView() {
   const { listId } = useParams<{ listId: string }>();
-  const today = useMemo(() => new Date().toISOString().split('T')[0], []);
   const { list } = useList(listId!);
-  const { rows, isLoading, reload } = useHabits(listId!);
+  const { rows, isLoading, reload, today } = useHabits(listId!);
   const [newTitle, setNewTitle] = useState('');
 
   if (isLoading) return null;

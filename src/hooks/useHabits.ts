@@ -1,5 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
-import { useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { getTasksByList } from '../db/tasks';
 import { getCompletionsForTask, getTodayCompletions, calculateStreak } from '../db/habits';
 import type { Task } from '../types';
@@ -45,5 +44,5 @@ export function useHabits(listId: string) {
 
   useEffect(() => { load(); }, [load]);
 
-  return { rows, isLoading, reload: load };
+  return { rows, isLoading, reload: load, today };
 }
