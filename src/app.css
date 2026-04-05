@@ -43,6 +43,7 @@ button.nav-section-label--button { background: none; border: none; cursor: point
 .empty-state { color: #aaa; margin-top: 2rem; }
 .add-task-input { width: 100%; padding: 8px 0; border: none; border-bottom: 1px solid #e8e8e8; font-size: 0.9rem; color: #aaa; outline: none; margin-top: 4px; }
 .add-task-input:focus { color: #111; border-bottom-color: #111; }
+.btn-duplicate { padding: 8px 16px; background: #111; color: #fff; border: none; border-radius: 6px; font-size: 0.9rem; cursor: pointer; }
 
 /* Mobile */
 @media (max-width: 640px) {
