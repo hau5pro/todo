@@ -13,8 +13,8 @@ export default defineConfig({
       manifest: {
         name: 'Todo',
         short_name: 'Todo',
-        theme_color: '#ffffff',
-        background_color: '#ffffff',
+        theme_color: '#111118',
+        background_color: '#0a0a0e',
         display: 'standalone',
         start_url: '/',
         icons: [

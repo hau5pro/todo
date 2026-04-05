@@ -10,7 +10,20 @@ export function AppShell() {
   return (
     <div className="app-shell">
       <header className="app-header">
-        <span className="app-title">todo</span>
+        <div className="app-logo">
+          <div className="app-logo__mark">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+              <polyline
+                points="2,8 6,12 13,4"
+                stroke="var(--accent)"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </div>
+          <span className="app-title">TODO</span>
+        </div>
         <SyncDot pendingCount={pendingCount} isSyncing={isSyncing} />
       </header>
       <div className="app-body">
