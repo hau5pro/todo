@@ -72,10 +72,11 @@ export async function pullFromSupabase(db: IDBDatabase, supabase: SupabaseClient
   const lastSync = localStorage.getItem(LAST_SYNC_KEY) ?? '1970-01-01T00:00:00Z';
 
   for (const table of ['lists', 'tasks', 'habit_completions'] as const) {
+    const filterField = table === 'habit_completions' ? 'created_at' : 'updated_at';
     const { data, error } = await supabase
       .from(table)
       .select('*')
-      .gt('updated_at', lastSync);
+      .gt(filterField, lastSync);
 
     if (error || !data) continue;
 
