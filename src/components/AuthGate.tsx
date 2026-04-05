@@ -22,8 +22,9 @@ export function AuthGate({ children }: Props) {
       prevUserRef.current = u;
       setUser(u); // unblock UI immediately
       if (u && prev === null) {
-        const db = await getDB();
-        await initialSync(db, supabase); // background — failure won't freeze auth
+        getDB()
+          .then((db) => initialSync(db, supabase))
+          .catch((err) => console.error('initialSync failed', err));
       }
     });
     return unsub;
