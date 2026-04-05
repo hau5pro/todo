@@ -37,6 +37,7 @@ button.nav-section-label--button { background: none; border: none; cursor: point
 .habit-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f5f5f5; }
 .habit-item__streak { font-size: 0.85rem; color: #f5a623; margin-left: auto; }
 .section-heading { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; color: #888; margin: 1.25rem 0 0.5rem; }
+.view-title { font-size: 1.3rem; font-weight: 600; margin-bottom: 0.25rem; }
 .add-task { display: block; padding: 8px 0; color: #aaa; font-size: 0.9rem; background: none; border: none; cursor: pointer; width: 100%; text-align: left; }
 
 /* Mobile */
