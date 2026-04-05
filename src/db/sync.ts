@@ -16,7 +16,15 @@ function toRemote<T extends { pending_sync: boolean }>(record: T, userId: string
   return { ...rest, user_id: userId };
 }
 
+/** Strip user_id from a remote record in a type-safe way. */
+function fromRemote<T extends Record<string, unknown>>(remote: T): Omit<T, 'user_id'> {
+  const { user_id: _u, ...record } = remote;
+  return record as Omit<T, 'user_id'>;
+}
+
 export async function pushPending(db: IDBDatabase, supabase: SupabaseClient, userId: string): Promise<void> {
+  const errors: string[] = [];
+
   // Lists
   const allLists = await req<List[]>(db.transaction('lists').objectStore('lists').getAll());
   const pendingLists = allLists.filter((l) => l.pending_sync);
@@ -24,7 +32,9 @@ export async function pushPending(db: IDBDatabase, supabase: SupabaseClient, use
     const { error } = await supabase
       .from('lists')
       .upsert(pendingLists.map((l) => toRemote(l, userId)), { onConflict: 'id' });
-    if (!error) {
+    if (error) {
+      errors.push(`lists: ${error.message}`);
+    } else {
       const tx = db.transaction('lists', 'readwrite');
       const store = tx.objectStore('lists');
       await Promise.all(
@@ -40,7 +50,9 @@ export async function pushPending(db: IDBDatabase, supabase: SupabaseClient, use
     const { error } = await supabase
       .from('tasks')
       .upsert(pendingTasks.map((t) => toRemote(t, userId)), { onConflict: 'id' });
-    if (!error) {
+    if (error) {
+      errors.push(`tasks: ${error.message}`);
+    } else {
       const tx = db.transaction('tasks', 'readwrite');
       const store = tx.objectStore('tasks');
       await Promise.all(
@@ -58,7 +70,9 @@ export async function pushPending(db: IDBDatabase, supabase: SupabaseClient, use
     const { error } = await supabase
       .from('habit_completions')
       .upsert(pendingHabits.map((h) => toRemote(h, userId)), { onConflict: 'id' });
-    if (!error) {
+    if (error) {
+      errors.push(`habit_completions: ${error.message}`);
+    } else {
       const tx = db.transaction('habit_completions', 'readwrite');
       const store = tx.objectStore('habit_completions');
       await Promise.all(
@@ -66,10 +80,13 @@ export async function pushPending(db: IDBDatabase, supabase: SupabaseClient, use
       );
     }
   }
+
+  if (errors.length > 0) throw new Error(`pushPending failed: ${errors.join('; ')}`);
 }
 
 export async function pullFromSupabase(db: IDBDatabase, supabase: SupabaseClient): Promise<void> {
   const lastSync = localStorage.getItem(LAST_SYNC_KEY) ?? '1970-01-01T00:00:00Z';
+  let hasError = false;
 
   for (const table of ['lists', 'tasks', 'habit_completions'] as const) {
     const filterField = table === 'habit_completions' ? 'created_at' : 'updated_at';
@@ -78,26 +95,36 @@ export async function pullFromSupabase(db: IDBDatabase, supabase: SupabaseClient
       .select('*')
       .gt(filterField, lastSync);
 
-    if (error || !data) continue;
+    if (error || !data) {
+      hasError = true;
+      continue;
+    }
 
-    const storeName = table === 'habit_completions' ? 'habit_completions' : table;
-    const tx = db.transaction(storeName, 'readwrite');
-    const store = tx.objectStore(storeName);
+    const tx = db.transaction(table, 'readwrite');
+    const store = tx.objectStore(table);
 
     for (const remote of data) {
       const local = await req<List | Task | HabitCompletion | undefined>(store.get(remote.id));
       const remoteTime = remote.updated_at ?? remote.created_at;
-      const localTime = local ? (local as List).updated_at : null;
+      // Use the correct timestamp field per record type: habit_completions has created_at, others have updated_at
+      const localTime = local
+        ? table === 'habit_completions'
+          ? (local as HabitCompletion).created_at
+          : (local as List | Task).updated_at
+        : null;
 
       if (!localTime || remoteTime > localTime) {
         // Remote is newer — strip user_id, add pending_sync: false
-        const { user_id: _u, ...record } = remote as Record<string, unknown>;
-        await req(store.put({ ...record, pending_sync: false }));
+        await req(store.put({ ...fromRemote(remote), pending_sync: false }));
       }
     }
   }
 
-  localStorage.setItem(LAST_SYNC_KEY, new Date().toISOString());
+  // Only advance the timestamp if all three table queries completed without error.
+  // If any errored, do NOT update the timestamp so future syncs don't miss records.
+  if (!hasError) {
+    localStorage.setItem(LAST_SYNC_KEY, new Date().toISOString());
+  }
 }
 
 /** Full pull from Supabase — used on first login to populate empty IndexedDB. */

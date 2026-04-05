@@ -42,6 +42,10 @@ function makePullMockSupabase(tableDataMap: Record<string, unknown[]> = {}) {
 }
 
 describe('pushPending', () => {
+  // IDB state is automatically reset before each test by the global beforeEach in
+  // src/tests/setup.ts, which replaces indexedDB with a fresh IDBFactory instance
+  // and calls _resetForTesting(). No explicit cleanup is needed here.
+
   it('upserts pending lists to Supabase', async () => {
     const list = await createList('Groceries', 'shopping');
     const mockSupa = makeMockSupabase();
