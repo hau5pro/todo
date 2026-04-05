@@ -3,7 +3,7 @@ import { TaskItem } from '../components/TaskItem';
 import { HabitItem } from '../components/HabitItem';
 import { setTaskCompleted, advanceCyclicalTask } from '../db/tasks';
 import { toggleHabitCompletion, getCompletionsForTask, calculateStreak } from '../db/habits';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import type { Task } from '../types';
 
 function formatDate(d: Date): string {
@@ -11,7 +11,7 @@ function formatDate(d: Date): string {
 }
 
 export function MyDayView() {
-  const today = new Date().toISOString().split('T')[0];
+  const today = useMemo(() => new Date().toISOString().split('T')[0], []);
   const { overdue, today: todayTasks, habits, isLoading, reload } = useMyDay();
   const [streaks, setStreaks] = useState<Map<string, number>>(new Map());
 
@@ -46,7 +46,7 @@ export function MyDayView() {
   return (
     <div>
       <h1 className="view-title">My Day — {formatDate(new Date())}</h1>
-      {!hasAnything && <p style={{ color: '#aaa', marginTop: '2rem' }}>Nothing due today.</p>}
+      {!hasAnything && <p className="empty-state">Nothing due today.</p>}
 
       {overdue.length > 0 && (
         <section>

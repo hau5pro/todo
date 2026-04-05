@@ -40,6 +40,8 @@ button.nav-section-label--button { background: none; border: none; cursor: point
 .view-title { font-size: 1.3rem; font-weight: 600; margin-bottom: 0.25rem; }
 .add-task { display: block; padding: 8px 0; color: #aaa; font-size: 0.9rem; background: none; border: none; cursor: pointer; width: 100%; text-align: left; }
 
+.empty-state { color: #aaa; margin-top: 2rem; }
+
 /* Mobile */
 @media (max-width: 640px) {
   .sidebar { display: none; }

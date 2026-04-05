@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getMyDayTasks } from '../db/tasks';
 import { getLists } from '../db/lists';
 import { getTasksByList } from '../db/tasks';
@@ -20,30 +20,35 @@ export interface MyDayData {
 export function useMyDay(): MyDayData & { reload: () => void } {
   const [data, setData] = useState<MyDayData>({ overdue: [], today: [], habits: [], isLoading: true });
 
-  const load = async () => {
-    const todayDate = new Date().toISOString().split('T')[0];
-    const [{ overdue, today }, lists, todayCompletions] = await Promise.all([
-      getMyDayTasks(todayDate),
-      getLists(),
-      getTodayCompletions(todayDate),
-    ]);
+  const load = useCallback(async () => {
+    try {
+      const todayDate = new Date().toISOString().split('T')[0];
+      const [{ overdue, today }, lists, todayCompletions] = await Promise.all([
+        getMyDayTasks(todayDate),
+        getLists(),
+        getTodayCompletions(todayDate),
+      ]);
 
-    const dailyLists = lists.filter((l: List) => l.type === 'daily');
-    const habitTasks = (
-      await Promise.all(dailyLists.map((l: List) => getTasksByList(l.id)))
-    ).flat();
+      const dailyLists = lists.filter((l: List) => l.type === 'daily');
+      const habitTasks = (
+        await Promise.all(dailyLists.map((l: List) => getTasksByList(l.id)))
+      ).flat();
 
-    const completedIds = new Set(todayCompletions.map((c) => c.task_id));
+      const completedIds = new Set(todayCompletions.map((c) => c.task_id));
 
-    setData({
-      overdue,
-      today,
-      habits: habitTasks.map((task) => ({ task, completedToday: completedIds.has(task.id) })),
-      isLoading: false,
-    });
-  };
+      setData({
+        overdue,
+        today,
+        habits: habitTasks.map((task) => ({ task, completedToday: completedIds.has(task.id) })),
+        isLoading: false,
+      });
+    } catch (err) {
+      console.error('useMyDay load failed', err);
+      setData((prev) => ({ ...prev, isLoading: false }));
+    }
+  }, []);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [load]);
 
   return { ...data, reload: load };
 }
