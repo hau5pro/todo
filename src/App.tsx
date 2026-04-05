@@ -3,7 +3,7 @@ import { AuthGate } from './components/AuthGate';
 import { AppShell } from './components/AppShell';
 import { LoginView } from './views/LoginView';
 import { MyDayView } from './views/MyDayView';
-import { ListView } from './views/ListView';
+import { ListRouter } from './views/ListRouter';
 
 const router = createBrowserRouter([
   {
@@ -19,7 +19,7 @@ const router = createBrowserRouter([
         children: [
           { index: true, element: <Navigate to="/my-day" replace /> },
           { path: '/my-day', element: <MyDayView /> },
-          { path: '/list/:listId', element: <ListView /> },
+          { path: '/list/:listId', element: <ListRouter /> },
         ],
       },
     ],
