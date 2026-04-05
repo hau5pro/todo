@@ -1,0 +1,63 @@
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { getDB } from '../db/client';
+import { pushPending, pullFromSupabase } from '../db/sync';
+import { supabase } from '../supabase/client';
+import type { List, Task, HabitCompletion } from '../types';
+
+function req<T>(r: IDBRequest<T>): Promise<T> {
+  return new Promise((res, rej) => {
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+  });
+}
+
+async function countPending(): Promise<number> {
+  const db = await getDB();
+  const [lists, tasks, habits] = await Promise.all([
+    req<List[]>(db.transaction('lists').objectStore('lists').getAll()),
+    req<Task[]>(db.transaction('tasks').objectStore('tasks').getAll()),
+    req<HabitCompletion[]>(db.transaction('habit_completions').objectStore('habit_completions').getAll()),
+  ]);
+  return (
+    lists.filter((l) => l.pending_sync).length +
+    tasks.filter((t) => t.pending_sync).length +
+    habits.filter((h) => h.pending_sync).length
+  );
+}
+
+export function useSync() {
+  const [pendingCount, setPendingCount] = useState(0);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const syncingRef = useRef(false);
+
+  const refreshPending = useCallback(async () => {
+    setPendingCount(await countPending());
+  }, []);
+
+  const sync = useCallback(async () => {
+    if (syncingRef.current) return;
+    syncingRef.current = true;
+    setIsSyncing(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const db = await getDB();
+      await pushPending(db, supabase, user.id);
+      await pullFromSupabase(db, supabase);
+      await refreshPending();
+    } finally {
+      syncingRef.current = false;
+      setIsSyncing(false);
+    }
+  }, [refreshPending]);
+
+  useEffect(() => {
+    refreshPending();
+    sync();
+    const onFocus = () => sync();
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [sync, refreshPending]);
+
+  return { pendingCount, isSyncing, sync, refreshPending };
+}
