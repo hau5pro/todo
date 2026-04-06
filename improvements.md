@@ -11,4 +11,4 @@ session counter: 4
 - view transitions between lists. list items prob shouldnt animate how they are currently?
 
 - highlight list item that is selected when details is open.
-- habits should be above others in my day.
+- bug: habits title doesnt have icon preceding it

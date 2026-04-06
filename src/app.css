@@ -477,6 +477,7 @@ button.nav-section-label--button:hover { color: var(--fg); }
   border-bottom: 1px solid var(--divider);
 }
 .task-item--selectable { cursor: pointer; }
+.task-item--selected { background: var(--hover); border-radius: 8px; }
 
 .task-item__title {
   flex: 1;
