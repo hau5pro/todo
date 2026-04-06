@@ -39,14 +39,14 @@ function nextOccurrenceFromRRule(currentDueDate: string, rruleStr: string): stri
   ].join('-');
 }
 
-type CreateTaskOpts = Partial<Pick<Task, 'due_date' | 'recurrence_interval' | 'recurrence_unit' | 'rrule'>>;
+type CreateTaskOpts = Partial<Pick<Task, 'due_date' | 'recurrence_interval' | 'recurrence_unit' | 'rrule' | 'completed'>>;
 
 export async function createTask(listId: string, title: string, opts: CreateTaskOpts = {}): Promise<Task> {
   const task: Task = {
     id: crypto.randomUUID(),
     list_id: listId,
     title,
-    completed: false,
+    completed: opts.completed ?? false,
     due_date: opts.due_date ?? null,
     recurrence_interval: opts.recurrence_interval ?? null,
     recurrence_unit: opts.recurrence_unit ?? null,
@@ -170,7 +170,7 @@ export async function updateTask(id: string, changes: Partial<Pick<Task, 'title'
   return updated;
 }
 
-/** Returns overdue and today tasks across all lists (excludes daily/template lists). */
+/** Returns overdue and today tasks across all lists (excludes daily lists). */
 export async function getMyDayTasks(today: string): Promise<{ overdue: Task[]; today: Task[] }> {
   const db = await getDB();
   const all = await req<Task[]>(db.transaction('tasks').objectStore('tasks').getAll());

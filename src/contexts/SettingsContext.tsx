@@ -29,6 +29,9 @@ export interface Settings {
   soundEnabled: boolean;
   soundStyle: SoundStyle;
   sidebarCollapsed: boolean;
+  listsOpen: boolean;
+  folderCollapsed: Record<string, boolean>;
+  folderOrders: Record<string, string[]>;
 }
 
 interface SettingsContextValue extends Settings {
@@ -43,6 +46,9 @@ interface SettingsContextValue extends Settings {
   setSoundEnabled: (v: boolean) => void;
   setSoundStyle: (s: SoundStyle) => void;
   setSidebarCollapsed: (v: boolean) => void;
+  setListsOpen: (v: boolean) => void;
+  setFolderCollapsed: (folderId: string, collapsed: boolean) => void;
+  setFolderOrder: (folderId: string, ids: string[]) => void;
 }
 
 const STORAGE_KEY = 'todo_settings';
@@ -61,6 +67,9 @@ const DEFAULTS: Settings = {
   soundEnabled: true,
   soundStyle: 'pop',
   sidebarCollapsed: false,
+  listsOpen: true,
+  folderCollapsed: {},
+  folderOrders: {},
 };
 
 function loadSettings(): Settings {
@@ -255,6 +264,21 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     setSoundEnabled: (soundEnabled) => update({ soundEnabled }),
     setSoundStyle: (soundStyle) => update({ soundStyle }),
     setSidebarCollapsed: (sidebarCollapsed) => update({ sidebarCollapsed }),
+    setListsOpen: (listsOpen) => update({ listsOpen }),
+    setFolderCollapsed: (folderId, collapsed) =>
+      setSettings((prev) => {
+        const next = { ...prev, folderCollapsed: { ...prev.folderCollapsed, [folderId]: collapsed } };
+        saveSettings(next);
+        scheduleCloudPush(next);
+        return next;
+      }),
+    setFolderOrder: (folderId, ids) =>
+      setSettings((prev) => {
+        const next = { ...prev, folderOrders: { ...prev.folderOrders, [folderId]: ids } };
+        saveSettings(next);
+        scheduleCloudPush(next);
+        return next;
+      }),
   };
 
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;

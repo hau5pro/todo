@@ -6,13 +6,13 @@ import { useSettings } from '../contexts/SettingsContext';
 import { playComplete, SOUND_STYLES } from '../utils/sound';
 import { useAppStore } from '../store';
 import { clearAllLocalData } from '../db/client';
-import type { List } from '../types';
-import { LIST_TYPE_LABELS } from '../types';
 import { deleteAllCloudData } from '../db/sync';
 import { signOut } from '../supabase/auth';
 import { supabase } from '../supabase/client';
 import { ColorSwatchPicker } from '../components/ColorSwatchPicker';
 import { SettingsRow } from '../components/SettingsRow';
+import type { List } from '../types';
+import { LIST_TYPE_LABELS } from '../types';
 
 const MY_DAY_SENTINEL = { id: 'my-day' as const };
 type PinnedItem = List | typeof MY_DAY_SENTINEL;
@@ -50,8 +50,7 @@ export function SettingsView() {
     accent, setAccent,
     theme, setTheme,
     hiddenListIds, toggleListVisibility,
-    pinnedOrder, customOrder,
-    setPinnedOrder,
+    pinnedOrder, setPinnedOrder,
     soundEnabled, setSoundEnabled,
     soundStyle, setSoundStyle,
   } = useSettings();
@@ -81,22 +80,11 @@ export function SettingsView() {
     }
   }
 
-  const pinnedSet = new Set(pinnedOrder);
   const pinnedItems: PinnedItem[] = pinnedOrder
     .map((id): PinnedItem | undefined =>
       id === 'my-day' ? MY_DAY_SENTINEL : lists.find((l) => l.id === id)
     )
     .filter((item): item is PinnedItem => item !== undefined);
-
-  const nonPinnedLists = lists.filter((l) => l.type !== 'template' && !pinnedSet.has(l.id));
-  const customOrderedIds = customOrder.filter((id) => nonPinnedLists.some((l) => l.id === id));
-  const remainder = nonPinnedLists.filter((l) => !customOrder.includes(l.id));
-  const customLists: List[] = [
-    ...customOrderedIds.map((id) => nonPinnedLists.find((l) => l.id === id)!),
-    ...remainder,
-  ];
-
-  const templates = lists.filter((l) => l.type === 'template');
 
   return (
     <div style={{ maxWidth: 480, margin: '0 auto' }}>
@@ -163,75 +151,36 @@ export function SettingsView() {
         )}
       </section>
 
-      {/* Navigation */}
-      <section className="settings-section">
-        <div className="settings-section-title">Navigation</div>
-        <p style={{ fontSize: '0.85rem', color: 'var(--fg-muted)', margin: '0.5rem 0 0.875rem' }}>
-          Drag to reorder lists in the sidebar.
-        </p>
-
-        {pinnedItems.length === 0 && customLists.length === 0 && templates.length === 0 && (
-          <p className="empty-state" style={{ marginTop: '0.5rem' }}>No lists yet.</p>
-        )}
-
-        {pinnedItems.length > 0 && (
-          <>
-            <div className="settings-subsection-title">Pinned</div>
-            <Reorder.Group
-              as="div"
-              axis="y"
-              values={pinnedItems}
-              onReorder={(newOrder) => setPinnedOrder(newOrder.map((item) => item.id))}
-            >
-              {pinnedItems.map((item) =>
-                item.id === 'my-day'
-                  ? <SortableMyDaySettingsRow
-                      key="my-day"
-                      checked={!hiddenListIds.includes('my-day')}
-                      onChange={() => toggleListVisibility('my-day')}
-                    />
-                  : <SortableSettingsRow
-                      key={item.id}
-                      list={item as List}
-                      checked={!hiddenListIds.includes(item.id)}
-                      onChange={() => toggleListVisibility(item.id)}
-                    />
-              )}
-            </Reorder.Group>
-          </>
-        )}
-
-        {customLists.length > 0 && (
-          <>
-            <div className="settings-subsection-title">Lists</div>
-            {customLists.map((l) => (
-              <SettingsRow
-                key={l.id}
-                label={l.name}
-                sublabel={LIST_TYPE_LABELS[l.type]}
-                checked={!hiddenListIds.includes(l.id)}
-                onChange={() => toggleListVisibility(l.id)}
-              />
-            ))}
-          </>
-        )}
-
-        {templates.length > 0 && (
-          <>
-            <div className="settings-subsection-title">Templates</div>
-            {templates.map((l) => (
-              <SettingsRow
-                key={l.id}
-                label={l.name}
-                sublabel={LIST_TYPE_LABELS[l.type]}
-                checked={!hiddenListIds.includes(l.id)}
-                onChange={() => toggleListVisibility(l.id)}
-              />
-            ))}
-          </>
-        )}
-
-      </section>
+      {/* Pinned items */}
+      {pinnedItems.length > 0 && (
+        <section className="settings-section">
+          <div className="settings-section-title">Pinned</div>
+          <p style={{ fontSize: '0.85rem', color: 'var(--fg-muted)', margin: '0.5rem 0 0.875rem' }}>
+            Drag to reorder. Toggle to show or hide in the sidebar.
+          </p>
+          <Reorder.Group
+            as="div"
+            axis="y"
+            values={pinnedItems}
+            onReorder={(newOrder) => setPinnedOrder(newOrder.map((item) => item.id))}
+          >
+            {pinnedItems.map((item) =>
+              item.id === 'my-day'
+                ? <SortableMyDaySettingsRow
+                    key="my-day"
+                    checked={!hiddenListIds.includes('my-day')}
+                    onChange={() => toggleListVisibility('my-day')}
+                  />
+                : <SortableSettingsRow
+                    key={item.id}
+                    list={item as List}
+                    checked={!hiddenListIds.includes(item.id)}
+                    onChange={() => toggleListVisibility(item.id)}
+                  />
+            )}
+          </Reorder.Group>
+        </section>
+      )}
 
       {/* Danger zone */}
       <section className="settings-section">

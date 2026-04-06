@@ -1,18 +1,26 @@
-export type ListType = 'general' | 'cyclical' | 'daily' | 'shopping' | 'template';
+export type ListType = 'general' | 'cyclical' | 'daily' | 'shopping';
 
 export const LIST_TYPE_LABELS: Record<ListType, string> = {
   general:  'general',
   cyclical: 'cycles',
   daily:    'daily',
   shopping: 'shopping',
-  template: 'template',
 };
 export type RecurrenceUnit = 'days' | 'weeks' | 'months';
+
+export interface ListFolder {
+  id: string;
+  name: string;
+  updated_at: string;
+  deleted_at: string | null;
+  pending_sync: boolean;
+}
 
 export interface List {
   id: string;
   name: string;
   type: ListType;
+  folder_id: string | null;
   updated_at: string;   // ISO timestamp
   deleted_at: string | null;
   pending_sync: boolean;

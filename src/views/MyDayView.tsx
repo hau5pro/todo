@@ -6,7 +6,7 @@ import { HabitItem } from '../components/HabitItem';
 import { toggleHabitCompletion, getCompletionsForTask, calculateStreak } from '../db/habits';
 import { ICON_SIZE } from '../config/icons';
 
-function sortByDueDate(tasks: { due_date?: string | null }[]) {
+function sortByDueDate<T extends { due_date?: string | null }>(tasks: T[]): T[] {
   return [...tasks].sort((a, b) => {
     if (!a.due_date) return 1;
     if (!b.due_date) return -1;

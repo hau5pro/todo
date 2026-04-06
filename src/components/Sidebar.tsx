@@ -1,9 +1,11 @@
-import { NavLink } from 'react-router-dom';
-import { useState, useRef } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { Reorder, useDragControls, motion, AnimatePresence } from 'framer-motion';
 import {
   Sun, GearSix, SignOut, CaretDown, CaretRight,
-  List, Plus, Check, X, PencilSimple, SidebarSimple,
+  List, Plus, CheckCircle, PencilSimple, SidebarSimple,
+  FolderSimplePlus, FolderSimple, Trash, ArrowElbowDownLeft, DotsThree,
 } from '@phosphor-icons/react';
 import { signOut } from '../supabase/auth';
 import { useSettings } from '../contexts/SettingsContext';
@@ -11,7 +13,7 @@ import { useAppStore } from '../store';
 import { focusLater } from '../utils/dom';
 import { ICON_SIZE } from '../config/icons';
 import { getListIcon } from '../config/listIcons';
-import type { List as ListType } from '../types';
+import type { List as ListType, ListFolder } from '../types';
 
 
 const MY_DAY_SENTINEL = { id: 'my-day' as const };
@@ -19,15 +21,53 @@ type PinnedItem = ListType | typeof MY_DAY_SENTINEL;
 
 const COLLAPSED_ICON_SIZE = 20;
 
+// ── Portal tooltip for overflow-clipped containers ────────────────────────────
+
+function NavTooltip({ label, children }: { label: string; children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+
+  const show = useCallback(() => {
+    if (ref.current) {
+      const r = ref.current.getBoundingClientRect();
+      setPos({ top: r.top + r.height / 2, left: r.right + 8 });
+    }
+  }, []);
+  const hide = useCallback(() => setPos(null), []);
+
+  return (
+    <div ref={ref} onMouseEnter={show} onMouseLeave={hide}>
+      {children}
+      {pos && createPortal(
+        <div className="nav-tooltip" style={{ top: pos.top, left: pos.left }}>{label}</div>,
+        document.body
+      )}
+    </div>
+  );
+}
+
 function pinnedIcon(item: PinnedItem): React.ReactNode {
   if (item.id === 'my-day') return <Sun size={COLLAPSED_ICON_SIZE} weight="fill" />;
   return getListIcon(item as ListType, COLLAPSED_ICON_SIZE) ?? <List size={COLLAPSED_ICON_SIZE} weight="fill" />;
 }
 
-// ── Sortable components ───────────────────────────────────────────────────────
+// ── Sortable list item ────────────────────────────────────────────────────────
 
-function SortableItem({ list, editMode }: { list: ListType; editMode: boolean }) {
+function SortableItem({
+  list,
+  editMode,
+  allowFolderDrag = true,
+}: {
+  list: ListType;
+  editMode: boolean;
+  allowFolderDrag?: boolean;
+}) {
   const dragControls = useDragControls();
+
+  function handleDragStart(e: React.DragEvent) {
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', JSON.stringify({ listId: list.id, folderId: list.folder_id }));
+  }
 
   return (
     <Reorder.Item
@@ -35,7 +75,6 @@ function SortableItem({ list, editMode }: { list: ListType; editMode: boolean })
       value={list}
       dragListener={false}
       dragControls={dragControls}
-      onPointerDown={editMode ? (e) => dragControls.start(e) : undefined}
       className={`nav-item-row${editMode ? ' nav-item-row--editing' : ''}`}
     >
       <AnimatePresence initial={false}>
@@ -47,20 +86,36 @@ function SortableItem({ list, editMode }: { list: ListType; editMode: boolean })
             exit={{ width: 0, opacity: 0 }}
             transition={{ duration: 0.15 }}
           >
-            <span className="nav-drag-icon">
+            {/* ≡ handle — triggers FM reorder only */}
+            <span
+              className="nav-drag-icon"
+              onPointerDown={(e) => dragControls.start(e)}
+            >
               <List size={ICON_SIZE} weight="bold" />
             </span>
           </motion.span>
         )}
       </AnimatePresence>
-      <NavLink
-        to={`/list/${list.id}`}
-        className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'}
-        style={editMode ? { pointerEvents: 'none' } : undefined}
-      >
-        {getListIcon(list)}
-        {list.name}
-      </NavLink>
+      {/* List content — draggable in edit mode only for non-pinned lists */}
+      {editMode ? (
+        <div
+          className="nav-item"
+          draggable={allowFolderDrag}
+          onDragStart={allowFolderDrag ? handleDragStart : undefined}
+          style={allowFolderDrag ? { cursor: 'grab' } : undefined}
+        >
+          {getListIcon(list)}
+          {list.name}
+        </div>
+      ) : (
+        <NavLink
+          to={`/list/${list.id}`}
+          className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'}
+        >
+          {getListIcon(list)}
+          {list.name}
+        </NavLink>
+      )}
     </Reorder.Item>
   );
 }
@@ -74,7 +129,6 @@ function SortableMyDayItem({ editMode }: { editMode: boolean }) {
       value={MY_DAY_SENTINEL}
       dragListener={false}
       dragControls={dragControls}
-      onPointerDown={editMode ? (e) => dragControls.start(e) : undefined}
       className={`nav-item-row${editMode ? ' nav-item-row--editing' : ''}`}
     >
       <AnimatePresence initial={false}>
@@ -86,20 +140,235 @@ function SortableMyDayItem({ editMode }: { editMode: boolean }) {
             exit={{ width: 0, opacity: 0 }}
             transition={{ duration: 0.15 }}
           >
-            <span className="nav-drag-icon">
+            <span className="nav-drag-icon" onPointerDown={(e) => dragControls.start(e)}>
               <List size={ICON_SIZE} weight="bold" />
             </span>
           </motion.span>
         )}
       </AnimatePresence>
-      <NavLink
-        to="/my-day"
-        className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'}
-        style={editMode ? { pointerEvents: 'none' } : undefined}
-      >
-        <Sun size={ICON_SIZE} weight="fill" />
-        My Day
-      </NavLink>
+      {editMode ? (
+        <div className="nav-item">
+          <Sun size={ICON_SIZE} weight="fill" />
+          My Day
+        </div>
+      ) : (
+        <NavLink
+          to="/my-day"
+          className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'}
+        >
+          <Sun size={ICON_SIZE} weight="fill" />
+          My Day
+        </NavLink>
+      )}
+    </Reorder.Item>
+  );
+}
+
+// ── Folder row ────────────────────────────────────────────────────────────────
+
+function FolderRow({
+  folder,
+  listsInFolder,
+  editMode,
+  onDropList,
+}: {
+  folder: ListFolder;
+  listsInFolder: ListType[];
+  editMode: boolean;
+  onDropList: (listId: string) => void;
+}) {
+  const dragControls = useDragControls();
+  const { folderCollapsed, setFolderCollapsed, setFolderOrder } = useSettings();
+  const renameFolder = useAppStore((s) => s.renameFolder);
+  const deleteFolder = useAppStore((s) => s.deleteFolder);
+  const { customOrder, setCustomOrder } = useSettings();
+
+  const isCollapsed = folderCollapsed[folder.id] ?? false;
+  const [editingName, setEditingName] = useState(false);
+  const [newName, setNewName] = useState(folder.name);
+  const [showMenu, setShowMenu] = useState(false);
+  const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const menuBtnRef = useRef<HTMLButtonElement>(null);
+
+  function openMenu() {
+    if (menuBtnRef.current) {
+      const rect = menuBtnRef.current.getBoundingClientRect();
+      setMenuPos({ top: rect.bottom + 4, left: rect.left });
+    }
+    setConfirmDelete(false);
+    setShowMenu(true);
+  }
+
+  function closeMenu() {
+    setShowMenu(false);
+    setConfirmDelete(false);
+  }
+
+  function startRename() {
+    closeMenu();
+    setNewName(folder.name);
+    setEditingName(true);
+    focusLater(inputRef);
+  }
+
+  async function commitRename() {
+    const name = newName.trim();
+    if (name && name !== folder.name) await renameFolder(folder.id, name);
+    setEditingName(false);
+  }
+
+  async function handleDelete() {
+    const { movedListIds } = await deleteFolder(folder.id);
+    setCustomOrder([
+      ...movedListIds,
+      ...customOrder.filter((id) => id !== folder.id && !movedListIds.includes(id)),
+    ]);
+    closeMenu();
+  }
+
+  function handleDragOver(e: React.DragEvent) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setIsDragOver(true);
+  }
+
+  function handleDragLeave(e: React.DragEvent) {
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setIsDragOver(false);
+    }
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setIsDragOver(false);
+    try {
+      const { listId } = JSON.parse(e.dataTransfer.getData('text/plain'));
+      if (listId) onDropList(listId);
+    } catch {}
+  }
+
+  return (
+    <Reorder.Item
+      as="div"
+      value={folder}
+      dragListener={false}
+      dragControls={dragControls}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      className={`nav-folder${isDragOver ? ' nav-folder--drag-over' : ''}`}
+    >
+      {/* Folder header */}
+      <div className={`nav-folder-header${editMode ? ' nav-item-row--editing' : ''}`}>
+        <AnimatePresence initial={false}>
+          {editMode && (
+            <motion.span
+              style={{ overflow: 'hidden', flexShrink: 0, display: 'flex' }}
+              initial={{ width: 0, opacity: 0 }}
+              animate={{ width: 26, opacity: 1 }}
+              exit={{ width: 0, opacity: 0 }}
+              transition={{ duration: 0.15 }}
+            >
+              <span className="nav-drag-icon" onPointerDown={(e) => dragControls.start(e)}>
+                <List size={ICON_SIZE} weight="bold" />
+              </span>
+            </motion.span>
+          )}
+        </AnimatePresence>
+
+        {!editMode && (
+          <button
+            className="nav-folder-chevron"
+            onClick={() => setFolderCollapsed(folder.id, !isCollapsed)}
+            aria-label={isCollapsed ? 'Expand folder' : 'Collapse folder'}
+          >
+            {isCollapsed ? <CaretRight size={12} weight="bold" /> : <CaretDown size={12} weight="bold" />}
+          </button>
+        )}
+
+        <FolderSimple size={ICON_SIZE} weight="fill" className="nav-folder-icon" />
+
+        {editingName ? (
+          <input
+            ref={inputRef}
+            className="nav-inline-input"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') commitRename();
+              if (e.key === 'Escape') setEditingName(false);
+            }}
+            onBlur={commitRename}
+          />
+        ) : (
+          <span className="nav-folder-name">{folder.name}</span>
+        )}
+
+        {!editingName && (
+          <button ref={menuBtnRef} className="nav-folder-menu-btn" onClick={openMenu} title="Folder options">
+            <DotsThree size={ICON_SIZE} weight="bold" />
+          </button>
+        )}
+
+        {showMenu && menuPos && createPortal(
+          <>
+            <div className="folder-picker-backdrop" onClick={closeMenu} />
+            <div className="folder-picker" style={{ position: 'fixed', top: menuPos.top, left: menuPos.left }}>
+              {!confirmDelete ? (
+                <>
+                  <button onClick={startRename}>
+                    <PencilSimple size={13} weight="fill" />
+                    Rename
+                  </button>
+                  <button className="folder-picker-danger" onClick={() => setConfirmDelete(true)}>
+                    <Trash size={13} weight="fill" />
+                    Delete
+                  </button>
+                </>
+              ) : (
+                <>
+                  <span className="folder-picker-label">Delete "{folder.name}"?</span>
+                  <button className="folder-picker-danger" onClick={handleDelete}>Yes, delete</button>
+                  <button onClick={() => setConfirmDelete(false)}>Cancel</button>
+                </>
+              )}
+            </div>
+          </>,
+          document.body
+        )}
+      </div>
+
+      {/* Lists inside folder */}
+      <AnimatePresence initial={false}>
+        {!isCollapsed && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.18 }}
+            style={{ overflow: 'hidden' }}
+          >
+            <Reorder.Group
+              as="div"
+              axis="y"
+              values={listsInFolder}
+              onReorder={(newOrder) => setFolderOrder(folder.id, newOrder.map((l) => l.id))}
+              className="nav-folder-lists"
+            >
+              {listsInFolder.map((l) => (
+                <SortableItem
+                  key={l.id}
+                  list={l}
+                  editMode={editMode}
+                />
+              ))}
+            </Reorder.Group>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </Reorder.Item>
   );
 }
@@ -111,19 +380,47 @@ const COLLAPSED_W = 40;
 
 export function Sidebar() {
   const lists = useAppStore((s) => s.lists);
+  const folders = useAppStore((s) => s.folders);
   const createList = useAppStore((s) => s.createList);
-  const [templatesOpen, setTemplatesOpen] = useState(false);
+  const createFolder = useAppStore((s) => s.createFolder);
+  const moveListToFolder = useAppStore((s) => s.moveListToFolder);
+
   const [editMode, setEditMode] = useState(false);
   const [addingList, setAddingList] = useState(false);
+  const [addingFolder, setAddingFolder] = useState(false);
+  const [showAddMenu, setShowAddMenu] = useState(false);
+  const [addMenuPos, setAddMenuPos] = useState<{ top: number; left: number } | null>(null);
   const [newListName, setNewListName] = useState('');
+  const [newFolderName, setNewFolderName] = useState('');
+  const [ungroupedDragOver, setUngroupedDragOver] = useState(false);
   const addInputRef = useRef<HTMLInputElement>(null);
+  const addFolderInputRef = useRef<HTMLInputElement>(null);
+  const addMenuBtnRef = useRef<HTMLButtonElement>(null);
+  const navigate = useNavigate();
+
+  // Close add menu on scroll/resize
+  useEffect(() => {
+    if (!showAddMenu) return;
+    const close = () => setShowAddMenu(false);
+    window.addEventListener('scroll', close, true);
+    window.addEventListener('resize', close);
+    return () => {
+      window.removeEventListener('scroll', close, true);
+      window.removeEventListener('resize', close);
+    };
+  }, [showAddMenu]);
 
   const {
     hiddenListIds,
     pinnedOrder,
     customOrder,
+    folderOrders,
+    listsOpen,
     setPinnedOrder,
     setCustomOrder,
+    setListsOpen,
+    setFolderCollapsed,
+    setFolderOrder,
     sidebarCollapsed,
     setSidebarCollapsed,
   } = useSettings();
@@ -136,24 +433,40 @@ export function Sidebar() {
     .filter((item): item is PinnedItem => item !== undefined)
     .filter((item) => !hiddenListIds.includes(item.id));
 
-  // Custom lists
+  // Non-pinned, non-daily lists (excluding hidden)
   const pinnedSet = new Set(pinnedOrder);
   const nonPinnedLists = lists.filter(
-    (l) => l.type !== 'template' && !pinnedSet.has(l.id) && !hiddenListIds.includes(l.id)
+    (l) => l.type !== 'daily' && !pinnedSet.has(l.id) && !hiddenListIds.includes(l.id)
   );
-  const customOrderedIds = customOrder.filter((id) => nonPinnedLists.some((l) => l.id === id));
-  const remainder = nonPinnedLists.filter((l) => !customOrder.includes(l.id));
-  const customLists: ListType[] = [
-    ...customOrderedIds.map((id) => nonPinnedLists.find((l) => l.id === id)!),
-    ...remainder,
+
+  // Ungrouped lists (no folder)
+  const ungroupedLists = nonPinnedLists.filter((l) => !l.folder_id);
+
+  // Build ordered ungrouped list
+  const customOrderedIds = customOrder.filter((id) => ungroupedLists.some((l) => l.id === id));
+  const remainderLists = ungroupedLists.filter((l) => !customOrder.includes(l.id));
+  const orderedUngrouped: ListType[] = [
+    ...customOrderedIds.map((id) => ungroupedLists.find((l) => l.id === id)!),
+    ...remainderLists,
   ];
 
-  const templates = lists.filter((l) => l.type === 'template' && !hiddenListIds.includes(l.id));
+  // Build ordered folders
+  const customOrderedFolderIds = customOrder.filter((id) => folders.some((f) => f.id === id));
+  const remainderFolders = folders.filter((f) => !customOrder.includes(f.id));
+  const orderedFolders: ListFolder[] = [
+    ...customOrderedFolderIds.map((id) => folders.find((f) => f.id === id)!),
+    ...remainderFolders,
+  ];
 
-  function startAddList() {
-    setNewListName('');
-    setAddingList(true);
-    focusLater(addInputRef);
+  function getFolderLists(folderId: string): ListType[] {
+    const order = folderOrders[folderId] ?? [];
+    const listsIn = nonPinnedLists.filter((l) => l.folder_id === folderId);
+    const ordered = order.flatMap((id) => {
+      const l = listsIn.find((x) => x.id === id);
+      return l ? [l] : [];
+    });
+    const rest = listsIn.filter((l) => !order.includes(l.id));
+    return [...ordered, ...rest];
   }
 
   async function commitAddList() {
@@ -162,6 +475,7 @@ export function Sidebar() {
     try {
       const created = await createList(name, 'general');
       setCustomOrder([...customOrder, created.id]);
+      navigate(`/list/${created.id}`);
     } catch (err) {
       console.error(err);
     }
@@ -172,6 +486,89 @@ export function Sidebar() {
   function cancelAddList() {
     setAddingList(false);
     setNewListName('');
+  }
+
+  function openAddMenu() {
+    if (addMenuBtnRef.current) {
+      const rect = addMenuBtnRef.current.getBoundingClientRect();
+      setAddMenuPos({ top: rect.bottom + 4, left: rect.left });
+    }
+    setShowAddMenu((p) => !p);
+  }
+
+  function startAddList() {
+    setShowAddMenu(false);
+    setNewListName('');
+    setAddingList(true);
+    focusLater(addInputRef);
+  }
+
+  function startAddFolder() {
+    setShowAddMenu(false);
+    setNewFolderName('');
+    setAddingFolder(true);
+    focusLater(addFolderInputRef);
+  }
+
+  async function commitAddFolder() {
+    const name = newFolderName.trim();
+    if (!name) { setAddingFolder(false); return; }
+    try {
+      const created = await createFolder(name);
+      setCustomOrder([...customOrder, created.id]);
+      setFolderCollapsed(created.id, false);
+    } catch (err) {
+      console.error(err);
+    }
+    setAddingFolder(false);
+    setNewFolderName('');
+  }
+
+  function cancelAddFolder() {
+    setAddingFolder(false);
+    setNewFolderName('');
+  }
+
+  async function handleMoveToFolder(listId: string, folderId: string | null) {
+    await moveListToFolder(listId, folderId);
+    if (folderId) {
+      setCustomOrder(customOrder.filter((id) => id !== listId));
+      const currentFolderOrder = folderOrders[folderId] ?? [];
+      if (!currentFolderOrder.includes(listId)) {
+        setFolderOrder(folderId, [...currentFolderOrder, listId]);
+      }
+      setFolderCollapsed(folderId, false);
+    } else {
+      if (!customOrder.includes(listId)) {
+        setCustomOrder([...customOrder, listId]);
+      }
+      Object.keys(folderOrders).forEach((fid) => {
+        if (folderOrders[fid].includes(listId)) {
+          setFolderOrder(fid, folderOrders[fid].filter((id) => id !== listId));
+        }
+      });
+    }
+  }
+
+  function handleUngroupedDragOver(e: React.DragEvent) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setUngroupedDragOver(true);
+  }
+
+  function handleUngroupedDragLeave(e: React.DragEvent) {
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setUngroupedDragOver(false);
+    }
+  }
+
+  function handleUngroupedDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setUngroupedDragOver(false);
+    try {
+      const { listId, folderId } = JSON.parse(e.dataTransfer.getData('text/plain'));
+      if (listId && folderId !== null) handleMoveToFolder(listId, null);
+    } catch {}
   }
 
   return (
@@ -203,36 +600,38 @@ export function Sidebar() {
             {pinnedItems.map((item) => {
               const label = item.id === 'my-day' ? 'My Day' : (item as ListType).name;
               return (
-                <NavLink
-                  key={item.id}
-                  to={item.id === 'my-day' ? '/my-day' : `/list/${item.id}`}
-                  className={({ isActive }) => isActive ? 'nav-icon-btn nav-icon-btn--active' : 'nav-icon-btn'}
-                  aria-label={label}
-                  data-tooltip={label}
-                >
-                  {pinnedIcon(item)}
-                </NavLink>
+                <NavTooltip key={item.id} label={label}>
+                  <NavLink
+                    to={item.id === 'my-day' ? '/my-day' : `/list/${item.id}`}
+                    className={({ isActive }) => isActive ? 'nav-icon-btn nav-icon-btn--active' : 'nav-icon-btn'}
+                    aria-label={label}
+                  >
+                    {pinnedIcon(item)}
+                  </NavLink>
+                </NavTooltip>
               );
             })}
 
             <div className="sidebar-spacer" />
 
-            <NavLink
-              to="/settings"
-              className={({ isActive }) => isActive ? 'nav-icon-btn nav-icon-btn--active' : 'nav-icon-btn'}
-              aria-label="Settings"
-              data-tooltip="Settings"
-            >
-              <GearSix size={20} weight="fill" />
-            </NavLink>
-            <button
-              className="nav-icon-btn"
-              onClick={() => signOut().catch(console.error)}
-              aria-label="Sign out"
-              data-tooltip="Sign out"
-            >
-              <SignOut size={20} weight="fill" />
-            </button>
+            <NavTooltip label="Settings">
+              <NavLink
+                to="/settings"
+                className={({ isActive }) => isActive ? 'nav-icon-btn nav-icon-btn--active' : 'nav-icon-btn'}
+                aria-label="Settings"
+              >
+                <GearSix size={20} weight="fill" />
+              </NavLink>
+            </NavTooltip>
+            <NavTooltip label="Sign out">
+              <button
+                className="nav-icon-btn"
+                onClick={() => signOut().catch(console.error)}
+                aria-label="Sign out"
+              >
+                <SignOut size={20} weight="fill" />
+              </button>
+            </NavTooltip>
           </motion.div>
         ) : (
           <motion.div
@@ -249,7 +648,9 @@ export function Sidebar() {
                 onClick={() => setEditMode((e) => !e)}
                 title={editMode ? 'Done reordering' : 'Reorder lists'}
               >
-                {editMode ? <Check size={ICON_SIZE} weight="fill" /> : <PencilSimple size={ICON_SIZE} weight="fill" />}
+                {editMode
+                  ? <CheckCircle size={ICON_SIZE} weight="fill" style={{ color: 'var(--success)' }} />
+                  : <PencilSimple size={ICON_SIZE} weight="fill" />}
               </button>
               <button
                 className="sidebar-collapse-btn"
@@ -273,72 +674,161 @@ export function Sidebar() {
                 {pinnedItems.map((item) =>
                   item.id === 'my-day'
                     ? <SortableMyDayItem key="my-day" editMode={editMode} />
-                    : <SortableItem key={item.id} list={item as ListType} editMode={editMode} />
+                    : <SortableItem
+                        key={item.id}
+                        list={item as ListType}
+                        editMode={editMode}
+                        allowFolderDrag={false}
+                      />
                 )}
               </Reorder.Group>
             )}
 
-            {/* Lists section */}
-            <div className="nav-section-label">Lists</div>
-            <Reorder.Group
-              as="div"
-              axis="y"
-              values={customLists}
-              onReorder={(newOrder) => setCustomOrder(newOrder.map((l) => l.id))}
-              className="nav-reorder-group"
-              initial={false}
-            >
-              {customLists.map((l) => (
-                <SortableItem key={l.id} list={l} editMode={editMode} />
-              ))}
-            </Reorder.Group>
-
-            {/* Add list */}
-            {addingList ? (
-              <div className="nav-item nav-item--editing">
-                <input
-                  ref={addInputRef}
-                  className="nav-inline-input"
-                  placeholder="List name"
-                  value={newListName}
-                  onChange={(e) => setNewListName(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') commitAddList();
-                    if (e.key === 'Escape') cancelAddList();
-                  }}
-                />
-                <button className="nav-action-btn" onClick={commitAddList} title="Create">
-                  <Check size={ICON_SIZE} weight="fill" />
-                </button>
-                <button className="nav-action-btn" onClick={cancelAddList} title="Cancel">
-                  <X size={ICON_SIZE} weight="fill" />
-                </button>
-              </div>
-            ) : (
-              <button className="nav-item nav-btn nav-add-list-btn" onClick={startAddList}>
-                <Plus size={ICON_SIZE} weight="fill" />
-                New list
+            {/* Lists section header */}
+            <div className="nav-section-header">
+              <button
+                className="nav-section-toggle"
+                onClick={() => setListsOpen(!listsOpen)}
+              >
+                {listsOpen
+                  ? <CaretDown size={10} weight="bold" />
+                  : <CaretRight size={10} weight="bold" />}
+                Lists
               </button>
-            )}
-
-            {/* Templates section */}
-            {templates.length > 0 && (
-              <>
-                <button className="nav-section-label nav-section-label--button" onClick={() => setTemplatesOpen((o) => !o)}>
-                  Templates {templatesOpen ? <CaretDown size={ICON_SIZE} weight="fill" /> : <CaretRight size={ICON_SIZE} weight="fill" />}
-                </button>
-                {templatesOpen && templates.map((l) => (
-                  <NavLink
-                    key={l.id}
-                    to={`/list/${l.id}`}
-                    className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'}
+              <button
+                ref={addMenuBtnRef}
+                className="nav-add-btn"
+                onClick={openAddMenu}
+                title="New list or folder"
+              >
+                <Plus size={ICON_SIZE} weight="bold" />
+              </button>
+              {showAddMenu && addMenuPos && createPortal(
+                <>
+                  <div className="folder-picker-backdrop" onClick={() => setShowAddMenu(false)} />
+                  <div
+                    className="folder-picker"
+                    style={{ position: 'fixed', top: addMenuPos.top, left: addMenuPos.left }}
                   >
-                    {getListIcon(l)}
-                    {l.name}
-                  </NavLink>
-                ))}
-              </>
-            )}
+                    <button onClick={startAddList}>
+                      <List size={13} weight="fill" />
+                      New list
+                    </button>
+                    <button onClick={startAddFolder}>
+                      <FolderSimplePlus size={13} weight="fill" />
+                      New folder
+                    </button>
+                  </div>
+                </>,
+                document.body
+              )}
+            </div>
+
+            {/* Lists section content */}
+            <AnimatePresence initial={false}>
+              {listsOpen && (
+                <motion.div
+                  key="lists-content"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  style={{ overflow: 'hidden' }}
+                >
+                  {/* Ungrouped lists — drop zone for removing from folder */}
+                  <div
+                    onDragOver={handleUngroupedDragOver}
+                    onDragLeave={handleUngroupedDragLeave}
+                    onDrop={handleUngroupedDrop}
+                    className={ungroupedDragOver ? 'nav-drop-zone nav-drop-zone--active' : 'nav-drop-zone'}
+                  >
+                    <Reorder.Group
+                      as="div"
+                      axis="y"
+                      values={orderedUngrouped}
+                      onReorder={(newOrder) => setCustomOrder([
+                        ...newOrder.map((l) => l.id),
+                        ...customOrder.filter((id) => folders.some((f) => f.id === id)),
+                      ])}
+                      className="nav-reorder-group"
+                      initial={false}
+                    >
+                      {orderedUngrouped.map((l) => (
+                        <SortableItem
+                          key={l.id}
+                          list={l}
+                          editMode={editMode}
+                        />
+                      ))}
+                    </Reorder.Group>
+                  </div>
+
+                  {/* Folders */}
+                  <Reorder.Group
+                    as="div"
+                    axis="y"
+                    values={orderedFolders}
+                    onReorder={(newFolderOrder) => setCustomOrder([
+                      ...customOrder.filter((id) => ungroupedLists.some((l) => l.id === id)),
+                      ...newFolderOrder.map((f) => f.id),
+                    ])}
+                    className="nav-reorder-group"
+                    initial={false}
+                  >
+                    {orderedFolders.map((folder) => (
+                      <FolderRow
+                        key={folder.id}
+                        folder={folder}
+                        listsInFolder={getFolderLists(folder.id)}
+                        editMode={editMode}
+                        onDropList={(listId) => handleMoveToFolder(listId, folder.id)}
+                      />
+                    ))}
+                  </Reorder.Group>
+
+                  {/* Add folder inline */}
+                  {addingFolder && (
+                    <div className="nav-item nav-item--editing">
+                      <FolderSimple size={ICON_SIZE} weight="fill" style={{ color: 'var(--fg-muted)', flexShrink: 0 }} />
+                      <input
+                        ref={addFolderInputRef}
+                        className="nav-inline-input"
+                        placeholder="Folder name"
+                        value={newFolderName}
+                        onChange={(e) => setNewFolderName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') commitAddFolder();
+                          if (e.key === 'Escape') cancelAddFolder();
+                        }}
+                      />
+                      <button className="nav-action-btn nav-action-btn--success" onClick={commitAddFolder} title="Create">
+                        <ArrowElbowDownLeft size={ICON_SIZE} weight="bold" />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Add list inline */}
+                  {addingList && (
+                    <div className="nav-item nav-item--editing">
+                      <input
+                        ref={addInputRef}
+                        className="nav-inline-input"
+                        placeholder="List name"
+                        value={newListName}
+                        onChange={(e) => setNewListName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') commitAddList();
+                          if (e.key === 'Escape') cancelAddList();
+                        }}
+                      />
+                      <button className="nav-action-btn nav-action-btn--success" onClick={commitAddList} title="Create">
+                        <ArrowElbowDownLeft size={ICON_SIZE} weight="bold" />
+                      </button>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             <div className="sidebar-spacer" />
 

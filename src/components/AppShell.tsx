@@ -25,12 +25,14 @@ function DetailSlot() {
 export function AppShell() {
   const { pendingCount, isSyncing, syncError: _syncError } = useSync();
   const loadLists = useAppStore((s) => s.loadLists);
+  const loadFolders = useAppStore((s) => s.loadFolders);
   const headerDate = useMemo(() =>
     new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).toUpperCase()
   , []);
 
   useEffect(() => {
     loadLists();
+    loadFolders();
   }, []);
 
   return (

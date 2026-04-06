@@ -6,6 +6,12 @@ import {
   deleteList as dbDeleteList,
 } from '../db/lists';
 import {
+  getFolders,
+  createFolder as dbCreateFolder,
+  renameFolder as dbRenameFolder,
+  deleteFolder as dbDeleteFolder,
+} from '../db/folders';
+import {
   getTasksByList,
   createTask as dbCreateTask,
   updateTask as dbUpdateTask,
@@ -16,7 +22,7 @@ import {
   getMyDayTasks,
 } from '../db/tasks';
 import { getTodayCompletions } from '../db/habits';
-import type { List, Task, ListType } from '../types';
+import type { List, ListFolder, Task, ListType } from '../types';
 
 export interface HabitWithCompletion {
   task: Task;
@@ -59,6 +65,10 @@ interface AppStore {
   lists: List[];
   listsLoaded: boolean;
 
+  // Folders
+  folders: ListFolder[];
+  foldersLoaded: boolean;
+
   // Tasks (per list; always includes soft-deleted so shopping "recent" works)
   tasksByList: Record<string, Task[]>;
 
@@ -70,13 +80,21 @@ interface AppStore {
 
   // Loaders
   loadLists: () => Promise<void>;
+  loadFolders: () => Promise<void>;
   loadTasks: (listId: string) => Promise<void>;
   loadMyDay: () => Promise<void>;
 
   // List mutations
-  createList: (name: string, type: ListType) => Promise<List>;
+  createList: (name: string, type: ListType, folderId?: string | null) => Promise<List>;
   renameList: (id: string, name: string) => Promise<void>;
   deleteList: (id: string) => Promise<void>;
+  moveListToFolder: (listId: string, folderId: string | null) => Promise<void>;
+  duplicateList: (id: string) => Promise<List>;
+
+  // Folder mutations
+  createFolder: (name: string) => Promise<ListFolder>;
+  renameFolder: (id: string, name: string) => Promise<void>;
+  deleteFolder: (id: string) => Promise<{ movedListIds: string[] }>;
 
   // Task mutations
   addTask: (listId: string, title: string) => Promise<Task>;
@@ -90,6 +108,8 @@ interface AppStore {
 export const useAppStore = create<AppStore>((set, get) => ({
   lists: [],
   listsLoaded: false,
+  folders: [],
+  foldersLoaded: false,
   tasksByList: {},
   myDayOverdue: [],
   myDayToday: [],
@@ -101,6 +121,11 @@ export const useAppStore = create<AppStore>((set, get) => ({
   loadLists: async () => {
     const lists = await getLists();
     set({ lists, listsLoaded: true });
+  },
+
+  loadFolders: async () => {
+    const folders = await getFolders();
+    set({ folders, foldersLoaded: true });
   },
 
   loadTasks: async (listId) => {
@@ -143,8 +168,8 @@ export const useAppStore = create<AppStore>((set, get) => ({
 
   // ── List mutations ─────────────────────────────────────────────────────────
 
-  createList: async (name, type) => {
-    const list = await dbCreateList(name, type);
+  createList: async (name, type, folderId) => {
+    const list = await dbCreateList(name, type, folderId);
     set((s) => ({ lists: [...s.lists, list] }));
     return list;
   },
@@ -164,6 +189,63 @@ export const useAppStore = create<AppStore>((set, get) => ({
         Object.entries(s.tasksByList).filter(([k]) => k !== id)
       ),
     }));
+  },
+
+  moveListToFolder: async (listId, folderId) => {
+    await dbUpdateList(listId, { folder_id: folderId });
+    set((s) => ({
+      lists: s.lists.map((l) => (l.id === listId ? { ...l, folder_id: folderId } : l)),
+    }));
+  },
+
+  duplicateList: async (id) => {
+    const source = get().lists.find((l) => l.id === id);
+    if (!source) throw new Error(`List ${id} not found`);
+    const newList = await dbCreateList(`${source.name} (copy)`, source.type, source.folder_id);
+    const sourceTasks = await getTasksByList(id);
+    const newTasks = await Promise.all(
+      sourceTasks.map((t) =>
+        dbCreateTask(newList.id, t.title, {
+          completed: t.completed,
+          due_date: t.due_date ?? undefined,
+          recurrence_interval: t.recurrence_interval ?? undefined,
+          recurrence_unit: t.recurrence_unit ?? undefined,
+          rrule: t.rrule ?? undefined,
+        })
+      )
+    );
+    set((s) => ({
+      lists: [...s.lists, newList],
+      tasksByList: { ...s.tasksByList, [newList.id]: newTasks },
+    }));
+    return newList;
+  },
+
+  // ── Folder mutations ───────────────────────────────────────────────────────
+
+  createFolder: async (name) => {
+    const folder = await dbCreateFolder(name);
+    set((s) => ({ folders: [...s.folders, folder] }));
+    return folder;
+  },
+
+  renameFolder: async (id, name) => {
+    await dbRenameFolder(id, name);
+    set((s) => ({
+      folders: s.folders.map((f) => (f.id === id ? { ...f, name } : f)),
+    }));
+  },
+
+  deleteFolder: async (id) => {
+    // Move all lists in this folder back to root
+    const listsInFolder = get().lists.filter((l) => l.folder_id === id);
+    await Promise.all(listsInFolder.map((l) => dbUpdateList(l.id, { folder_id: null })));
+    await dbDeleteFolder(id);
+    set((s) => ({
+      folders: s.folders.filter((f) => f.id !== id),
+      lists: s.lists.map((l) => (l.folder_id === id ? { ...l, folder_id: null } : l)),
+    }));
+    return { movedListIds: listsInFolder.map((l) => l.id) };
   },
 
   // ── Task mutations ─────────────────────────────────────────────────────────

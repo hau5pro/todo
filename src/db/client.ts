@@ -1,5 +1,5 @@
 const DB_NAME = 'todo-app';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 let dbPromise: Promise<IDBDatabase> | null = null;
 
@@ -19,10 +19,11 @@ export function clearAllLocalData(): Promise<void> {
   return getDB().then(
     (db) =>
       new Promise((resolve, reject) => {
-        const tx = db.transaction(['lists', 'tasks', 'habit_completions'], 'readwrite');
+        const tx = db.transaction(['lists', 'tasks', 'habit_completions', 'folders'], 'readwrite');
         tx.objectStore('lists').clear();
         tx.objectStore('tasks').clear();
         tx.objectStore('habit_completions').clear();
+        tx.objectStore('folders').clear();
         tx.oncomplete = () => resolve();
         tx.onerror = () => reject(tx.error);
       }),
@@ -35,10 +36,13 @@ function openDB(): Promise<IDBDatabase> {
 
     request.onupgradeneeded = (event) => {
       const db = (event.target as IDBOpenDBRequest).result;
+      const tx = (event.target as IDBOpenDBRequest).transaction!;
+      const oldVersion = event.oldVersion;
 
       if (!db.objectStoreNames.contains('lists')) {
         const lists = db.createObjectStore('lists', { keyPath: 'id' });
         lists.createIndex('type', 'type');
+        lists.createIndex('folder_id', 'folder_id');
       }
 
       if (!db.objectStoreNames.contains('tasks')) {
@@ -52,6 +56,19 @@ function openDB(): Promise<IDBDatabase> {
         habits.createIndex('task_id', 'task_id');
         habits.createIndex('date', 'date');
         habits.createIndex('task_id_date', ['task_id', 'date'], { unique: true });
+      }
+
+      // v2: folders store + folder_id index on existing lists store
+      if (oldVersion < 2) {
+        if (!db.objectStoreNames.contains('folders')) {
+          db.createObjectStore('folders', { keyPath: 'id' });
+        }
+        if (db.objectStoreNames.contains('lists')) {
+          const listsStore = tx.objectStore('lists');
+          if (!listsStore.indexNames.contains('folder_id')) {
+            listsStore.createIndex('folder_id', 'folder_id');
+          }
+        }
       }
     };
 

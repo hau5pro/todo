@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { PencilSimple, Trash, Check, X, CaretDown, CaretRight } from '@phosphor-icons/react';
+import { PencilSimple, Trash, Check, X, CaretDown, CaretRight, CopySimple } from '@phosphor-icons/react';
 import { AnimatePresence, motion, Reorder } from 'framer-motion';
 import { ease } from '../utils/easing';
 import { focusLater } from '../utils/dom';
@@ -29,10 +29,10 @@ export function ListView() {
   const list = useAppStore((s) => s.lists.find((l) => l.id === listId));
   const tasks = useAppStore((s) => s.tasksByList[listId!]);
   const loadTasks = useAppStore((s) => s.loadTasks);
-  const { renameList, deleteList, addTask, completeTask, advanceCyclicalTask } = useAppStore();
+  const { renameList, deleteList, duplicateList, addTask, completeTask, advanceCyclicalTask } = useAppStore();
 
   const { detail, open: openDetail, close: closeDetail } = useTaskDetail();
-  const { listOrders, setListOrder } = useSettings();
+  const { listOrders, setListOrder, customOrder, setCustomOrder } = useSettings();
 
   const [newTitle, setNewTitle] = useState('');
   const [editingListName, setEditingListName] = useState(false);
@@ -90,6 +90,12 @@ export function ListView() {
     navigate('/');
   }
 
+  async function handleDuplicate() {
+    const newList = await duplicateList(listId!);
+    setCustomOrder([...customOrder, newList.id]);
+    navigate(`/list/${newList.id}`);
+  }
+
   function handleSelectTask(task: typeof tasks[0]) {
     if (detail?.task.id === task.id) {
       closeDetail();
@@ -122,12 +128,13 @@ export function ListView() {
             <h1 className="view-title">{list.name}</h1>
             <span className="view-title-actions">
               <button className="view-title-action-btn" onClick={startEditListName} title="Rename list"><PencilSimple size={ICON_SIZE} weight="fill" /></button>
+              <button className="view-title-action-btn" onClick={handleDuplicate} title="Duplicate list"><CopySimple size={ICON_SIZE} weight="fill" /></button>
               <button className="view-title-action-btn view-title-action-btn--danger" onClick={() => setConfirmDeleteList(true)} title="Delete list"><Trash size={ICON_SIZE} weight="fill" /></button>
             </span>
           </>
         )}
       </div>
-      <p className="view-subtitle">{LIST_TYPE_LABELS[list.type]}</p>
+      <p className="view-subtitle">{list.type === 'general' ? 'tasks' : LIST_TYPE_LABELS[list.type]}</p>
       <form onSubmit={handleAdd}>
         <input
           className="add-task-input"
