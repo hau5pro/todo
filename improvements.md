@@ -1,3 +1,7 @@
+session counter: 4
++extra usage ~$50
+
+
 - cycles, due dates, recurrances
 - date picker, calender
 
@@ -10,3 +14,6 @@
 
 - view transitions between lists. list items prob shouldnt animate how they are currently?
 
+- uuid routes?
+- highlight list item that is selected when details is open.
+- habits should be above others in my day.

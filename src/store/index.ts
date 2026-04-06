@@ -12,6 +12,7 @@ import {
   softDeleteTask as dbSoftDelete,
   setTaskCompleted as dbSetCompleted,
   advanceCyclicalTask as dbAdvanceCyclical,
+  advanceRecurringTask as dbAdvanceRecurring,
   getMyDayTasks,
 } from '../db/tasks';
 import { getTodayCompletions } from '../db/habits';
@@ -80,8 +81,8 @@ interface AppStore {
   // Task mutations
   addTask: (listId: string, title: string) => Promise<Task>;
   renameTask: (id: string, listId: string, title: string) => Promise<Task>;
+  updateTaskFields: (id: string, listId: string, fields: Partial<Pick<Task, 'due_date' | 'rrule'>>) => Promise<Task>;
   completeTask: (id: string, listId: string, completed: boolean) => Promise<void>;
-
   advanceCyclicalTask: (id: string, listId: string) => Promise<void>;
   removeTask: (id: string, listId: string) => Promise<void>;
 }
@@ -184,7 +185,26 @@ export const useAppStore = create<AppStore>((set, get) => ({
     return updated;
   },
 
+  updateTaskFields: async (id, listId, fields) => {
+    const updated = await dbUpdateTask(id, fields);
+    set((s) => updateTaskInSlices(s, listId, (t) => (t.id === id ? updated : t)));
+    if (get().myDayLoaded) get().loadMyDay();
+    return updated;
+  },
+
   completeTask: async (id, listId, completed) => {
+    if (completed) {
+      const task =
+        get().tasksByList[listId]?.find((t) => t.id === id) ??
+        get().myDayOverdue.find((t) => t.id === id) ??
+        get().myDayToday.find((t) => t.id === id);
+      if (task?.rrule && task?.due_date) {
+        const updated = await dbAdvanceRecurring(id);
+        set((s) => updateTaskInSlices(s, listId, (t) => (t.id === id ? updated : t)));
+        if (get().myDayLoaded) get().loadMyDay();
+        return;
+      }
+    }
     const updated = await dbSetCompleted(id, completed);
     set((s) => updateTaskInSlices(s, listId, (t) => (t.id === id ? updated : t)));
     if (get().myDayLoaded) get().loadMyDay();

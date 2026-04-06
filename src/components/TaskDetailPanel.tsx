@@ -1,22 +1,35 @@
 import { useState, useEffect, useRef } from 'react';
+import dayjs from 'dayjs';
 import { motion } from 'framer-motion';
-import { X, Trash2 } from 'lucide-react';
+import { X, Trash2, Calendar } from 'lucide-react';
 import { useTaskDetail } from '../contexts/TaskDetailContext';
 import { useAppStore } from '../store';
 import { ICON_SIZE } from '../config/icons';
 import { ease } from '../utils/easing';
 import { focusLater } from '../utils/dom';
+import { CalendarPicker } from './CalendarPicker';
+import { RecurrencePicker } from './RecurrencePicker';
 import type { Task } from '../types';
+
+function formatDueDate(date: string): string {
+  const today = dayjs().format('YYYY-MM-DD');
+  const tomorrow = dayjs().add(1, 'day').format('YYYY-MM-DD');
+  if (date === today) return 'Today';
+  if (date === tomorrow) return 'Tomorrow';
+  return dayjs(date).format('MMM D, YYYY');
+}
 
 export function TaskDetailPanel() {
   const { detail, close, updateTask: updateCtx } = useTaskDetail();
   const renameTask = useAppStore((s) => s.renameTask);
   const removeTask = useAppStore((s) => s.removeTask);
+  const updateTaskFields = useAppStore((s) => s.updateTaskFields);
+
   const [editTitle, setEditTitle] = useState('');
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [calOpen, setCalOpen] = useState(false);
+
   const inputRef = useRef<HTMLInputElement>(null);
-  // Snapshot the task so the component keeps rendering during the exit animation
-  // (context clears detail immediately, which would cause return null before exit plays)
   const taskSnapshot = useRef<Task | undefined>(detail?.task);
   if (detail?.task) taskSnapshot.current = detail.task;
   const task = taskSnapshot.current;
@@ -25,11 +38,11 @@ export function TaskDetailPanel() {
     if (detail) {
       setEditTitle(detail.task.title);
       setConfirmDelete(false);
+      setCalOpen(false);
       focusLater(inputRef);
     }
   }, [detail?.task.id]);
 
-  // Guard after all hooks — task is always defined when mounted via AnimatePresence
   if (!task) return null;
 
   async function commitTitle() {
@@ -40,11 +53,31 @@ export function TaskDetailPanel() {
     updateCtx(updated);
   }
 
+  async function handleDueDateChange(date: string | null) {
+    if (!task) return;
+    // Clearing due date also clears rrule
+    const fields = date === null
+      ? { due_date: null, rrule: null }
+      : { due_date: date };
+    const updated = await updateTaskFields(task.id, task.list_id, fields);
+    updateCtx(updated);
+    if (date !== null) setCalOpen(false);
+  }
+
+  async function handleRRuleChange(rrule: string | null) {
+    if (!task) return;
+    const updated = await updateTaskFields(task.id, task.list_id, { rrule });
+    updateCtx(updated);
+  }
+
   async function executeDelete() {
     if (!task) return;
     await removeTask(task.id, task.list_id);
     close();
   }
+
+  const dueDate = task.due_date ?? null;
+  const rrule = task.rrule ?? null;
 
   return (
     <motion.aside
@@ -72,6 +105,33 @@ export function TaskDetailPanel() {
             if (e.key === 'Escape') { setEditTitle(task.title); e.currentTarget.blur(); }
           }}
         />
+
+        {/* Due date */}
+        <div className="task-detail-section">
+          <button
+            type="button"
+            className={`task-detail-field-btn${dueDate ? ' task-detail-field-btn--set' : ''}`}
+            onClick={() => setCalOpen((o) => !o)}
+          >
+            <Calendar size={14} strokeWidth={2} />
+            <span>{dueDate ? formatDueDate(dueDate) : 'Add due date'}</span>
+          </button>
+
+          {calOpen && (
+            <div className="task-detail-calendar">
+              <CalendarPicker value={dueDate} onChange={handleDueDateChange} />
+            </div>
+          )}
+        </div>
+
+        {/* Recurrence */}
+        <div className="task-detail-section">
+          <RecurrencePicker
+            value={rrule}
+            dueDate={dueDate}
+            onChange={handleRRuleChange}
+          />
+        </div>
       </div>
 
       <div className="task-detail-panel__footer">

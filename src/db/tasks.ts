@@ -1,3 +1,4 @@
+import { RRule } from 'rrule';
 import { getDB } from './client';
 import type { Task, RecurrenceUnit } from '../types';
 
@@ -22,7 +23,23 @@ function advanceDueDate(dueDate: string, interval: number, unit: RecurrenceUnit)
   ].join('-');
 }
 
-type CreateTaskOpts = Partial<Pick<Task, 'due_date' | 'recurrence_interval' | 'recurrence_unit'>>;
+function nextOccurrenceFromRRule(currentDueDate: string, rruleStr: string): string | null {
+  const [y, m, d] = currentDueDate.split('-').map(Number);
+  const current = new Date(Date.UTC(y, m - 1, d));
+  // Set dtstart to current due date midnight UTC so occurrences are anchored
+  // to day boundaries — without this, rrule defaults to new Date() (current
+  // clock time) which can cause rule.after(current) to return the same day.
+  const rule = new RRule({ ...RRule.parseString(rruleStr), dtstart: current });
+  const next = rule.after(current, false);
+  if (!next) return null;
+  return [
+    next.getUTCFullYear(),
+    String(next.getUTCMonth() + 1).padStart(2, '0'),
+    String(next.getUTCDate()).padStart(2, '0'),
+  ].join('-');
+}
+
+type CreateTaskOpts = Partial<Pick<Task, 'due_date' | 'recurrence_interval' | 'recurrence_unit' | 'rrule'>>;
 
 export async function createTask(listId: string, title: string, opts: CreateTaskOpts = {}): Promise<Task> {
   const task: Task = {
@@ -33,6 +50,7 @@ export async function createTask(listId: string, title: string, opts: CreateTask
     due_date: opts.due_date ?? null,
     recurrence_interval: opts.recurrence_interval ?? null,
     recurrence_unit: opts.recurrence_unit ?? null,
+    rrule: opts.rrule ?? null,
     updated_at: new Date().toISOString(),
     deleted_at: null,
     pending_sync: true,
@@ -117,7 +135,27 @@ export async function softDeleteTask(id: string, deletedAt?: string): Promise<vo
   );
 }
 
-export async function updateTask(id: string, changes: Partial<Pick<Task, 'title' | 'due_date' | 'recurrence_interval' | 'recurrence_unit'>>): Promise<Task> {
+export async function advanceRecurringTask(id: string): Promise<Task> {
+  const db = await getDB();
+  const tx = db.transaction('tasks', 'readwrite');
+  const store = tx.objectStore('tasks');
+  const existing = await req<Task>(store.get(id));
+  if (!existing.due_date || !existing.rrule) {
+    throw new Error(`Task ${id} does not have rrule recurrence`);
+  }
+  const nextDate = nextOccurrenceFromRRule(existing.due_date, existing.rrule);
+  const updated: Task = {
+    ...existing,
+    due_date: nextDate ?? existing.due_date,
+    completed: nextDate ? false : true,
+    updated_at: new Date().toISOString(),
+    pending_sync: true,
+  };
+  await req(store.put(updated));
+  return updated;
+}
+
+export async function updateTask(id: string, changes: Partial<Pick<Task, 'title' | 'due_date' | 'recurrence_interval' | 'recurrence_unit' | 'rrule'>>): Promise<Task> {
   const db = await getDB();
   const tx = db.transaction('tasks', 'readwrite');
   const store = tx.objectStore('tasks');

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import dayjs from 'dayjs';
 import { motion } from 'framer-motion';
 import { AnimatedCheckbox } from './AnimatedCheckbox';
 import { useSettings } from '../contexts/SettingsContext';
@@ -16,7 +17,15 @@ interface Props {
 }
 
 export function TaskItem({ title, completed, dueDate, today, onToggle, onSelect, isSelected }: Props) {
-  const isOverdue = dueDate && dueDate < today;
+  const isOverdue  = dueDate && dueDate < today;
+  const isTomorrow = dueDate === dayjs(today).add(1, 'day').format('YYYY-MM-DD');
+
+  function dueDateLabel(): string {
+    if (!dueDate) return '';
+    if (dueDate === today) return 'today';
+    if (isTomorrow) return 'tomorrow';
+    return dayjs(dueDate).format('MMM D, YYYY');
+  }
   const { soundEnabled, soundStyle } = useSettings();
   const [flashing, setFlashing] = useState(false);
   const [popping, setPopping] = useState(false);
@@ -49,7 +58,7 @@ export function TaskItem({ title, completed, dueDate, today, onToggle, onSelect,
       </span>
       {dueDate && (
         <span className={`task-item__date${isOverdue ? ' task-item__date--overdue' : ''}`}>
-          {isOverdue ? dueDate : 'today'}
+          {dueDateLabel()}
         </span>
       )}
     </motion.div>

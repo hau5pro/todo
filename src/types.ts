@@ -23,9 +23,10 @@ export interface Task {
   list_id: string;
   title: string;
   completed: boolean;
-  due_date: string | null;             // 'YYYY-MM-DD', cyclical only
-  recurrence_interval: number | null;  // cyclical only
-  recurrence_unit: RecurrenceUnit | null; // cyclical only
+  due_date: string | null;             // 'YYYY-MM-DD'
+  recurrence_interval: number | null;  // cyclical list only
+  recurrence_unit: RecurrenceUnit | null; // cyclical list only
+  rrule: string | null;                // task-level recurrence, e.g. 'FREQ=WEEKLY;INTERVAL=1;BYDAY=MO'
   updated_at: string;
   deleted_at: string | null;
   pending_sync: boolean;
