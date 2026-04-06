@@ -1,10 +1,9 @@
-import { List, ShoppingCart, ArrowClockwise, CalendarCheck, Sparkle } from '@phosphor-icons/react';
+import { List, ShoppingCart, CalendarCheck, Sparkle } from '@phosphor-icons/react';
 import { ICON_SIZE } from './icons';
 import type { List as ListData, ListType } from '../types';
 
 const LIST_TYPE_ICONS: Partial<Record<ListType, React.ReactNode>> = {
   shopping: <ShoppingCart size={ICON_SIZE} weight="fill" />,
-  cyclical: <ArrowClockwise size={ICON_SIZE} weight="fill" />,
   daily:    <CalendarCheck size={ICON_SIZE} weight="fill" />,
 };
 
@@ -25,7 +24,7 @@ export function getListIcon(list: Pick<ListData, 'name' | 'type'>, size?: number
     if (Icon) return <Icon size={size} weight="fill" />;
   }
   const TypeIcon = ({
-    shopping: ShoppingCart, cyclical: ArrowClockwise, daily: CalendarCheck,
+    shopping: ShoppingCart, daily: CalendarCheck,
   } as Record<string, React.ComponentType<{ size: number; weight: string }>>)[type];
   return TypeIcon ? <TypeIcon size={size} weight="fill" /> : null;
 }

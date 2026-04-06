@@ -39,7 +39,7 @@ describe('tasks CRUD', () => {
   });
 
   it('advanceCyclicalTask advances due_date by days', async () => {
-    const list = await createList('Chores', 'cyclical');
+    const list = await createList('Chores', 'general');
     const task = await createTask(list.id, 'Laundry', {
       due_date: '2026-04-05',
       recurrence_interval: 7,
@@ -51,7 +51,7 @@ describe('tasks CRUD', () => {
   });
 
   it('advanceCyclicalTask advances due_date by weeks', async () => {
-    const list = await createList('Chores', 'cyclical');
+    const list = await createList('Chores', 'general');
     const task = await createTask(list.id, 'Clean', {
       due_date: '2026-04-05',
       recurrence_interval: 2,
@@ -62,7 +62,7 @@ describe('tasks CRUD', () => {
   });
 
   it('advanceCyclicalTask advances due_date by months', async () => {
-    const list = await createList('Chores', 'cyclical');
+    const list = await createList('Chores', 'general');
     const task = await createTask(list.id, 'Check', {
       due_date: '2026-04-05',
       recurrence_interval: 1,
@@ -73,7 +73,7 @@ describe('tasks CRUD', () => {
   });
 
   it('getMyDayTasks returns overdue and today tasks', async () => {
-    const list = await createList('Chores', 'cyclical');
+    const list = await createList('Chores', 'general');
     await createTask(list.id, 'Overdue', { due_date: '2026-04-01' });
     await createTask(list.id, 'Today', { due_date: '2026-04-05' });
     await createTask(list.id, 'Future', { due_date: '2026-04-10' });

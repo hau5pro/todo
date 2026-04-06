@@ -16,8 +16,3 @@ session counter: 4 + 5x lol
 - address accessability (final sweep)
 
 - feat: user to select icon on user-created lists
-- cyclical list type, unused?
-- fix theming, light theme seems off
-
-
-in settings link to a docs view that is like a help doc. we should document the keyboard nav there with hotkeys.

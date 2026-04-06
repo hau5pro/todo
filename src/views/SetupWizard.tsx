@@ -38,7 +38,7 @@ export function SetupWizard() {
     if (lists['Tasks'])     createdIds.push((await createList('Tasks', 'general')).id);
     if (lists['Habits'])    createdIds.push((await createList('Habits', 'daily')).id);
     if (lists['Groceries']) createdIds.push((await createList('Groceries', 'shopping')).id);
-    if (lists['Chores'])    createdIds.push((await createList('Chores', 'cyclical')).id);
+    if (lists['Chores'])    createdIds.push((await createList('Chores', 'general')).id);
     setPinnedOrder(createdIds);
     markSetupDone();
   }

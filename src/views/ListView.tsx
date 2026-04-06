@@ -57,7 +57,7 @@ export function ListView() {
   }
 
   async function handleToggle(task: typeof tasks[0]) {
-    if (list!.type === 'cyclical' && task.recurrence_interval) {
+    if (task.recurrence_interval) {
       await advanceCyclicalTask(task.id, listId!);
     } else {
       await completeTask(task.id, listId!, !task.completed);

@@ -91,7 +91,7 @@ export async function advanceCyclicalTask(id: string): Promise<Task> {
   const store = tx.objectStore('tasks');
   const existing = await req<Task>(store.get(id));
   if (!existing.due_date || !existing.recurrence_interval || !existing.recurrence_unit) {
-    throw new Error(`Task ${id} is not a cyclical task`);
+    throw new Error(`Task ${id} has no recurrence configured`);
   }
   const updated: Task = {
     ...existing,

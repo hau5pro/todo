@@ -1,8 +1,7 @@
-export type ListType = 'general' | 'cyclical' | 'daily' | 'shopping';
+export type ListType = 'general' | 'daily' | 'shopping';
 
 export const LIST_TYPE_LABELS: Record<ListType, string> = {
   general:  'general',
-  cyclical: 'cycles',
   daily:    'daily',
   shopping: 'shopping',
 };
@@ -32,8 +31,8 @@ export interface Task {
   title: string;
   completed: boolean;
   due_date: string | null;             // 'YYYY-MM-DD'
-  recurrence_interval: number | null;  // cyclical list only
-  recurrence_unit: RecurrenceUnit | null; // cyclical list only
+  recurrence_interval: number | null;
+  recurrence_unit: RecurrenceUnit | null;
   rrule: string | null;                // task-level recurrence, e.g. 'FREQ=WEEKLY;INTERVAL=1;BYDAY=MO'
   updated_at: string;
   deleted_at: string | null;
