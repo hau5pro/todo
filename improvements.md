@@ -1,10 +1,6 @@
 session counter: 4
 +extra usage ~$50
 
-
-- cycles, due dates, recurrances
-- date picker, calender
-
 - ability to reorder tasks in a list and in habits.
 
 - keyboard nav with arrows (tab and space fns?)
@@ -14,6 +10,5 @@ session counter: 4
 
 - view transitions between lists. list items prob shouldnt animate how they are currently?
 
-- uuid routes?
 - highlight list item that is selected when details is open.
 - habits should be above others in my day.

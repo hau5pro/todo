@@ -648,18 +648,35 @@ button.nav-section-label--button:hover { color: var(--fg); }
 }
 
 .habit-item__streak {
-  font-size: 0.78rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.72rem;
   font-family: var(--mono);
+  font-weight: 600;
   color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+  border-radius: 999px;
+  padding: 2px 7px 2px 5px;
   margin-left: auto;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.habit-item__streak-flame {
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
 }
 .habit-item__streak--hot {
+  color: #f97316;
+  background: color-mix(in srgb, #f97316 15%, transparent);
+  border-color: color-mix(in srgb, #f97316 30%, transparent);
   animation: streak-pulse 2s ease-in-out infinite;
 }
 @keyframes streak-pulse {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.6; }
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, #f97316 0%, transparent); }
+  50%       { box-shadow: 0 0 6px 1px color-mix(in srgb, #f97316 40%, transparent); }
 }
 
 /* Habit checkbox differentiation */

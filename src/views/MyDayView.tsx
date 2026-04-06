@@ -68,6 +68,21 @@ export function MyDayView() {
       <h1 className="view-title">My Day</h1>
       {!hasAnything && <p className="empty-state">Nothing due today.</p>}
 
+      {myDayHabits.length > 0 && (
+        <section>
+          <div className="section-heading">Habits</div>
+          {myDayHabits.map(({ task, completedToday }) => (
+            <HabitItem
+              key={task.id}
+              title={task.title}
+              completedToday={completedToday}
+              streak={streaks.get(task.id) ?? 0}
+              onToggle={() => handleHabitToggle(task.id)}
+            />
+          ))}
+        </section>
+      )}
+
       {myDayOverdue.length > 0 && (
         <section>
           <div className="section-heading">Overdue</div>
@@ -106,20 +121,6 @@ export function MyDayView() {
         </section>
       )}
 
-      {myDayHabits.length > 0 && (
-        <section>
-          <div className="section-heading">Habits</div>
-          {myDayHabits.map(({ task, completedToday }) => (
-            <HabitItem
-              key={task.id}
-              title={task.title}
-              completedToday={completedToday}
-              streak={streaks.get(task.id) ?? 0}
-              onToggle={() => handleHabitToggle(task.id)}
-            />
-          ))}
-        </section>
-      )}
     </div>
   );
 }
