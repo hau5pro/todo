@@ -1,15 +1,25 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { Pencil, Trash2, Check, X, ChevronDown, ChevronRight } from 'lucide-react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, Reorder } from 'framer-motion';
 import { ease } from '../utils/easing';
 import { focusLater } from '../utils/dom';
 import { useAppStore } from '../store';
 import { useTaskDetail } from '../contexts/TaskDetailContext';
+import { useSettings } from '../contexts/SettingsContext';
 import { TaskItem } from '../components/TaskItem';
 import { ICON_SIZE } from '../config/icons';
 import { LIST_TYPE_LABELS } from '../types';
 import { getListIcon } from '../config/listIcons';
+import type { Task } from '../types';
+
+function applyOrder(tasks: Task[], order: string[]): Task[] {
+  if (order.length === 0) return tasks;
+  const map = new Map(tasks.map((t) => [t.id, t]));
+  const ordered = order.flatMap((id) => (map.has(id) ? [map.get(id)!] : []));
+  const rest = tasks.filter((t) => !order.includes(t.id));
+  return [...ordered, ...rest];
+}
 
 export function ListView() {
   const { listId } = useParams<{ listId: string }>();
@@ -22,6 +32,7 @@ export function ListView() {
   const { renameList, deleteList, addTask, completeTask, advanceCyclicalTask } = useAppStore();
 
   const { detail, open: openDetail, close: closeDetail } = useTaskDetail();
+  const { listOrders, setListOrder } = useSettings();
 
   const [newTitle, setNewTitle] = useState('');
   const [editingListName, setEditingListName] = useState(false);
@@ -39,6 +50,11 @@ export function ListView() {
 
   const activeTasks = tasks.filter((t) => !t.completed && t.deleted_at === null);
   const completedTasks = tasks.filter((t) => t.completed && t.deleted_at === null);
+  const orderedActive = applyOrder(activeTasks, listOrders[listId!] ?? []);
+
+  function handleReorder(reordered: Task[]) {
+    setListOrder(listId!, reordered.map((t) => t.id));
+  }
 
   async function handleToggle(task: typeof tasks[0]) {
     if (list!.type === 'cyclical' && task.recurrence_interval) {
@@ -120,20 +136,23 @@ export function ListView() {
         />
       </form>
 
-      <AnimatePresence key={listId} initial={false}>
-        {activeTasks.map((task) => (
-          <TaskItem
-            key={task.id}
-            title={task.title}
-            completed={task.completed}
-            dueDate={task.due_date}
-            today={today}
-            onToggle={() => handleToggle(task)}
-            onSelect={() => handleSelectTask(task)}
-            isSelected={detail?.task.id === task.id}
-          />
-        ))}
-      </AnimatePresence>
+      <Reorder.Group as="div" axis="y" values={orderedActive} onReorder={handleReorder}>
+        <AnimatePresence initial={false}>
+          {orderedActive.map((task) => (
+            <Reorder.Item as="div" key={task.id} value={task}>
+              <TaskItem
+                title={task.title}
+                completed={task.completed}
+                dueDate={task.due_date}
+                today={today}
+                onToggle={() => handleToggle(task)}
+                onSelect={() => handleSelectTask(task)}
+                isSelected={detail?.task.id === task.id}
+              />
+            </Reorder.Item>
+          ))}
+        </AnimatePresence>
+      </Reorder.Group>
 
       <section>
         <button className="section-collapse-btn" onClick={() => setShowCompleted((p) => !p)}>

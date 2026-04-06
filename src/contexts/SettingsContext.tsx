@@ -25,6 +25,7 @@ export interface Settings {
   pinnedOrder: string[];
   customOrder: string[];
   myDayOrder: string[];
+  listOrders: Record<string, string[]>;
   soundEnabled: boolean;
   soundStyle: SoundStyle;
 }
@@ -38,6 +39,7 @@ interface SettingsContextValue extends Settings {
   setPinnedOrder: (ids: string[]) => void;
   setCustomOrder: (ids: string[]) => void;
   setMyDayOrder: (ids: string[]) => void;
+  setListOrder: (listId: string, ids: string[]) => void;
   setSoundEnabled: (v: boolean) => void;
   setSoundStyle: (s: SoundStyle) => void;
 }
@@ -54,6 +56,7 @@ const DEFAULTS: Settings = {
   pinnedOrder: [],
   customOrder: [],
   myDayOrder: [],
+  listOrders: {},
   soundEnabled: true,
   soundStyle: 'pop',
 };
@@ -247,6 +250,13 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     setPinnedOrder: (pinnedOrder) => update({ pinnedOrder }),
     setCustomOrder: (customOrder) => update({ customOrder }),
     setMyDayOrder: (myDayOrder) => update({ myDayOrder }),
+    setListOrder: (listId, ids) =>
+      setSettings((prev) => {
+        const next = { ...prev, listOrders: { ...prev.listOrders, [listId]: ids } };
+        saveSettings(next);
+        scheduleCloudPush(next);
+        return next;
+      }),
     setSoundEnabled: (soundEnabled) => update({ soundEnabled }),
     setSoundStyle: (soundStyle) => update({ soundStyle }),
   };

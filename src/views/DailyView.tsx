@@ -1,12 +1,23 @@
 import { useParams } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
+import { Reorder } from 'framer-motion';
 import { useHabits } from '../hooks/useHabits';
 import { useAppStore } from '../store';
 import { useTaskDetail } from '../contexts/TaskDetailContext';
+import { useSettings } from '../contexts/SettingsContext';
 import { HabitItem } from '../components/HabitItem';
 import { toggleHabitCompletion } from '../db/habits';
 import { LIST_TYPE_LABELS } from '../types';
 import { getListIcon } from '../config/listIcons';
+import type { Task } from '../types';
+
+function applyOrder<T extends { task: Task }>(rows: T[], order: string[]): T[] {
+  if (order.length === 0) return rows;
+  const map = new Map(rows.map((r) => [r.task.id, r]));
+  const ordered = order.flatMap((id) => (map.has(id) ? [map.get(id)!] : []));
+  const rest = rows.filter((r) => !order.includes(r.task.id));
+  return [...ordered, ...rest];
+}
 
 export function DailyView() {
   const { listId } = useParams<{ listId: string }>();
@@ -16,6 +27,7 @@ export function DailyView() {
   const [newTitle, setNewTitle] = useState('');
 
   const { detail, open: openDetail, close: closeDetail } = useTaskDetail();
+  const { listOrders, setListOrder } = useSettings();
   // Reload when the panel closes so renames and deletes are reflected
   const prevDetail = useRef(detail);
   useEffect(() => {
@@ -24,6 +36,12 @@ export function DailyView() {
   }, [detail]);
 
   if (isLoading) return null;
+
+  const orderedRows = applyOrder(rows, listOrders[listId!] ?? []);
+
+  function handleReorder(reordered: typeof rows) {
+    setListOrder(listId!, reordered.map((r) => r.task.id));
+  }
 
   async function handleToggle(taskId: string) {
     await toggleHabitCompletion(taskId, today);
@@ -53,17 +71,20 @@ export function DailyView() {
           onChange={(e) => setNewTitle(e.target.value)}
         />
       </form>
-      {rows.map(({ task, completedToday, streak }) => (
-        <HabitItem
-          key={task.id}
-          title={task.title}
-          completedToday={completedToday}
-          streak={streak}
-          onToggle={() => handleToggle(task.id)}
-          onSelect={() => detail?.task.id === task.id ? closeDetail() : openDetail({ task })}
-          isSelected={detail?.task.id === task.id}
-        />
-      ))}
+      <Reorder.Group as="div" axis="y" values={orderedRows} onReorder={handleReorder}>
+        {orderedRows.map((row) => (
+          <Reorder.Item as="div" key={row.task.id} value={row}>
+            <HabitItem
+              title={row.task.title}
+              completedToday={row.completedToday}
+              streak={row.streak}
+              onToggle={() => handleToggle(row.task.id)}
+              onSelect={() => detail?.task.id === row.task.id ? closeDetail() : openDetail({ task: row.task })}
+              isSelected={detail?.task.id === row.task.id}
+            />
+          </Reorder.Item>
+        ))}
+      </Reorder.Group>
     </div>
   );
 }

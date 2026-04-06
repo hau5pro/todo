@@ -1,10 +1,9 @@
 session counter: 4
 +extra usage ~$50
 
-- ability to reorder tasks in a list and in habits.
-
 - keyboard nav with arrows (tab and space fns?)
 
+- 2 levels deep of folders for user lists?
 - think about how to copy a list easily. e.g. duplicate a vaca packing list.
 - ability to have groups in lists for vaca packing.
 
