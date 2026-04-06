@@ -19,6 +19,7 @@ export interface List {
   id: string;
   name: string;
   type: ListType;
+  icon: string | null;
   folder_id: string | null;
   updated_at: string;   // ISO timestamp
   deleted_at: string | null;

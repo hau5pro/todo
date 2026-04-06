@@ -1,6 +1,5 @@
 import { NavLink } from 'react-router-dom';
 import { ArrowLeft, Keyboard } from '@phosphor-icons/react';
-import { ICON_SIZE } from '../config/icons';
 
 interface ShortcutRow {
   keys: string[];
@@ -49,7 +48,7 @@ export function DocsView() {
         <NavLink to="/settings" className="docs-back-btn" title="Back to settings">
           <ArrowLeft size={22} weight="bold" />
         </NavLink>
-        <span className="view-title-icon"><Keyboard size={24} weight="fill" /></span>
+        <span className="view-title-icon"><Keyboard size={20} weight="fill" /></span>
         <h1 className="view-title">Keyboard shortcuts</h1>
       </div>
       <p className="view-subtitle" style={{ marginBottom: '2.5rem', marginTop: '0.5rem', textTransform: 'none', letterSpacing: 0 }}>Navigate without touching your mouse.</p>

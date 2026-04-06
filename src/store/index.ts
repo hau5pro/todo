@@ -87,6 +87,7 @@ interface AppStore {
   // List mutations
   createList: (name: string, type: ListType, folderId?: string | null) => Promise<List>;
   renameList: (id: string, name: string) => Promise<void>;
+  updateListIcon: (id: string, icon: string | null) => Promise<void>;
   deleteList: (id: string) => Promise<void>;
   moveListToFolder: (listId: string, folderId: string | null) => Promise<void>;
   duplicateList: (id: string) => Promise<List>;
@@ -178,6 +179,13 @@ export const useAppStore = create<AppStore>((set, get) => ({
     await dbUpdateList(id, { name });
     set((s) => ({
       lists: s.lists.map((l) => (l.id === id ? { ...l, name } : l)),
+    }));
+  },
+
+  updateListIcon: async (id, icon) => {
+    await dbUpdateList(id, { icon });
+    set((s) => ({
+      lists: s.lists.map((l) => (l.id === id ? { ...l, icon } : l)),
     }));
   },
 

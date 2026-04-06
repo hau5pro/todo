@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { PencilSimple, Trash, Check, X, CaretDown, CaretRight, CopySimple } from '@phosphor-icons/react';
+import { PencilSimple, Trash, Check, X, CaretDown, CaretRight, CopySimple, List as ListIcon } from '@phosphor-icons/react';
 import { AnimatePresence, motion, Reorder } from 'framer-motion';
 import { ease } from '../utils/easing';
 import { focusLater } from '../utils/dom';
@@ -8,6 +8,7 @@ import { useAppStore } from '../store';
 import { useTaskDetail } from '../contexts/TaskDetailContext';
 import { useSettings } from '../contexts/SettingsContext';
 import { TaskItem } from '../components/TaskItem';
+import { IconPicker } from '../components/IconPicker';
 import { ICON_SIZE } from '../config/icons';
 import { LIST_TYPE_LABELS } from '../types';
 import { getListIcon } from '../config/listIcons';
@@ -29,17 +30,19 @@ export function ListView() {
   const list = useAppStore((s) => s.lists.find((l) => l.id === listId));
   const tasks = useAppStore((s) => s.tasksByList[listId!]);
   const loadTasks = useAppStore((s) => s.loadTasks);
-  const { renameList, deleteList, duplicateList, addTask, completeTask, advanceCyclicalTask } = useAppStore();
+  const { renameList, updateListIcon, deleteList, duplicateList, addTask, completeTask, advanceCyclicalTask } = useAppStore();
 
   const { detail, open: openDetail, close: closeDetail } = useTaskDetail();
-  const { listOrders, setListOrder, customOrder, setCustomOrder } = useSettings();
+  const { listOrders, setListOrder, customOrder, setCustomOrder, pinnedOrder } = useSettings();
 
   const [newTitle, setNewTitle] = useState('');
   const [editingListName, setEditingListName] = useState(false);
   const [newListName, setNewListName] = useState('');
   const [confirmDeleteList, setConfirmDeleteList] = useState(false);
   const [showCompleted, setShowCompleted] = useState(false);
+  const [iconPickerAnchor, setIconPickerAnchor] = useState<DOMRect | null>(null);
   const listNameInputRef = useRef<HTMLInputElement>(null);
+  const iconBtnRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (tasks === undefined) loadTasks(listId!);
@@ -124,13 +127,41 @@ export function ListView() {
           </>
         ) : (
           <>
-            {getListIcon(list) && <span className="view-title-icon">{getListIcon(list)}</span>}
+            {pinnedOrder.includes(listId!) ? (
+              <span className="view-title-icon">
+                {getListIcon(list, 20) ?? <ListIcon size={20} weight="fill" />}
+              </span>
+            ) : (
+              <button
+                ref={iconBtnRef}
+                className={`view-title-icon-btn${iconPickerAnchor ? ' view-title-icon-btn--open' : ''}`}
+                onClick={() => iconPickerAnchor
+                  ? setIconPickerAnchor(null)
+                  : setIconPickerAnchor(iconBtnRef.current!.getBoundingClientRect())
+                }
+                title="Change icon"
+                aria-label="Change icon"
+                aria-expanded={!!iconPickerAnchor}
+              >
+                {getListIcon(list, 20) ?? <ListIcon size={20} weight="fill" />}
+              </button>
+            )}
             <h1 className="view-title">{list.name}</h1>
             <span className="view-title-actions">
               <button className="view-title-action-btn" onClick={startEditListName} title="Rename list"><PencilSimple size={ICON_SIZE} weight="fill" /></button>
               <button className="view-title-action-btn" onClick={handleDuplicate} title="Duplicate list"><CopySimple size={ICON_SIZE} weight="fill" /></button>
               <button className="view-title-action-btn view-title-action-btn--danger" onClick={() => setConfirmDeleteList(true)} title="Delete list"><Trash size={ICON_SIZE} weight="fill" /></button>
             </span>
+            <AnimatePresence>
+              {iconPickerAnchor && (
+                <IconPicker
+                  currentIcon={list.icon}
+                  anchorRect={iconPickerAnchor}
+                  onSelect={(icon) => updateListIcon(listId!, icon)}
+                  onClose={() => setIconPickerAnchor(null)}
+                />
+              )}
+            </AnimatePresence>
           </>
         )}
       </div>

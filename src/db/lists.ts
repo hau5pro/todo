@@ -15,13 +15,13 @@ export async function getLists(): Promise<List[]> {
   );
   return all
     .filter((l) => l.deleted_at === null)
-    .map((l) => ({ ...l, folder_id: l.folder_id ?? null }));
+    .map((l) => ({ ...l, icon: l.icon ?? null, folder_id: l.folder_id ?? null }));
 }
 
 export async function getListById(id: string): Promise<List | undefined> {
   const db = await getDB();
   const l = await req<List>(db.transaction('lists').objectStore('lists').get(id));
-  return l ? { ...l, folder_id: l.folder_id ?? null } : undefined;
+  return l ? { ...l, icon: l.icon ?? null, folder_id: l.folder_id ?? null } : undefined;
 }
 
 export async function createList(name: string, type: ListType, folderId?: string | null): Promise<List> {
@@ -29,6 +29,7 @@ export async function createList(name: string, type: ListType, folderId?: string
     id: crypto.randomUUID(),
     name,
     type,
+    icon: null,
     folder_id: folderId ?? null,
     updated_at: new Date().toISOString(),
     deleted_at: null,
@@ -39,7 +40,7 @@ export async function createList(name: string, type: ListType, folderId?: string
   return list;
 }
 
-export async function updateList(id: string, changes: Partial<Pick<List, 'name' | 'folder_id'>>): Promise<List> {
+export async function updateList(id: string, changes: Partial<Pick<List, 'name' | 'icon' | 'folder_id'>>): Promise<List> {
   const db = await getDB();
   const tx = db.transaction('lists', 'readwrite');
   const store = tx.objectStore('lists');

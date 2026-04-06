@@ -1016,7 +1016,9 @@ button.nav-section-label--button:hover { color: var(--fg); }
 .view-title-icon {
   display: flex;
   align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+  line-height: 1;
 }
 
 .view-title {
@@ -1057,6 +1059,69 @@ button.nav-section-label--button:hover { color: var(--fg); }
 
 .view-title-action-btn:hover { color: var(--accent); background: var(--hover); }
 .view-title-action-btn--danger:hover { color: var(--danger); background: var(--hover); }
+
+/* ── List icon button (opens picker) ───────────────────────── */
+.view-title-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  padding: 4px;
+  border-radius: 6px;
+  color: var(--fg-muted);
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+  min-width: 28px;
+  min-height: 28px;
+  line-height: 1;
+}
+.view-title-icon-btn:hover { color: var(--accent); background: var(--hover); }
+.view-title-icon-btn--open { color: var(--accent); background: var(--accent-dim); }
+
+/* ── Icon picker popover ────────────────────────────────────── */
+.icon-picker-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 199;
+}
+
+.icon-picker {
+  position: fixed;
+  z-index: 200;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+  width: 248px;
+  overflow: hidden;
+}
+
+
+
+.icon-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  padding: 6px;
+}
+
+.icon-picker-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  color: var(--fg-muted);
+  cursor: pointer;
+  transition: color 0.12s, background 0.12s;
+}
+.icon-picker-btn:hover { color: var(--accent); background: var(--hover); }
+.icon-picker-btn--active { color: var(--accent); background: var(--accent-dim); }
 
 .view-title-input {
   flex: 1;

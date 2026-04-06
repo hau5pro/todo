@@ -55,7 +55,7 @@ export function MyDayView() {
   return (
     <div>
       <div className="view-title-row">
-        <span className="view-title-icon"><Sun size={ICON_SIZE} weight="fill" /></span>
+        <span className="view-title-icon"><Sun size={20} weight="fill" /></span>
         <h1 className="view-title">My Day</h1>
       </div>
       <p className="view-subtitle">{todayLabel}</p>

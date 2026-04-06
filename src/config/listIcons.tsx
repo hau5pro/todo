@@ -1,30 +1,100 @@
-import { List, ShoppingCart, CalendarCheck, Sparkle } from '@phosphor-icons/react';
+import type { Icon } from '@phosphor-icons/react';
+import {
+  List, ShoppingCart, CalendarCheck, Sparkle,
+  Star, Heart, Bookmark, Flag, Tag,
+  Package, CreditCard, Wallet,
+  House, Car, Bicycle, Airplane,
+  ForkKnife, Coffee, Wine,
+  Barbell, Trophy, SoccerBall,
+  Books, GraduationCap, Briefcase,
+  Laptop, Code,
+  Camera, MusicNote, FilmStrip,
+  PawPrint, Leaf,
+  Sun, Moon,
+  Fire, Snowflake,
+  Clock, CalendarBlank,
+  MapPin, Globe,
+  Envelope, Phone,
+  Diamond, Crown,
+  Wrench, Palette, Scissors,
+  GameController, Note,
+  Heartbeat, Smiley,
+  Bell, Rocket, Baby, Pill, Tree,
+} from '@phosphor-icons/react';
 import { ICON_SIZE } from './icons';
-import type { List as ListData, ListType } from '../types';
+import type { List as ListData } from '../types';
 
-const LIST_TYPE_ICONS: Partial<Record<ListType, React.ReactNode>> = {
-  shopping: <ShoppingCart size={ICON_SIZE} weight="fill" />,
-  daily:    <CalendarCheck size={ICON_SIZE} weight="fill" />,
+// Map from stored icon name string → Phosphor component
+export const ICON_MAP: Record<string, Icon> = {
+  Star, Heart, Bookmark, Flag, Tag,
+  ShoppingCart, Package, CreditCard, Wallet,
+  House, Car, Bicycle, Airplane,
+  ForkKnife, Coffee, Wine,
+  Barbell, Trophy, SoccerBall,
+  Books, GraduationCap, Briefcase,
+  Laptop, Code,
+  Camera, MusicNote, FilmStrip,
+  PawPrint, Leaf,
+  Sun, Moon,
+  Fire, Snowflake,
+  Clock, CalendarBlank,
+  MapPin, Globe,
+  Envelope, Phone,
+  Diamond, Crown,
+  Wrench, Palette, Scissors,
+  GameController, Note,
+  Heartbeat, Smiley,
+  Bell, Rocket, Baby, Pill, Tree,
+  // Built-in list type icons (also selectable)
+  List, CalendarCheck, Sparkle,
 };
 
-const LIST_NAME_ICONS: Record<string, React.ReactNode> = {
-  'Tasks':  <List size={ICON_SIZE} weight="fill" />,
-  'Chores': <Sparkle size={ICON_SIZE} weight="fill" />,
-};
+// Ordered list for the picker UI
+export const PICKABLE_ICONS: string[] = [
+  'List',
+  'Star', 'Heart', 'Bookmark', 'Flag', 'Tag',
+  'ShoppingCart', 'Package', 'CreditCard', 'Wallet',
+  'House', 'Car', 'Bicycle', 'Airplane',
+  'ForkKnife', 'Coffee', 'Wine',
+  'Barbell', 'Trophy', 'SoccerBall',
+  'Books', 'GraduationCap', 'Briefcase',
+  'Laptop', 'Code',
+  'Camera', 'MusicNote', 'FilmStrip',
+  'PawPrint', 'Leaf',
+  'Sun', 'Moon',
+  'Fire', 'Snowflake',
+  'Clock', 'CalendarBlank',
+  'MapPin', 'Globe',
+  'Envelope', 'Phone',
+  'Diamond', 'Crown',
+  'Wrench', 'Palette', 'Scissors',
+  'GameController', 'Note',
+  'Heartbeat', 'Smiley',
+  'Bell', 'Rocket', 'Baby', 'Pill', 'Tree',
+  'CalendarCheck', 'Sparkle',
+];
 
-export function getListIcon(list: Pick<ListData, 'name' | 'type'>, size?: number): React.ReactNode {
-  if (size === undefined) {
-    return LIST_NAME_ICONS[list.name] ?? LIST_TYPE_ICONS[list.type] ?? null;
+export function getListIcon(list: Pick<ListData, 'name' | 'type' | 'icon'>, size?: number): React.ReactNode {
+  const iconSize = size ?? ICON_SIZE;
+
+  // Custom icon takes precedence
+  if (list.icon) {
+    const IconComp = ICON_MAP[list.icon];
+    if (IconComp) return <IconComp size={iconSize} weight="fill" />;
   }
-  const type = list.type as ListType;
-  if (LIST_NAME_ICONS[list.name]) {
-    const Icon = ({
-      'Tasks': List, 'Chores': Sparkle,
-    } as Record<string, React.ComponentType<{ size: number; weight: string }>>)[list.name];
-    if (Icon) return <Icon size={size} weight="fill" />;
+
+  // Name-based overrides
+  const nameMap: Record<string, Icon> = { Tasks: List, Chores: Sparkle };
+  if (nameMap[list.name]) {
+    const IconComp = nameMap[list.name];
+    return <IconComp size={iconSize} weight="fill" />;
   }
-  const TypeIcon = ({
-    shopping: ShoppingCart, daily: CalendarCheck,
-  } as Record<string, React.ComponentType<{ size: number; weight: string }>>)[type];
-  return TypeIcon ? <TypeIcon size={size} weight="fill" /> : null;
+
+  // Type-based defaults
+  const typeMap: Partial<Record<string, Icon>> = {
+    shopping: ShoppingCart,
+    daily: CalendarCheck,
+  };
+  const TypeIcon = typeMap[list.type];
+  return TypeIcon ? <TypeIcon size={iconSize} weight="fill" /> : null;
 }

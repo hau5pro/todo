@@ -60,7 +60,7 @@ export function DailyView() {
   return (
     <div>
       <div className="view-title-row">
-        {list && getListIcon(list) && <span className="view-title-icon">{getListIcon(list)}</span>}
+        {list && getListIcon(list, 20) && <span className="view-title-icon">{getListIcon(list, 20)}</span>}
         <h1 className="view-title">{list?.name ?? 'Habits'}</h1>
       </div>
       <p className="view-subtitle">{list ? LIST_TYPE_LABELS[list.type] : 'daily'}</p>

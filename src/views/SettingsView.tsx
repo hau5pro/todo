@@ -90,7 +90,7 @@ export function SettingsView() {
   return (
     <div style={{ maxWidth: 480, margin: '0 auto' }}>
       <div className="view-title-row" style={{ marginBottom: '2rem' }}>
-        <span className="view-title-icon"><GearSix size={24} weight="fill" /></span>
+        <span className="view-title-icon"><GearSix size={20} weight="fill" /></span>
         <h1 className="view-title">Settings</h1>
       </div>
 
