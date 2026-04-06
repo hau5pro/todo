@@ -1,4 +1,5 @@
 
-- wizard next button should stay the same size.
-
 - date picker
+
+- bug: beep doesnt work
+- bug: task details not minimized when entering settings.

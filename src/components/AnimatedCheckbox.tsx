@@ -27,7 +27,7 @@ export function AnimatedCheckbox({ checked, onChange }: Props) {
       className={`animated-checkbox${checked ? ' animated-checkbox--checked' : ''}${popped ? ' animated-checkbox--pop' : ''}`}
       onClick={(e) => { e.stopPropagation(); onChange(); }}
     >
-      <svg width={18} height={18} viewBox="0 0 16 16" overflow="visible">
+      <svg width={22} height={22} viewBox="0 0 16 16" overflow="visible">
         <circle cx="8" cy="8" r="7" className="animated-checkbox__circle" />
         <motion.path
           d="M 3.5 8.5 L 6.5 11.5 L 12.5 5"

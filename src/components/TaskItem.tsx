@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { AnimatedCheckbox } from './AnimatedCheckbox';
 import { useSettings } from '../contexts/SettingsContext';
 import { playComplete } from '../utils/sound';
@@ -17,17 +17,15 @@ export function TaskItem({ title, completed, dueDate, today, onToggle, onSelect,
   const isOverdue = dueDate && dueDate < today;
   const { soundEnabled } = useSettings();
   const [flashing, setFlashing] = useState(false);
-  const prev = useRef(completed);
 
-  useEffect(() => {
-    if (completed && !prev.current) {
-      setFlashing(true);
+  function handleToggle() {
+    if (!completed) {
       if (soundEnabled) playComplete();
-      const t = setTimeout(() => setFlashing(false), 600);
-      return () => clearTimeout(t);
+      setFlashing(true);
+      setTimeout(() => setFlashing(false), 600);
     }
-    prev.current = completed;
-  }, [completed, soundEnabled]);
+    onToggle();
+  }
 
   return (
     <div
@@ -39,7 +37,7 @@ export function TaskItem({ title, completed, dueDate, today, onToggle, onSelect,
       ].filter(Boolean).join(' ')}
       onClick={onSelect}
     >
-      <AnimatedCheckbox checked={completed} onChange={onToggle} />
+      <AnimatedCheckbox checked={completed} onChange={handleToggle} />
       <span className={`task-item__title${completed ? ' task-item__title--completed' : ''}`}>
         {title}
       </span>
