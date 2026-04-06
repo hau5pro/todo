@@ -20,6 +20,9 @@ const LIST_ICONS: Record<LT, React.ReactNode> = {
   template: <Copy size={ICON_SIZE} strokeWidth={1.75} />,
 };
 
+const MY_DAY_SENTINEL = { id: 'my-day' as const };
+type PinnedItem = ListType | typeof MY_DAY_SENTINEL;
+
 // ── SortableItem ─────────────────────────────────────────────────────────────
 
 function SortableItem({ list }: { list: ListType }) {
@@ -47,6 +50,27 @@ function SortableItem({ list }: { list: ListType }) {
   );
 }
 
+function SortableMyDayItem() {
+  const dragControls = useDragControls();
+  return (
+    <Reorder.Item
+      as="div"
+      value={MY_DAY_SENTINEL}
+      dragListener={false}
+      dragControls={dragControls}
+      className="nav-item-row"
+    >
+      <div className="nav-drag-handle" onPointerDown={(e) => dragControls.start(e)}>
+        <GripVertical size={ICON_SIZE} strokeWidth={1.75} />
+      </div>
+      <NavLink to="/my-day" className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'}>
+        <Sun size={ICON_SIZE} strokeWidth={1.75} />
+        My Day
+      </NavLink>
+    </Reorder.Item>
+  );
+}
+
 // ── Sidebar ───────────────────────────────────────────────────────────────────
 
 export function Sidebar() {
@@ -59,17 +83,19 @@ export function Sidebar() {
 
   const {
     hiddenListIds,
-    showMyDay,
     pinnedOrder,
     customOrder,
     setPinnedOrder,
     setCustomOrder,
   } = useSettings();
 
-  // Pinned: IDs in pinnedOrder mapped to list objects, filtered to existing
-  const pinnedLists: ListType[] = pinnedOrder
-    .map((id) => lists.find((l) => l.id === id))
-    .filter((l): l is ListType => l !== undefined);
+  // Pinned: IDs in pinnedOrder mapped to list objects or the my-day sentinel
+  const pinnedItems: PinnedItem[] = pinnedOrder
+    .map((id): PinnedItem | undefined =>
+      id === 'my-day' ? MY_DAY_SENTINEL : lists.find((l) => l.id === id)
+    )
+    .filter((item): item is PinnedItem => item !== undefined)
+    .filter((item) => item.id === 'my-day' || !hiddenListIds.includes(item.id));
 
   // Custom: non-template lists NOT in pinnedOrder, sorted by customOrder
   const pinnedSet = new Set(pinnedOrder);
@@ -111,25 +137,20 @@ export function Sidebar() {
 
   return (
     <nav className="sidebar">
-      {showMyDay && (
-        <NavLink to="/my-day" className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'}>
-          <Sun size={ICON_SIZE} strokeWidth={1.75} />
-          My Day
-        </NavLink>
-      )}
-
-      {/* Pinned lists reorder group */}
-      {pinnedLists.length > 0 && (
+      {/* Pinned items reorder group (includes My Day sentinel) */}
+      {pinnedItems.length > 0 && (
         <Reorder.Group
           as="div"
           axis="y"
-          values={pinnedLists}
-          onReorder={(newOrder) => setPinnedOrder(newOrder.map((l) => l.id))}
+          values={pinnedItems}
+          onReorder={(newOrder) => setPinnedOrder(newOrder.map((item) => item.id))}
           className="nav-reorder-group"
         >
-          {pinnedLists.map((l) => (
-            <SortableItem key={l.id} list={l} />
-          ))}
+          {pinnedItems.map((item) =>
+            item.id === 'my-day'
+              ? <SortableMyDayItem key="my-day" />
+              : <SortableItem key={item.id} list={item as ListType} />
+          )}
         </Reorder.Group>
       )}
 

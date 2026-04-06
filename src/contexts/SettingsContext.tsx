@@ -54,9 +54,19 @@ const DEFAULTS: Settings = {
 function loadSettings(): Settings {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return { ...DEFAULTS, ...JSON.parse(raw) };
+    if (raw) {
+      const s: Settings = { ...DEFAULTS, ...JSON.parse(raw) };
+      // Migrate: sync showMyDay into pinnedOrder as a sentinel
+      if (s.showMyDay && !s.pinnedOrder.includes('my-day')) {
+        s.pinnedOrder = ['my-day', ...s.pinnedOrder];
+      } else if (!s.showMyDay && s.pinnedOrder.includes('my-day')) {
+        s.pinnedOrder = s.pinnedOrder.filter((id) => id !== 'my-day');
+      }
+      return s;
+    }
   } catch {}
-  return { ...DEFAULTS };
+  // Default: My Day is on, so include sentinel
+  return { ...DEFAULTS, pinnedOrder: ['my-day'] };
 }
 
 function saveSettings(s: Settings) {
@@ -216,7 +226,17 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       });
     },
     markSetupDone: () => update({ setupDone: true }),
-    setShowMyDay: (showMyDay) => update({ showMyDay }),
+    setShowMyDay: (showMyDay) => {
+      setSettings((prev) => {
+        const pinnedOrder = showMyDay
+          ? prev.pinnedOrder.includes('my-day') ? prev.pinnedOrder : ['my-day', ...prev.pinnedOrder]
+          : prev.pinnedOrder.filter((id) => id !== 'my-day');
+        const next = { ...prev, showMyDay, pinnedOrder };
+        saveSettings(next);
+        scheduleCloudPush(next);
+        return next;
+      });
+    },
     setPinnedOrder: (pinnedOrder) => update({ pinnedOrder }),
     setCustomOrder: (customOrder) => update({ customOrder }),
     setMyDayOrder: (myDayOrder) => update({ myDayOrder }),
