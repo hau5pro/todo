@@ -176,27 +176,60 @@ export function SettingsView() {
         )}
 
         {pinnedItems.length > 0 && (
-          <Reorder.Group
-            as="div"
-            axis="y"
-            values={pinnedItems}
-            onReorder={(newOrder) => setPinnedOrder(newOrder.map((item) => item.id))}
-          >
-            {pinnedItems.map((item) =>
-              item.id === 'my-day'
-                ? <SortableMyDaySettingsRow
-                    key="my-day"
-                    checked={showMyDay}
-                    onChange={() => setShowMyDay(!showMyDay)}
-                  />
-                : <SortableSettingsRow
-                    key={item.id}
-                    list={item as List}
-                    checked={!hiddenListIds.includes(item.id)}
-                    onChange={() => toggleListVisibility(item.id)}
-                  />
-            )}
-          </Reorder.Group>
+          <>
+            <div className="settings-subsection-title">Pinned</div>
+            <Reorder.Group
+              as="div"
+              axis="y"
+              values={pinnedItems}
+              onReorder={(newOrder) => setPinnedOrder(newOrder.map((item) => item.id))}
+            >
+              {pinnedItems.map((item) =>
+                item.id === 'my-day'
+                  ? <SortableMyDaySettingsRow
+                      key="my-day"
+                      checked={showMyDay}
+                      onChange={() => setShowMyDay(!showMyDay)}
+                    />
+                  : <SortableSettingsRow
+                      key={item.id}
+                      list={item as List}
+                      checked={!hiddenListIds.includes(item.id)}
+                      onChange={() => toggleListVisibility(item.id)}
+                    />
+              )}
+            </Reorder.Group>
+          </>
+        )}
+
+        {customLists.length > 0 && (
+          <>
+            <div className="settings-subsection-title">Lists</div>
+            {customLists.map((l) => (
+              <SettingsRow
+                key={l.id}
+                label={l.name}
+                sublabel={LIST_TYPE_LABELS[l.type]}
+                checked={!hiddenListIds.includes(l.id)}
+                onChange={() => toggleListVisibility(l.id)}
+              />
+            ))}
+          </>
+        )}
+
+        {templates.length > 0 && (
+          <>
+            <div className="settings-subsection-title">Templates</div>
+            {templates.map((l) => (
+              <SettingsRow
+                key={l.id}
+                label={l.name}
+                sublabel={LIST_TYPE_LABELS[l.type]}
+                checked={!hiddenListIds.includes(l.id)}
+                onChange={() => toggleListVisibility(l.id)}
+              />
+            ))}
+          </>
         )}
 
       </section>

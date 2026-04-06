@@ -1,9 +1,9 @@
 import { NavLink } from 'react-router-dom';
 import { useState, useRef } from 'react';
-import { Reorder, useDragControls } from 'framer-motion';
+import { Reorder, useDragControls, motion, AnimatePresence } from 'framer-motion';
 import {
   Sun, GearSix, SignOut, CaretDown, CaretRight,
-  DotsSixVertical, Plus, Check, X,
+  List, Plus, Check, X, PencilSimple,
 } from '@phosphor-icons/react';
 import { signOut } from '../supabase/auth';
 import { useSettings } from '../contexts/SettingsContext';
@@ -17,9 +17,9 @@ import type { List as ListType } from '../types';
 const MY_DAY_SENTINEL = { id: 'my-day' as const };
 type PinnedItem = ListType | typeof MY_DAY_SENTINEL;
 
-// ── SortableItem ─────────────────────────────────────────────────────────────
+// ── Sortable components ───────────────────────────────────────────────────────
 
-function SortableItem({ list }: { list: ListType }) {
+function SortableItem({ list, editMode }: { list: ListType; editMode: boolean }) {
   const dragControls = useDragControls();
 
   return (
@@ -28,14 +28,28 @@ function SortableItem({ list }: { list: ListType }) {
       value={list}
       dragListener={false}
       dragControls={dragControls}
-      className="nav-item-row"
+      onPointerDown={editMode ? (e) => dragControls.start(e) : undefined}
+      className={`nav-item-row${editMode ? ' nav-item-row--editing' : ''}`}
     >
-      <div className="nav-drag-handle" onPointerDown={(e) => dragControls.start(e)}>
-        <DotsSixVertical size={ICON_SIZE} weight="fill" />
-      </div>
+      <AnimatePresence initial={false}>
+        {editMode && (
+          <motion.span
+            style={{ overflow: 'hidden', flexShrink: 0, display: 'flex' }}
+            initial={{ width: 0, opacity: 0 }}
+            animate={{ width: 26, opacity: 1 }}
+            exit={{ width: 0, opacity: 0 }}
+            transition={{ duration: 0.15 }}
+          >
+            <span className="nav-drag-icon">
+              <List size={ICON_SIZE} weight="bold" />
+            </span>
+          </motion.span>
+        )}
+      </AnimatePresence>
       <NavLink
         to={`/list/${list.id}`}
         className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'}
+        style={editMode ? { pointerEvents: 'none' } : undefined}
       >
         {getListIcon(list)}
         {list.name}
@@ -44,20 +58,38 @@ function SortableItem({ list }: { list: ListType }) {
   );
 }
 
-function SortableMyDayItem() {
+function SortableMyDayItem({ editMode }: { editMode: boolean }) {
   const dragControls = useDragControls();
+
   return (
     <Reorder.Item
       as="div"
       value={MY_DAY_SENTINEL}
       dragListener={false}
       dragControls={dragControls}
-      className="nav-item-row"
+      onPointerDown={editMode ? (e) => dragControls.start(e) : undefined}
+      className={`nav-item-row${editMode ? ' nav-item-row--editing' : ''}`}
     >
-      <div className="nav-drag-handle" onPointerDown={(e) => dragControls.start(e)}>
-        <DotsSixVertical size={ICON_SIZE} weight="fill" />
-      </div>
-      <NavLink to="/my-day" className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'}>
+      <AnimatePresence initial={false}>
+        {editMode && (
+          <motion.span
+            style={{ overflow: 'hidden', flexShrink: 0, display: 'flex' }}
+            initial={{ width: 0, opacity: 0 }}
+            animate={{ width: 26, opacity: 1 }}
+            exit={{ width: 0, opacity: 0 }}
+            transition={{ duration: 0.15 }}
+          >
+            <span className="nav-drag-icon">
+              <List size={ICON_SIZE} weight="bold" />
+            </span>
+          </motion.span>
+        )}
+      </AnimatePresence>
+      <NavLink
+        to="/my-day"
+        className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'}
+        style={editMode ? { pointerEvents: 'none' } : undefined}
+      >
         <Sun size={ICON_SIZE} weight="fill" />
         My Day
       </NavLink>
@@ -71,6 +103,8 @@ export function Sidebar() {
   const lists = useAppStore((s) => s.lists);
   const createList = useAppStore((s) => s.createList);
   const [templatesOpen, setTemplatesOpen] = useState(false);
+  const [editPinned, setEditPinned] = useState(false);
+  const [editLists, setEditLists] = useState(false);
   const [addingList, setAddingList] = useState(false);
   const [newListName, setNewListName] = useState('');
   const addInputRef = useRef<HTMLInputElement>(null);
@@ -131,33 +165,47 @@ export function Sidebar() {
 
   return (
     <nav className="sidebar">
-      {/* Pinned items reorder group (includes My Day sentinel) */}
+      {/* Pinned section */}
       {pinnedItems.length > 0 && (
-        <Reorder.Group
-          as="div"
-          axis="y"
-          values={pinnedItems}
-          onReorder={(newOrder) => setPinnedOrder(newOrder.map((item) => item.id))}
-          className="nav-reorder-group"
-          initial={false}
-        >
-          {pinnedItems.map((item) =>
-            item.id === 'my-day'
-              ? <SortableMyDayItem key="my-day" />
-              : <SortableItem key={item.id} list={item as ListType} />
-          )}
-        </Reorder.Group>
+        <>
+          <div className="nav-section-label">
+            Pinned
+            <button
+              className="nav-add-btn"
+              onClick={() => setEditPinned((e) => !e)}
+              title={editPinned ? 'Done' : 'Reorder pinned'}
+            >
+              {editPinned ? <Check size={ICON_SIZE} weight="fill" /> : <PencilSimple size={ICON_SIZE} weight="fill" />}
+            </button>
+          </div>
+          <Reorder.Group
+            as="div"
+            axis="y"
+            values={pinnedItems}
+            onReorder={(newOrder) => setPinnedOrder(newOrder.map((item) => item.id))}
+            className="nav-reorder-group"
+            initial={false}
+          >
+            {pinnedItems.map((item) =>
+              item.id === 'my-day'
+                ? <SortableMyDayItem key="my-day" editMode={editPinned} />
+                : <SortableItem key={item.id} list={item as ListType} editMode={editPinned} />
+            )}
+          </Reorder.Group>
+        </>
       )}
 
-      {/* Lists section label */}
+      {/* Lists section */}
       <div className="nav-section-label">
         Lists
-        <button className="nav-add-btn" onClick={startAddList} title="New list">
-          <Plus size={ICON_SIZE} weight="fill" />
+        <button
+          className="nav-add-btn"
+          onClick={() => setEditLists((e) => !e)}
+          title={editLists ? 'Done' : 'Reorder lists'}
+        >
+          {editLists ? <Check size={ICON_SIZE} weight="fill" /> : <PencilSimple size={ICON_SIZE} weight="fill" />}
         </button>
       </div>
-
-      {/* Custom lists reorder group */}
       <Reorder.Group
         as="div"
         axis="y"
@@ -167,12 +215,12 @@ export function Sidebar() {
         initial={false}
       >
         {customLists.map((l) => (
-          <SortableItem key={l.id} list={l} />
+          <SortableItem key={l.id} list={l} editMode={editLists} />
         ))}
       </Reorder.Group>
 
-      {/* Inline add form */}
-      {addingList && (
+      {/* Add list — inline form or button */}
+      {addingList ? (
         <div className="nav-item nav-item--editing">
           <input
             ref={addInputRef}
@@ -192,6 +240,11 @@ export function Sidebar() {
             <X size={ICON_SIZE} weight="fill" />
           </button>
         </div>
+      ) : (
+        <button className="nav-item nav-btn nav-add-list-btn" onClick={startAddList}>
+          <Plus size={ICON_SIZE} weight="fill" />
+          New list
+        </button>
       )}
 
       {/* Templates section */}
