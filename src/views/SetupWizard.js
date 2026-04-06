@@ -1,6 +1,6 @@
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import { useState } from 'react';
-import { Check, Palette, LayoutList, Sun, List, CalendarCheck, ShoppingCart } from 'lucide-react';
+import { Check, Palette, LayoutList, Sun, List, CalendarCheck, ShoppingCart, ClipboardList } from 'lucide-react';
 import { useSettings } from '../contexts/SettingsContext';
 import { createList } from '../db/lists';
 import { ColorSwatchPicker } from '../components/ColorSwatchPicker';
@@ -9,6 +9,7 @@ const LIST_OPTIONS = [
     { key: 'Tasks', label: 'Tasks', icon: _jsx(List, { size: 15, strokeWidth: 1.75 }) },
     { key: 'Habits', label: 'Habits', icon: _jsx(CalendarCheck, { size: 15, strokeWidth: 1.75 }) },
     { key: 'Groceries', label: 'Groceries', icon: _jsx(ShoppingCart, { size: 15, strokeWidth: 1.75 }) },
+    { key: 'Chores', label: 'Chores', icon: _jsx(ClipboardList, { size: 15, strokeWidth: 1.75 }) },
 ];
 const STEPS = [
     { icon: _jsx(Check, { size: 20, strokeWidth: 2.5 }), title: 'Welcome to TO DO', body: 'A minimal, offline-first task manager.' },
@@ -19,7 +20,7 @@ export function SetupWizard() {
     const { accent, setAccent, markSetupDone, setShowMyDay, setPinnedOrder } = useSettings();
     const [step, setStep] = useState(0);
     const [lists, setLists] = useState({
-        'My Day': true, 'Tasks': true, 'Habits': true, 'Groceries': true,
+        'My Day': true, 'Tasks': true, 'Habits': true, 'Groceries': true, 'Chores': true,
     });
     const [saving, setSaving] = useState(false);
     function toggle(key) {
@@ -35,6 +36,8 @@ export function SetupWizard() {
             createdIds.push((await createList('Habits', 'daily')).id);
         if (lists['Groceries'])
             createdIds.push((await createList('Groceries', 'shopping')).id);
+        if (lists['Chores'])
+            createdIds.push((await createList('Chores', 'general')).id);
         setPinnedOrder(createdIds);
         markSetupDone();
     }

@@ -458,6 +458,44 @@ button.nav-section-label--button:hover { color: var(--fg); }
 
 .task-item__date--overdue { color: var(--danger); }
 
+.task-item__actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.task-item:hover .task-item__actions { opacity: 1; }
+
+.task-item__action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--fg-muted);
+  cursor: pointer;
+  padding: 3px;
+  border-radius: 3px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.task-item__action-btn:hover { color: var(--fg); background: var(--hover); }
+.task-item__action-btn--danger:hover { color: var(--danger); background: var(--hover); }
+
+.task-item__edit-input {
+  flex: 1;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--accent);
+  color: var(--fg);
+  font-size: inherit;
+  font-family: inherit;
+  outline: none;
+  padding: 0 0 1px;
+}
+
 /* ── Habit items ─────────────────────────────────────────── */
 .habit-item {
   display: flex;
@@ -484,11 +522,59 @@ button.nav-section-label--button:hover { color: var(--fg); }
   margin: 1.5rem 0 0.625rem;
 }
 
+.view-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 0.25rem;
+}
+
 .view-title {
   font-size: 1.25rem;
   font-weight: 600;
   letter-spacing: -0.01em;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0;
+  flex: 1;
+}
+
+.view-title-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.view-title-row:hover .view-title-actions { opacity: 1; }
+
+.view-title-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--fg-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.view-title-action-btn:hover { color: var(--fg); background: var(--hover); }
+.view-title-action-btn--danger:hover { color: var(--danger); background: var(--hover); }
+
+.view-title-input {
+  flex: 1;
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  background: none;
+  border: none;
+  border-bottom: 2px solid var(--accent);
+  color: var(--fg);
+  font-family: inherit;
+  outline: none;
+  padding: 0 0 2px;
 }
 
 .add-task {

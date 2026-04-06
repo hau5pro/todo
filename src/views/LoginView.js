@@ -59,7 +59,7 @@ export function LoginView() {
             }
         }
         catch (err) {
-            setError(friendlyError(err));
+            setError(friendlyError(err, mode));
         }
         finally {
             setLoading(null);

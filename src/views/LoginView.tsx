@@ -111,7 +111,7 @@ export function LoginView() {
         if (needsConfirmation) setVerified(true);
       }
     } catch (err) {
-      setError(friendlyError(err));
+      setError(friendlyError(err, mode));
     } finally {
       setLoading(null);
     }
