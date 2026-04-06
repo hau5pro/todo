@@ -6,7 +6,6 @@ import { useTaskDetail } from '../contexts/TaskDetailContext';
 import { HabitItem } from '../components/HabitItem';
 import { toggleHabitCompletion } from '../db/habits';
 import { LIST_TYPE_LABELS } from '../types';
-import { getListIcon } from '../config/listIcons';
 
 export function DailyView() {
   const { listId } = useParams<{ listId: string }>();

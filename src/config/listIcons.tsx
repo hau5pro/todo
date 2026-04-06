@@ -1,9 +1,8 @@
-import { List, ShoppingCart, RefreshCw, CalendarCheck, Copy, Sparkles } from 'lucide-react';
+import { ShoppingCart, RefreshCw, CalendarCheck, Copy, Sparkles } from 'lucide-react';
 import { ICON_SIZE } from './icons';
 import type { List as ListData, ListType } from '../types';
 
-const LIST_TYPE_ICONS: Record<ListType, React.ReactNode> = {
-  general:  <List size={ICON_SIZE} strokeWidth={1.75} />,
+const LIST_TYPE_ICONS: Partial<Record<ListType, React.ReactNode>> = {
   shopping: <ShoppingCart size={ICON_SIZE} strokeWidth={1.75} />,
   cyclical: <RefreshCw size={ICON_SIZE} strokeWidth={1.75} />,
   daily:    <CalendarCheck size={ICON_SIZE} strokeWidth={1.75} />,
@@ -15,5 +14,5 @@ const LIST_NAME_ICONS: Record<string, React.ReactNode> = {
 };
 
 export function getListIcon(list: Pick<ListData, 'name' | 'type'>): React.ReactNode {
-  return LIST_NAME_ICONS[list.name] ?? LIST_TYPE_ICONS[list.type];
+  return LIST_NAME_ICONS[list.name] ?? LIST_TYPE_ICONS[list.type] ?? null;
 }

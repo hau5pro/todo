@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Trash2, GripVertical } from 'lucide-react';
 import { ICON_SIZE } from '../config/icons';
 import { Reorder, useDragControls } from 'framer-motion';
 import { useSettings } from '../contexts/SettingsContext';
-import { playComplete } from '../utils/sound';
+import { playComplete, SOUND_STYLES } from '../utils/sound';
 import { useAppStore } from '../store';
 import { clearAllLocalData } from '../db/client';
 import type { List } from '../types';
@@ -19,11 +19,7 @@ type PinnedItem = List | typeof MY_DAY_SENTINEL;
 
 // ── SortableSettingsRow ───────────────────────────────────────────────────────
 
-function SortableSettingsRow({ list, checked, onChange }: {
-  list: List;
-  checked: boolean;
-  onChange: () => void;
-}) {
+function SortableSettingsRow({ list, checked, onChange }: { list: List; checked: boolean; onChange: () => void }) {
   const dragControls = useDragControls();
   return (
     <Reorder.Item as="div" value={list} dragListener={false} dragControls={dragControls} className="settings-row-sortable">
@@ -56,14 +52,20 @@ export function SettingsView() {
     hiddenListIds, toggleListVisibility,
     showMyDay, setShowMyDay,
     pinnedOrder, customOrder,
-    setPinnedOrder, setCustomOrder,
+    setPinnedOrder,
     soundEnabled, setSoundEnabled,
+    soundStyle, setSoundStyle,
   } = useSettings();
 
   const lists = useAppStore((s) => s.lists);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [busy, setBusy] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [email, setEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? null));
+  }, []);
 
   async function handleDeleteAll() {
     setBusy(true);
@@ -98,8 +100,16 @@ export function SettingsView() {
   const templates = lists.filter((l) => l.type === 'template');
 
   return (
-    <div style={{ maxWidth: 480 }}>
+    <div style={{ maxWidth: 480, margin: '0 auto' }}>
       <h1 className="view-title" style={{ marginBottom: '2rem' }}>Settings</h1>
+
+      {/* Account */}
+      {email && (
+        <section className="settings-section">
+          <div className="settings-section-title">Account</div>
+          <p className="settings-email">{email}</p>
+        </section>
+      )}
 
       {/* Appearance */}
       <section className="settings-section">
@@ -136,16 +146,29 @@ export function SettingsView() {
           onChange={() => {
             const next = !soundEnabled;
             setSoundEnabled(next);
-            if (next) playComplete();
+            if (next) playComplete(soundStyle);
           }}
         />
+        {soundEnabled && (
+          <div className="theme-btn-group theme-btn-group--vertical" style={{ marginTop: '0.625rem' }}>
+            {SOUND_STYLES.map(({ key, label }) => (
+              <button
+                key={key}
+                className={`theme-btn${soundStyle === key ? ' theme-btn--active' : ''}`}
+                onClick={() => { setSoundStyle(key); playComplete(key); }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Navigation */}
       <section className="settings-section">
         <div className="settings-section-title">Navigation</div>
         <p style={{ fontSize: '0.85rem', color: 'var(--fg-muted)', margin: '0.5rem 0 0.875rem' }}>
-          Choose which lists appear in the sidebar.
+          Drag to reorder lists in the sidebar.
         </p>
 
         {pinnedItems.length === 0 && customLists.length === 0 && templates.length === 0 && (
@@ -176,48 +199,11 @@ export function SettingsView() {
           </Reorder.Group>
         )}
 
-        {customLists.length > 0 && (
-          <>
-            {pinnedItems.length > 0 && (
-              <div style={{ fontSize: '0.72rem', fontFamily: 'var(--mono)', color: 'var(--fg-muted)', padding: '0.875rem 0 0.375rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Custom</div>
-            )}
-            <Reorder.Group
-              as="div"
-              axis="y"
-              values={customLists}
-              onReorder={(newOrder) => setCustomOrder(newOrder.map((l) => l.id))}
-            >
-              {customLists.map((l) => (
-                <SortableSettingsRow
-                  key={l.id}
-                  list={l}
-                  checked={!hiddenListIds.includes(l.id)}
-                  onChange={() => toggleListVisibility(l.id)}
-                />
-              ))}
-            </Reorder.Group>
-          </>
-        )}
-
-        {templates.length > 0 && (
-          <>
-            <div style={{ fontSize: '0.72rem', fontFamily: 'var(--mono)', color: 'var(--fg-muted)', padding: '0.875rem 0 0.375rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Templates</div>
-            {templates.map((l) => (
-              <SettingsRow
-                key={l.id}
-                label={l.name}
-                sublabel="template"
-                checked={!hiddenListIds.includes(l.id)}
-                onChange={() => toggleListVisibility(l.id)}
-              />
-            ))}
-          </>
-        )}
       </section>
 
       {/* Danger zone */}
       <section className="settings-section">
-        <div className="settings-section-title">Danger zone</div>
+        <div className="settings-section-title settings-section-title--danger">Danger zone</div>
         <div className="danger-zone" style={{ marginTop: '0.75rem' }}>
           {!confirmDelete ? (
             <>

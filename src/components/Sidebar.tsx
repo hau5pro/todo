@@ -206,7 +206,7 @@ export function Sidebar() {
               to={`/list/${l.id}`}
               className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'}
             >
-              {LIST_ICONS.template}
+              {getListIcon(l)}
               {l.name}
             </NavLink>
           ))}
@@ -219,6 +219,7 @@ export function Sidebar() {
         <Settings2 size={ICON_SIZE} strokeWidth={1.75} />
         Settings
       </NavLink>
+      <div style={{ height: '0.5rem' }} />
       <button className="nav-item nav-btn nav-item--signout" onClick={() => signOut().catch(console.error)}>
         <LogOut size={ICON_SIZE} strokeWidth={1.75} />
         Sign out

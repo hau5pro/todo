@@ -101,7 +101,7 @@ export function ListView() {
           </>
         ) : (
           <>
-            <span className="view-title-icon">{getListIcon(list)}</span>
+            {getListIcon(list) && <span className="view-title-icon">{getListIcon(list)}</span>}
             <h1 className="view-title">{list.name}</h1>
             <span className="view-title-actions">
               <button className="view-title-action-btn" onClick={startEditListName} title="Rename list"><Pencil size={ICON_SIZE} strokeWidth={2} /></button>

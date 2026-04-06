@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, useRef, type ReactNode 
 import type { User } from '@supabase/supabase-js';
 import { onAuthStateChange } from '../supabase/auth';
 import { fetchCloudSettings, pushCloudSettings } from '../db/settings';
+import type { SoundStyle } from '../utils/sound';
 
 export type AccentColor = 'blue' | 'purple' | 'green' | 'rose' | 'orange' | 'teal';
 export type Theme = 'system' | 'light' | 'dark';
@@ -25,6 +26,7 @@ export interface Settings {
   customOrder: string[];
   myDayOrder: string[];
   soundEnabled: boolean;
+  soundStyle: SoundStyle;
 }
 
 interface SettingsContextValue extends Settings {
@@ -37,6 +39,7 @@ interface SettingsContextValue extends Settings {
   setCustomOrder: (ids: string[]) => void;
   setMyDayOrder: (ids: string[]) => void;
   setSoundEnabled: (v: boolean) => void;
+  setSoundStyle: (s: SoundStyle) => void;
 }
 
 const STORAGE_KEY = 'todo_settings';
@@ -52,6 +55,7 @@ const DEFAULTS: Settings = {
   customOrder: [],
   myDayOrder: [],
   soundEnabled: true,
+  soundStyle: 'pop',
 };
 
 function loadSettings(): Settings {
@@ -244,6 +248,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     setCustomOrder: (customOrder) => update({ customOrder }),
     setMyDayOrder: (myDayOrder) => update({ myDayOrder }),
     setSoundEnabled: (soundEnabled) => update({ soundEnabled }),
+    setSoundStyle: (soundStyle) => update({ soundStyle }),
   };
 
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;

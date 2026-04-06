@@ -1,7 +1,7 @@
 export type ListType = 'general' | 'cyclical' | 'daily' | 'shopping' | 'template';
 
 export const LIST_TYPE_LABELS: Record<ListType, string> = {
-  general:  'tasks',
+  general:  'general',
   cyclical: 'cycles',
   daily:    'daily',
   shopping: 'shopping',

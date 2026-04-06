@@ -7,18 +7,6 @@ import { HabitItem } from '../components/HabitItem';
 import { toggleHabitCompletion, getCompletionsForTask, calculateStreak } from '../db/habits';
 import type { Task } from '../types';
 
-function ordinal(n: number): string {
-  const s = ['th', 'st', 'nd', 'rd'];
-  const v = n % 100;
-  return n + (s[(v - 20) % 10] ?? s[v] ?? s[0]);
-}
-
-function formatDate(d: Date): string {
-  const weekday = d.toLocaleDateString('en-US', { weekday: 'long' });
-  const month = d.toLocaleDateString('en-US', { month: 'long' });
-  const year = d.getFullYear();
-  return `${weekday}, ${month} ${ordinal(d.getDate())}, ${year}`;
-}
 
 function applyOrder(tasks: Task[], order: string[]): Task[] {
   if (order.length === 0) return tasks;
@@ -77,7 +65,7 @@ export function MyDayView() {
 
   return (
     <div>
-      <h1 className="view-title">My Day — {formatDate(new Date())}</h1>
+      <h1 className="view-title">My Day</h1>
       {!hasAnything && <p className="empty-state">Nothing due today.</p>}
 
       {myDayOverdue.length > 0 && (

@@ -17,13 +17,13 @@ interface Props {
 
 export function TaskItem({ title, completed, dueDate, today, onToggle, onSelect, isSelected }: Props) {
   const isOverdue = dueDate && dueDate < today;
-  const { soundEnabled } = useSettings();
+  const { soundEnabled, soundStyle } = useSettings();
   const [flashing, setFlashing] = useState(false);
   const [popping, setPopping] = useState(false);
 
   function handleToggle() {
     if (!completed) {
-      if (soundEnabled) playComplete();
+      if (soundEnabled) playComplete(soundStyle);
       setFlashing(true);
       setPopping(true);
       setTimeout(() => { setFlashing(false); setPopping(false); }, 650);

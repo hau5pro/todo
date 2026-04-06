@@ -13,13 +13,13 @@ interface Props {
 }
 
 export function HabitItem({ title, completedToday, streak, onToggle, onSelect, isSelected }: Props) {
-  const { soundEnabled } = useSettings();
+  const { soundEnabled, soundStyle } = useSettings();
   const [flashing, setFlashing] = useState(false);
   const [popping, setPopping] = useState(false);
 
   function handleToggle() {
     if (!completedToday) {
-      if (soundEnabled) playComplete();
+      if (soundEnabled) playComplete(soundStyle);
       setFlashing(true);
       setPopping(true);
       setTimeout(() => { setFlashing(false); setPopping(false); }, 650);

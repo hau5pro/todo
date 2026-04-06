@@ -1,3 +1,14 @@
+export type SoundStyle = 'chime' | 'pop' | 'snap' | 'pluck' | 'soft' | 'rim';
+
+export const SOUND_STYLES: { key: SoundStyle; label: string }[] = [
+  { key: 'pop',   label: 'Pop'   },
+  { key: 'chime', label: 'Chime' },
+  { key: 'snap',  label: 'Snap'  },
+  { key: 'pluck', label: 'Pluck' },
+  { key: 'soft',  label: 'Soft'  },
+  { key: 'rim',   label: 'Rim'   },
+];
+
 function buildWavDataUri(samples: Float32Array, sampleRate: number): string {
   const numSamples = samples.length;
   const buf = new ArrayBuffer(44 + numSamples * 2);
@@ -6,9 +17,9 @@ function buildWavDataUri(samples: Float32Array, sampleRate: number): string {
 
   str(0, 'RIFF');  v.setUint32(4,  36 + numSamples * 2, true);
   str(8, 'WAVE');  str(12, 'fmt ');
-  v.setUint32(16, 16, true);          // chunk size
-  v.setUint16(20, 1, true);           // PCM
-  v.setUint16(22, 1, true);           // mono
+  v.setUint32(16, 16, true);
+  v.setUint16(20, 1, true);
+  v.setUint16(22, 1, true);
   v.setUint32(24, sampleRate, true);
   v.setUint32(28, sampleRate * 2, true);
   v.setUint16(32, 2, true);
@@ -25,26 +36,103 @@ function buildWavDataUri(samples: Float32Array, sampleRate: number): string {
   return 'data:audio/wav;base64,' + btoa(bin);
 }
 
-let _dataUri: string | null = null;
-
-function getDataUri(): string {
-  if (_dataUri) return _dataUri;
-  const sampleRate = 44100;
-  const duration = 0.14;
-  const samples = new Float32Array(Math.floor(sampleRate * duration));
-  for (let i = 0; i < samples.length; i++) {
-    const t = i / sampleRate;
-    const env = Math.exp(-t * 28);
-    samples[i] = (Math.sin(2 * Math.PI * 520 * t) * 0.55
-                + Math.sin(2 * Math.PI * 780 * t) * 0.22) * env;
-  }
-  _dataUri = buildWavDataUri(samples, sampleRate);
-  return _dataUri;
+// Simple deterministic noise (LCG) — consistent across renders
+function makeNoise() {
+  let seed = 1;
+  return () => { seed = (seed * 16807) % 2147483647; return (seed / 2147483647) * 2 - 1; };
 }
 
-export function playComplete(): void {
+function buildSamples(style: SoundStyle, sampleRate: number): Float32Array {
+  const sin = (freq: number, t: number) => Math.sin(2 * Math.PI * freq * t);
+
+  if (style === 'chime') {
+    // Two-note ascending: C5 then G5
+    const samples = new Float32Array(Math.floor(sampleRate * 0.28));
+    for (let i = 0; i < samples.length; i++) {
+      const t = i / sampleRate;
+      const note1 = sin(523, t) * Math.exp(-t * 40) * 0.5;
+      const t2 = Math.max(0, t - 0.06);
+      const note2 = sin(784, t2) * Math.exp(-t2 * 18) * 0.45;
+      samples[i] = note1 + note2;
+    }
+    return samples;
+  }
+
+  if (style === 'pop') {
+    // Short punchy single tone
+    const samples = new Float32Array(Math.floor(sampleRate * 0.1));
+    for (let i = 0; i < samples.length; i++) {
+      const t = i / sampleRate;
+      samples[i] = sin(600, t) * Math.exp(-t * 38) * 0.65;
+    }
+    return samples;
+  }
+
+  if (style === 'snap') {
+    // Finger snap: noise burst with brief ramp-up, softer than a click
+    const noise = makeNoise();
+    const samples = new Float32Array(Math.floor(sampleRate * 0.07));
+    for (let i = 0; i < samples.length; i++) {
+      const t = i / sampleRate;
+      const attack = Math.min(1, t / 0.003);  // 3ms ramp
+      const decay  = Math.exp(-t * 120);
+      samples[i] = noise() * attack * decay * 0.7;
+    }
+    return samples;
+  }
+
+  if (style === 'pluck') {
+    // Guitar/harp: harmonics with frequency-proportional decay
+    const samples = new Float32Array(Math.floor(sampleRate * 0.5));
+    const fund = 294; // D4
+    const harmonics = [1, 2, 3, 4, 5, 6];
+    const amps      = [0.5, 0.25, 0.13, 0.07, 0.04, 0.02];
+    for (let i = 0; i < samples.length; i++) {
+      const t = i / sampleRate;
+      let s = 0;
+      for (let h = 0; h < harmonics.length; h++) {
+        s += sin(fund * harmonics[h], t) * amps[h] * Math.exp(-t * 5 * harmonics[h]);
+      }
+      samples[i] = s;
+    }
+    return samples;
+  }
+
+  if (style === 'rim') {
+    // Rimshot: sharp noise transient + short resonant ring
+    const noise = makeNoise();
+    const samples = new Float32Array(Math.floor(sampleRate * 0.09));
+    for (let i = 0; i < samples.length; i++) {
+      const t = i / sampleRate;
+      const crack = noise() * Math.exp(-t * 200) * 0.65;
+      const ring  = sin(380, t) * Math.exp(-t * 45) * 0.3;
+      samples[i] = crack + ring;
+    }
+    return samples;
+  }
+
+  // soft: gentle low tone, barely there
+  const samples = new Float32Array(Math.floor(sampleRate * 0.22));
+  for (let i = 0; i < samples.length; i++) {
+    const t = i / sampleRate;
+    samples[i] = sin(440, t) * Math.exp(-t * 20) * 0.28;
+  }
+  return samples;
+}
+
+const _cache: Partial<Record<SoundStyle, string>> = {};
+
+function getDataUri(style: SoundStyle): string {
+  if (!_cache[style]) {
+    const sampleRate = 44100;
+    _cache[style] = buildWavDataUri(buildSamples(style, sampleRate), sampleRate);
+  }
+  return _cache[style]!;
+}
+
+export function playComplete(style: SoundStyle = 'pop'): void {
   try {
-    const audio = new Audio(getDataUri());
+    const audio = new Audio(getDataUri(style));
     audio.play().catch((err) => console.error('[sound]', err));
   } catch (err) {
     console.error('[sound] failed:', err);
