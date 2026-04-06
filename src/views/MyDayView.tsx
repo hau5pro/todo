@@ -1,27 +1,23 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Reorder } from 'framer-motion';
 import { Sun, CalendarCheck, Clock } from '@phosphor-icons/react';
 import { useAppStore } from '../store';
-import { useSettings } from '../contexts/SettingsContext';
 import { TaskItem } from '../components/TaskItem';
 import { HabitItem } from '../components/HabitItem';
 import { toggleHabitCompletion, getCompletionsForTask, calculateStreak } from '../db/habits';
 import { ICON_SIZE } from '../config/icons';
-import type { Task } from '../types';
 
-
-function applyOrder(tasks: Task[], order: string[]): Task[] {
-  if (order.length === 0) return tasks;
-  const map = new Map(tasks.map((t) => [t.id, t]));
-  const ordered = order.flatMap((id) => (map.has(id) ? [map.get(id)!] : []));
-  const rest = tasks.filter((t) => !order.includes(t.id));
-  return [...ordered, ...rest];
+function sortByDueDate(tasks: { due_date?: string | null }[]) {
+  return [...tasks].sort((a, b) => {
+    if (!a.due_date) return 1;
+    if (!b.due_date) return -1;
+    return a.due_date.localeCompare(b.due_date);
+  });
 }
 
 export function MyDayView() {
   const today = useMemo(() => new Date().toISOString().split('T')[0], []);
+  const todayLabel = useMemo(() => new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }), []);
   const { myDayOverdue, myDayToday, myDayHabits, myDayLoaded, loadMyDay, completeTask, advanceCyclicalTask } = useAppStore();
-  const { myDayOrder, setMyDayOrder } = useSettings();
   const [streaks, setStreaks] = useState<Map<string, number>>(new Map());
 
   useEffect(() => { loadMyDay(); }, []);
@@ -53,17 +49,8 @@ export function MyDayView() {
 
   const hasAnything = myDayOverdue.length > 0 || myDayToday.length > 0 || myDayHabits.length > 0;
 
-  const orderedOverdue = applyOrder(myDayOverdue, myDayOrder);
-  const orderedToday = applyOrder(myDayToday, myDayOrder);
-
-  function handleReorder(reordered: Task[]) {
-    // Merge the reordered section IDs back into the full order
-    const reorderedIds = reordered.map((t) => t.id);
-    const otherIds = myDayOrder.filter(
-      (id) => !myDayOverdue.some((t) => t.id === id) && !myDayToday.some((t) => t.id === id)
-    );
-    setMyDayOrder([...reorderedIds, ...otherIds]);
-  }
+  const sortedOverdue = sortByDueDate(myDayOverdue);
+  const sortedToday = sortByDueDate(myDayToday);
 
   return (
     <div>
@@ -71,6 +58,7 @@ export function MyDayView() {
         <span className="view-title-icon"><Sun size={ICON_SIZE} weight="fill" /></span>
         <h1 className="view-title">My Day</h1>
       </div>
+      <p className="view-subtitle">{todayLabel}</p>
       {!hasAnything && <p className="empty-state">Nothing due today.</p>}
 
       {myDayHabits.length > 0 && (
@@ -91,38 +79,32 @@ export function MyDayView() {
       {myDayOverdue.length > 0 && (
         <section>
           <div className="section-heading"><Clock size={ICON_SIZE} weight="fill" />Overdue</div>
-          <Reorder.Group as="div" axis="y" values={orderedOverdue} onReorder={handleReorder}>
-            {orderedOverdue.map((task) => (
-              <Reorder.Item as="div" key={task.id} value={task}>
-                <TaskItem
-                  title={task.title}
-                  completed={task.completed}
-                  dueDate={task.due_date}
-                  today={today}
-                  onToggle={() => handleTaskToggle(task)}
-                />
-              </Reorder.Item>
-            ))}
-          </Reorder.Group>
+          {sortedOverdue.map((task) => (
+            <TaskItem
+              key={task.id}
+              title={task.title}
+              completed={task.completed}
+              dueDate={task.due_date}
+              today={today}
+              onToggle={() => handleTaskToggle(task)}
+            />
+          ))}
         </section>
       )}
 
       {myDayToday.length > 0 && (
         <section>
           <div className="section-heading"><Sun size={ICON_SIZE} weight="fill" />Today</div>
-          <Reorder.Group as="div" axis="y" values={orderedToday} onReorder={handleReorder}>
-            {orderedToday.map((task) => (
-              <Reorder.Item as="div" key={task.id} value={task}>
-                <TaskItem
-                  title={task.title}
-                  completed={task.completed}
-                  dueDate={task.due_date}
-                  today={today}
-                  onToggle={() => handleTaskToggle(task)}
-                />
-              </Reorder.Item>
-            ))}
-          </Reorder.Group>
+          {sortedToday.map((task) => (
+            <TaskItem
+              key={task.id}
+              title={task.title}
+              completed={task.completed}
+              dueDate={task.due_date}
+              today={today}
+              onToggle={() => handleTaskToggle(task)}
+            />
+          ))}
         </section>
       )}
 
