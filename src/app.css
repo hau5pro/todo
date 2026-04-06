@@ -489,6 +489,7 @@ button.nav-section-label--button:hover { color: var(--fg); }
   gap: 10px;
   padding: 9px 0;
   border-bottom: 1px solid var(--divider);
+  user-select: none;
 }
 .task-item--selectable { cursor: pointer; }
 .task-item--selected { background: var(--hover); border-radius: 8px; }
@@ -641,6 +642,7 @@ button.nav-section-label--button:hover { color: var(--fg); }
   gap: 10px;
   padding: 9px 0;
   border-bottom: 1px solid var(--divider);
+  user-select: none;
 }
 
 @keyframes habit-flash {
