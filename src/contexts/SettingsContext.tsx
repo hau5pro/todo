@@ -1,4 +1,7 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useRef, type ReactNode } from 'react';
+import type { User } from '@supabase/supabase-js';
+import { onAuthStateChange } from '../supabase/auth';
+import { fetchCloudSettings, pushCloudSettings } from '../db/settings';
 
 export type AccentColor = 'purple' | 'blue' | 'green' | 'rose' | 'orange' | 'teal';
 
@@ -11,7 +14,7 @@ export const ACCENT_COLORS: { key: AccentColor; label: string; hex: string; dark
   { key: 'teal',   label: 'Teal',   hex: '#0d9488', darkHex: '#2dd4bf' },
 ];
 
-interface Settings {
+export interface Settings {
   accent: AccentColor;
   hiddenListIds: string[];
   setupDone: boolean;
@@ -111,24 +114,51 @@ const SettingsContext = createContext<SettingsContextValue | null>(null);
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<Settings>(loadSettings);
+  const userRef   = useRef<User | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Apply accent vars + favicon whenever accent changes
   useEffect(() => {
     applyAccentVars(settings.accent);
     applyFavicon(settings.accent);
 
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    const handler = () => {
-      applyAccentVars(settings.accent);
-      applyFavicon(settings.accent);
-    };
+    const handler = () => { applyAccentVars(settings.accent); applyFavicon(settings.accent); };
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);
   }, [settings.accent]);
+
+  // Sync with cloud on login
+  useEffect(() => {
+    const unsub = onAuthStateChange(async (user) => {
+      userRef.current = user;
+      if (user) {
+        const cloud = await fetchCloudSettings(user.id).catch(() => null);
+        if (cloud) {
+          setSettings((prev) => {
+            const next = { ...prev, ...cloud };
+            saveSettings(next);
+            return next;
+          });
+        }
+      }
+    });
+    return unsub;
+  }, []);
+
+  function scheduleCloudPush(next: Settings) {
+    if (!userRef.current) return;
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      pushCloudSettings(userRef.current!.id, next).catch(console.error);
+    }, 1000);
+  }
 
   function update(patch: Partial<Settings>) {
     setSettings((prev) => {
       const next = { ...prev, ...patch };
       saveSettings(next);
+      scheduleCloudPush(next);
       return next;
     });
   }
@@ -143,6 +173,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
           : [...prev.hiddenListIds, listId];
         const next = { ...prev, hiddenListIds };
         saveSettings(next);
+        scheduleCloudPush(next);
         return next;
       });
     },
