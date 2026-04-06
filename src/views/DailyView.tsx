@@ -6,6 +6,7 @@ import { useTaskDetail } from '../contexts/TaskDetailContext';
 import { HabitItem } from '../components/HabitItem';
 import { toggleHabitCompletion } from '../db/habits';
 import { LIST_TYPE_LABELS } from '../types';
+import { getListIcon } from '../config/listIcons';
 
 export function DailyView() {
   const { listId } = useParams<{ listId: string }>();
@@ -39,7 +40,10 @@ export function DailyView() {
 
   return (
     <div>
-      <h1 className="view-title">{list?.name ?? 'Habits'}</h1>
+      <div className="view-title-row">
+        {list && getListIcon(list) && <span className="view-title-icon">{getListIcon(list)}</span>}
+        <h1 className="view-title">{list?.name ?? 'Habits'}</h1>
+      </div>
       <p className="view-subtitle">{list ? LIST_TYPE_LABELS[list.type] : 'daily'}</p>
       <form onSubmit={handleAdd}>
         <input

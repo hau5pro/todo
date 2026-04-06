@@ -701,6 +701,9 @@ button.nav-section-label--button:hover { color: var(--fg); }
 
 /* ── View typography ─────────────────────────────────────── */
 .section-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
   font-size: 0.68rem;
   font-family: var(--mono);
   text-transform: uppercase;

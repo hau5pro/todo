@@ -9,6 +9,3 @@ session counter: 4
 - ability to have groups in lists for vaca packing.
 
 - view transitions between lists. list items prob shouldnt animate how they are currently?
-
-- highlight list item that is selected when details is open.
-- bug: habits title doesnt have icon preceding it
