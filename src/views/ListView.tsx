@@ -1,7 +1,9 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { Pencil, Trash2, Check, X, ChevronDown, ChevronRight } from 'lucide-react';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
+import { ease } from '../utils/easing';
+import { focusLater } from '../utils/dom';
 import { useAppStore } from '../store';
 import { useTaskDetail } from '../contexts/TaskDetailContext';
 import { TaskItem } from '../components/TaskItem';
@@ -30,7 +32,6 @@ export function ListView() {
     if (tasks === undefined) loadTasks(listId!);
   }, [listId]);
 
-  useEffect(() => { closeDetail(); }, [listId]);
 
   if (!list || tasks === undefined) return null;
 
@@ -55,7 +56,7 @@ export function ListView() {
   function startEditListName() {
     setNewListName(list!.name);
     setEditingListName(true);
-    setTimeout(() => listNameInputRef.current?.focus(), 0);
+    focusLater(listNameInputRef);
   }
 
   async function commitEditListName() {
@@ -116,7 +117,7 @@ export function ListView() {
         />
       </form>
 
-      <AnimatePresence>
+      <AnimatePresence key={listId} initial={false}>
         {activeTasks.map((task) => (
           <TaskItem
             key={task.id}
@@ -140,18 +141,33 @@ export function ListView() {
             ? <ChevronDown size={ICON_SIZE} strokeWidth={2} />
             : <ChevronRight size={ICON_SIZE} strokeWidth={2} />}
         </button>
-        {showCompleted && completedTasks.map((task) => (
-          <TaskItem
-            key={task.id}
-            title={task.title}
-            completed={true}
-            dueDate={task.due_date}
-            today={today}
-            onToggle={() => handleToggle(task)}
-            onSelect={() => handleSelectTask(task)}
-            isSelected={detail?.task.id === task.id}
-          />
-        ))}
+        <AnimatePresence>
+          {showCompleted && (
+            <motion.div
+              key="completed-list"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.25, ease: ease.out }}
+              style={{ overflow: 'hidden' }}
+            >
+              <AnimatePresence initial={false}>
+                {completedTasks.map((task) => (
+                  <TaskItem
+                    key={task.id}
+                    title={task.title}
+                    completed={true}
+                    dueDate={task.due_date}
+                    today={today}
+                    onToggle={() => handleToggle(task)}
+                    onSelect={() => handleSelectTask(task)}
+                    isSelected={detail?.task.id === task.id}
+                  />
+                ))}
+              </AnimatePresence>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </section>
 
       {confirmDeleteList && (

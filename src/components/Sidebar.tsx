@@ -9,6 +9,7 @@ import {
 import { signOut } from '../supabase/auth';
 import { useSettings } from '../contexts/SettingsContext';
 import { useAppStore } from '../store';
+import { focusLater } from '../utils/dom';
 import { ICON_SIZE } from '../config/icons';
 import type { List as ListType, ListType as LT } from '../types';
 
@@ -114,7 +115,7 @@ export function Sidebar() {
   function startAddList() {
     setNewListName('');
     setAddingList(true);
-    setTimeout(() => addInputRef.current?.focus(), 0);
+    focusLater(addInputRef);
   }
 
   async function commitAddList() {
@@ -145,6 +146,7 @@ export function Sidebar() {
           values={pinnedItems}
           onReorder={(newOrder) => setPinnedOrder(newOrder.map((item) => item.id))}
           className="nav-reorder-group"
+          initial={false}
         >
           {pinnedItems.map((item) =>
             item.id === 'my-day'
@@ -169,6 +171,7 @@ export function Sidebar() {
         values={customLists}
         onReorder={(newOrder) => setCustomOrder(newOrder.map((l) => l.id))}
         className="nav-reorder-group"
+        initial={false}
       >
         {customLists.map((l) => (
           <SortableItem key={l.id} list={l} />

@@ -33,15 +33,14 @@ export function TaskItem({ title, completed, dueDate, today, onToggle, onSelect,
 
   return (
     <motion.div
-      layout
       className={[
         'task-item',
         isSelected ? 'task-item--selected' : '',
         onSelect ? 'task-item--selectable' : '',
         flashing ? 'task-item--flash' : '',
       ].filter(Boolean).join(' ')}
+      style={{ clipPath: 'inset(0% 0% 0% 0% round 8px)' }}
       onClick={onSelect}
-      animate={{ clipPath: 'inset(0% 0% 0% 0% round 8px)' }}
       exit={{ clipPath: 'inset(100% 0% 0% 0% round 8px)', y: 10, transition: { duration: 0.36, ease: ease.wipe } }}
     >
       <AnimatedCheckbox checked={completed} onChange={handleToggle} popping={popping} />

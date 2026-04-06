@@ -30,6 +30,14 @@ export function DailyView() {
   return (
     <div>
       <h1 className="view-title">{list?.name ?? 'Habits'}</h1>
+      <form onSubmit={handleAdd}>
+        <input
+          className="add-task-input"
+          placeholder="+ Add habit"
+          value={newTitle}
+          onChange={(e) => setNewTitle(e.target.value)}
+        />
+      </form>
       {rows.map(({ task, completedToday, streak }) => (
         <HabitItem
           key={task.id}
@@ -39,14 +47,6 @@ export function DailyView() {
           onToggle={() => handleToggle(task.id)}
         />
       ))}
-      <form onSubmit={handleAdd}>
-        <input
-          className="add-task-input"
-          placeholder="+ Add habit"
-          value={newTitle}
-          onChange={(e) => setNewTitle(e.target.value)}
-        />
-      </form>
     </div>
   );
 }

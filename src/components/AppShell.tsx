@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { Outlet } from 'react-router-dom';
+import { useEffect, useMemo } from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { Sidebar } from './Sidebar';
 import { BottomNav } from './BottomNav';
@@ -10,7 +10,11 @@ import { useSync } from '../hooks/useSync';
 import { useAppStore } from '../store';
 
 function DetailSlot() {
-  const { detail } = useTaskDetail();
+  const { detail, close } = useTaskDetail();
+  const { pathname } = useLocation();
+
+  useEffect(() => { close(); }, [pathname, close]);
+
   return (
     <AnimatePresence>
       {detail && <TaskDetailPanel />}
@@ -21,6 +25,9 @@ function DetailSlot() {
 export function AppShell() {
   const { pendingCount, isSyncing, syncError: _syncError } = useSync();
   const loadLists = useAppStore((s) => s.loadLists);
+  const headerDate = useMemo(() =>
+    new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase()
+  , []);
 
   useEffect(() => {
     loadLists();
@@ -43,7 +50,7 @@ export function AppShell() {
               </svg>
             </div>
             <span className="app-title">
-              {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase()}
+              {headerDate}
             </span>
           </div>
           <SyncDot pendingCount={pendingCount} isSyncing={isSyncing} />

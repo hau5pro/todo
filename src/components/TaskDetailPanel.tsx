@@ -5,6 +5,8 @@ import { useTaskDetail } from '../contexts/TaskDetailContext';
 import { useAppStore } from '../store';
 import { ICON_SIZE } from '../config/icons';
 import { ease } from '../utils/easing';
+import { focusLater } from '../utils/dom';
+import type { Task } from '../types';
 
 export function TaskDetailPanel() {
   const { detail, close, updateTask: updateCtx } = useTaskDetail();
@@ -13,17 +15,22 @@ export function TaskDetailPanel() {
   const [editTitle, setEditTitle] = useState('');
   const [confirmDelete, setConfirmDelete] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  // Snapshot the task so the component keeps rendering during the exit animation
+  // (context clears detail immediately, which would cause return null before exit plays)
+  const taskSnapshot = useRef<Task | undefined>(detail?.task);
+  if (detail?.task) taskSnapshot.current = detail.task;
+  const task = taskSnapshot.current;
 
   useEffect(() => {
     if (detail) {
       setEditTitle(detail.task.title);
       setConfirmDelete(false);
-      setTimeout(() => inputRef.current?.focus(), 0);
+      focusLater(inputRef);
     }
   }, [detail?.task.id]);
 
-  if (!detail) return null;
-  const { task } = detail;
+  // Guard after all hooks — task is always defined when mounted via AnimatePresence
+  if (!task) return null;
 
   async function commitTitle() {
     const t = editTitle.trim();
@@ -40,10 +47,11 @@ export function TaskDetailPanel() {
   return (
     <motion.aside
       className="task-detail-panel"
-      initial={{ x: '100%', opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      exit={{ x: '100%', opacity: 0 }}
-      transition={{ duration: 0.26, ease: ease.snap }}
+      initial={{ clipPath: 'inset(0 0 0 100%)' }}
+      animate={{ clipPath: 'inset(0 0 0 0%)' }}
+      exit={{ clipPath: 'inset(0 0 0 100%)', transition: { duration: 0.16, ease: ease.in } }}
+      transition={{ duration: 0.28, ease: ease.bounce }}
+    >
       <div className="task-detail-panel__header">
         <button className="task-detail-close" onClick={close} title="Close">
           <X size={ICON_SIZE} strokeWidth={2} />

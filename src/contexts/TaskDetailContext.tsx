@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useCallback, useMemo } from 'react';
 import type { Task } from '../types';
 
 interface Detail {
@@ -17,16 +17,13 @@ const Ctx = createContext<ContextValue | null>(null);
 export function TaskDetailProvider({ children }: { children: React.ReactNode }) {
   const [detail, setDetail] = useState<Detail | null>(null);
 
-  return (
-    <Ctx.Provider value={{
-      detail,
-      open: (d) => setDetail(d),
-      close: () => setDetail(null),
-      updateTask: (t) => setDetail((prev) => prev ? { ...prev, task: t } : null),
-    }}>
-      {children}
-    </Ctx.Provider>
-  );
+  const open = useCallback((d: Detail) => setDetail(d), []);
+  const close = useCallback(() => setDetail(null), []);
+  const updateTask = useCallback((t: Task) => setDetail((prev) => prev ? { ...prev, task: t } : null), []);
+
+  const value = useMemo(() => ({ detail, open, close, updateTask }), [detail, open, close, updateTask]);
+
+  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 
 export function useTaskDetail() {
