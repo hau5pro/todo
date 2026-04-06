@@ -50,7 +50,6 @@ export function SettingsView() {
     accent, setAccent,
     theme, setTheme,
     hiddenListIds, toggleListVisibility,
-    showMyDay, setShowMyDay,
     pinnedOrder, customOrder,
     setPinnedOrder,
     soundEnabled, setSoundEnabled,
@@ -188,8 +187,8 @@ export function SettingsView() {
                 item.id === 'my-day'
                   ? <SortableMyDaySettingsRow
                       key="my-day"
-                      checked={showMyDay}
-                      onChange={() => setShowMyDay(!showMyDay)}
+                      checked={!hiddenListIds.includes('my-day')}
+                      onChange={() => toggleListVisibility('my-day')}
                     />
                   : <SortableSettingsRow
                       key={item.id}

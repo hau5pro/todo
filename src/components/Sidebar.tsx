@@ -123,7 +123,7 @@ export function Sidebar() {
       id === 'my-day' ? MY_DAY_SENTINEL : lists.find((l) => l.id === id)
     )
     .filter((item): item is PinnedItem => item !== undefined)
-    .filter((item) => item.id === 'my-day' || !hiddenListIds.includes(item.id));
+    .filter((item) => !hiddenListIds.includes(item.id));
 
   // Custom: non-template lists NOT in pinnedOrder, sorted by customOrder
   const pinnedSet = new Set(pinnedOrder);

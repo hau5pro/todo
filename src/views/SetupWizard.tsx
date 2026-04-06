@@ -14,13 +14,13 @@ const LIST_OPTIONS: { key: string; label: string; icon: React.ReactNode }[] = [
 ];
 
 const STEPS = [
-  { icon: <Check size={20} weight="fill" />,      title: 'Welcome to TO DO', body: 'A minimal, offline-first task manager.' },
-  { icon: <Palette size={20} weight="fill" />,    title: 'Appearance',      body: 'Choose your accent color and theme.' },
-  { icon: <ListDashes size={20} weight="fill" />, title: 'Your lists',      body: 'Choose which lists you want to start with.' },
+  { icon: <Check size={28} weight="fill" />,      title: 'Welcome to TO DO', body: 'A minimal, offline-first task manager with cloud sync.' },
+  { icon: <Palette size={28} weight="fill" />,    title: 'Appearance',      body: 'Choose your accent color and theme.' },
+  { icon: <ListDashes size={28} weight="fill" />, title: 'Your lists',      body: 'Choose which lists you want to start with.' },
 ];
 
 export function SetupWizard() {
-  const { accent, setAccent, theme, setTheme, markSetupDone, setShowMyDay, setPinnedOrder } = useSettings();
+  const { accent, setAccent, theme, setTheme, markSetupDone, toggleListVisibility, setPinnedOrder } = useSettings();
   const [step, setStep] = useState(0);
   const [lists, setLists] = useState<Record<string, boolean>>({
     'My Day': true, 'Tasks': true, 'Habits': true, 'Groceries': true, 'Chores': true,
@@ -33,7 +33,7 @@ export function SetupWizard() {
 
   async function finish() {
     setSaving(true);
-    setShowMyDay(lists['My Day']);
+    if (!lists['My Day']) toggleListVisibility('my-day');
     const createdIds: string[] = [];
     if (lists['Tasks'])     createdIds.push((await createList('Tasks', 'general')).id);
     if (lists['Habits'])    createdIds.push((await createList('Habits', 'daily')).id);

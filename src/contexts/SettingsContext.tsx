@@ -35,7 +35,6 @@ interface SettingsContextValue extends Settings {
   setTheme: (t: Theme) => void;
   toggleListVisibility: (listId: string) => void;
   markSetupDone: () => void;
-  setShowMyDay: (v: boolean) => void;
   setPinnedOrder: (ids: string[]) => void;
   setCustomOrder: (ids: string[]) => void;
   setMyDayOrder: (ids: string[]) => void;
@@ -66,12 +65,15 @@ function loadSettings(): Settings {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const s: Settings = { ...DEFAULTS, ...JSON.parse(raw) };
-      // Migrate: sync showMyDay into pinnedOrder as a sentinel
-      if (s.showMyDay && !s.pinnedOrder.includes('my-day')) {
+      // Migrate: ensure 'my-day' is always in pinnedOrder
+      if (!s.pinnedOrder.includes('my-day')) {
         s.pinnedOrder = ['my-day', ...s.pinnedOrder];
-      } else if (!s.showMyDay && s.pinnedOrder.includes('my-day')) {
-        s.pinnedOrder = s.pinnedOrder.filter((id) => id !== 'my-day');
       }
+      // Migrate: old showMyDay:false → hiddenListIds
+      if (!s.showMyDay && !s.hiddenListIds.includes('my-day')) {
+        s.hiddenListIds = ['my-day', ...s.hiddenListIds];
+      }
+      s.showMyDay = !s.hiddenListIds.includes('my-day');
       return s;
     }
   } catch {}
@@ -229,24 +231,14 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         const hiddenListIds = prev.hiddenListIds.includes(listId)
           ? prev.hiddenListIds.filter((id) => id !== listId)
           : [...prev.hiddenListIds, listId];
-        const next = { ...prev, hiddenListIds };
+        const showMyDay = !hiddenListIds.includes('my-day');
+        const next = { ...prev, hiddenListIds, showMyDay };
         saveSettings(next);
         scheduleCloudPush(next);
         return next;
       });
     },
     markSetupDone: () => update({ setupDone: true }),
-    setShowMyDay: (showMyDay) => {
-      setSettings((prev) => {
-        const pinnedOrder = showMyDay
-          ? prev.pinnedOrder.includes('my-day') ? prev.pinnedOrder : ['my-day', ...prev.pinnedOrder]
-          : prev.pinnedOrder.filter((id) => id !== 'my-day');
-        const next = { ...prev, showMyDay, pinnedOrder };
-        saveSettings(next);
-        scheduleCloudPush(next);
-        return next;
-      });
-    },
     setPinnedOrder: (pinnedOrder) => update({ pinnedOrder }),
     setCustomOrder: (customOrder) => update({ customOrder }),
     setMyDayOrder: (myDayOrder) => update({ myDayOrder }),
