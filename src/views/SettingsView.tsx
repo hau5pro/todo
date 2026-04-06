@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Trash, DotsSixVertical } from '@phosphor-icons/react';
+import { NavLink } from 'react-router-dom';
+import { Trash, DotsSixVertical, UserCircle, PaintBrush, SpeakerHigh, PushPin, Warning, Question, GearSix } from '@phosphor-icons/react';
 import { ICON_SIZE } from '../config/icons';
 import { Reorder, useDragControls } from 'framer-motion';
 import { useSettings } from '../contexts/SettingsContext';
@@ -88,19 +89,30 @@ export function SettingsView() {
 
   return (
     <div style={{ maxWidth: 480, margin: '0 auto' }}>
-      <h1 className="view-title" style={{ marginBottom: '2rem' }}>Settings</h1>
+      <div className="view-title-row" style={{ marginBottom: '2rem' }}>
+        <span className="view-title-icon"><GearSix size={24} weight="fill" /></span>
+        <h1 className="view-title">Settings</h1>
+      </div>
 
-      {/* Account */}
-      {email && (
-        <section className="settings-section">
-          <div className="settings-section-title">Account</div>
-          <p className="settings-email">{email}</p>
-        </section>
-      )}
+      {/* Account + Help */}
+      <section className="settings-section">
+        <div className="settings-section-title">
+          <UserCircle size={16} weight="fill" />
+          Account
+        </div>
+        {email && <p className="settings-email">{email}</p>}
+        <NavLink to="/docs" className="settings-docs-link">
+          <Question size={16} weight="bold" style={{ marginRight: '0.3rem' }} />
+          Keyboard shortcuts
+        </NavLink>
+      </section>
 
       {/* Appearance */}
       <section className="settings-section">
-        <div className="settings-section-title">Appearance</div>
+        <div className="settings-section-title">
+          <PaintBrush size={16} weight="fill" />
+          Appearance
+        </div>
         <div className="settings-appearance-fields">
           <div className="settings-appearance-field">
             <span className="settings-field-label">Accent color</span>
@@ -125,7 +137,10 @@ export function SettingsView() {
 
       {/* Sound */}
       <section className="settings-section">
-        <div className="settings-section-title">Sound</div>
+        <div className="settings-section-title">
+          <SpeakerHigh size={16} weight="fill" />
+          Sound
+        </div>
         <SettingsRow
           label="Completion sound"
           sublabel="plays when a task is checked off"
@@ -154,7 +169,10 @@ export function SettingsView() {
       {/* Pinned items */}
       {pinnedItems.length > 0 && (
         <section className="settings-section">
-          <div className="settings-section-title">Pinned</div>
+          <div className="settings-section-title">
+            <PushPin size={16} weight="fill" />
+            Pinned
+          </div>
           <p style={{ fontSize: '0.85rem', color: 'var(--fg-muted)', margin: '0.5rem 0 0.875rem' }}>
             Drag to reorder. Toggle to show or hide in the sidebar.
           </p>
@@ -184,7 +202,10 @@ export function SettingsView() {
 
       {/* Danger zone */}
       <section className="settings-section">
-        <div className="settings-section-title settings-section-title--danger">Danger zone</div>
+        <div className="settings-section-title settings-section-title--danger">
+          <Warning size={16} weight="fill" />
+          Danger zone
+        </div>
         <div className="danger-zone" style={{ marginTop: '0.75rem' }}>
           {!confirmDelete ? (
             <>
@@ -219,6 +240,7 @@ export function SettingsView() {
           )}
         </div>
       </section>
+
     </div>
   );
 }

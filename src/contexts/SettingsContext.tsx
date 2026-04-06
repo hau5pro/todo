@@ -4,16 +4,19 @@ import { onAuthStateChange } from '../supabase/auth';
 import { fetchCloudSettings, pushCloudSettings } from '../db/settings';
 import type { SoundStyle } from '../utils/sound';
 
-export type AccentColor = 'blue' | 'purple' | 'green' | 'rose' | 'orange' | 'teal';
+export type AccentColor = 'blue' | 'sky' | 'indigo' | 'purple' | 'fuchsia' | 'pink' | 'teal' | 'yellow' | 'slate';
 export type Theme = 'system' | 'light' | 'dark';
 
 export const ACCENT_COLORS: { key: AccentColor; label: string; hex: string; darkHex: string }[] = [
   { key: 'blue',   label: 'Blue',   hex: '#2563eb', darkHex: '#60a5fa' },
-  { key: 'purple', label: 'Purple', hex: '#7c3aed', darkHex: '#a78bfa' },
-  { key: 'green',  label: 'Green',  hex: '#16a34a', darkHex: '#4ade80' },
-  { key: 'rose',   label: 'Rose',   hex: '#e11d48', darkHex: '#fb7185' },
-  { key: 'orange', label: 'Orange', hex: '#ea580c', darkHex: '#fb923c' },
-  { key: 'teal',   label: 'Teal',   hex: '#0d9488', darkHex: '#2dd4bf' },
+  { key: 'sky',    label: 'Sky',    hex: '#0284c7', darkHex: '#38bdf8' },
+  { key: 'indigo',  label: 'Indigo',  hex: '#4f46e5', darkHex: '#818cf8' },
+  { key: 'purple',  label: 'Purple',  hex: '#7c3aed', darkHex: '#c084fc' },
+  { key: 'fuchsia', label: 'Fuchsia', hex: '#a21caf', darkHex: '#e879f9' },
+  { key: 'pink',    label: 'Pink',    hex: '#db2777', darkHex: '#f472b6' },
+  { key: 'teal',   label: 'Teal',    hex: '#0d9488', darkHex: '#2dd4bf' },
+  { key: 'yellow', label: 'Yellow',  hex: '#ca8a04', darkHex: '#facc15' },
+  { key: 'slate',  label: 'Slate',   hex: '#475569', darkHex: '#94a3b8' },
 ];
 
 export interface Settings {
@@ -77,6 +80,8 @@ function loadSettings(): Settings {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const s: Settings = { ...DEFAULTS, ...JSON.parse(raw) };
+      // Migrate: reset removed accent colors
+      if (!ACCENT_COLORS.find((c) => c.key === s.accent)) s.accent = DEFAULT_ACCENT;
       // Migrate: ensure 'my-day' is always in pinnedOrder
       if (!s.pinnedOrder.includes('my-day')) {
         s.pinnedOrder = ['my-day', ...s.pinnedOrder];

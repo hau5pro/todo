@@ -7,6 +7,7 @@ import { LoginView } from './views/LoginView';
 import { MyDayView } from './views/MyDayView';
 import { ListRouter } from './views/ListRouter';
 import { SettingsView } from './views/SettingsView';
+import { DocsView } from './views/DocsView';
 import { SetupWizard } from './views/SetupWizard';
 
 function AuthenticatedLayout() {
@@ -32,6 +33,7 @@ function RouterTree() {
             { path: '/my-day', element: <MyDayView /> },
             { path: '/list/:listId', element: <ListRouter /> },
             { path: '/settings', element: <SettingsView /> },
+            { path: '/docs', element: <DocsView /> },
           ],
         },
       ],
