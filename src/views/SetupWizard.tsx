@@ -18,7 +18,7 @@ const STEPS = [
 ];
 
 export function SetupWizard() {
-  const { accent, setAccent, markSetupDone, setShowMyDay } = useSettings();
+  const { accent, setAccent, markSetupDone, setShowMyDay, setPinnedOrder } = useSettings();
   const [step, setStep] = useState(0);
   const [lists, setLists] = useState<Record<string, boolean>>({
     'My Day': true, 'Tasks': true, 'Habits': true, 'Groceries': true,
@@ -32,9 +32,11 @@ export function SetupWizard() {
   async function finish() {
     setSaving(true);
     setShowMyDay(lists['My Day']);
-    if (lists['Tasks'])     await createList('Tasks', 'general');
-    if (lists['Habits'])    await createList('Habits', 'daily');
-    if (lists['Groceries']) await createList('Groceries', 'shopping');
+    const createdIds: string[] = [];
+    if (lists['Tasks'])     createdIds.push((await createList('Tasks', 'general')).id);
+    if (lists['Habits'])    createdIds.push((await createList('Habits', 'daily')).id);
+    if (lists['Groceries']) createdIds.push((await createList('Groceries', 'shopping')).id);
+    setPinnedOrder(createdIds);
     markSetupDone();
   }
 

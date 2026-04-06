@@ -19,6 +19,8 @@ export interface Settings {
   hiddenListIds: string[];
   setupDone: boolean;
   showMyDay: boolean;
+  pinnedOrder: string[];
+  customOrder: string[];
 }
 
 interface SettingsContextValue extends Settings {
@@ -26,6 +28,8 @@ interface SettingsContextValue extends Settings {
   toggleListVisibility: (listId: string) => void;
   markSetupDone: () => void;
   setShowMyDay: (v: boolean) => void;
+  setPinnedOrder: (ids: string[]) => void;
+  setCustomOrder: (ids: string[]) => void;
 }
 
 const STORAGE_KEY = 'todo_settings';
@@ -34,9 +38,9 @@ const DEFAULT_ACCENT: AccentColor = 'blue';
 function loadSettings(): Settings {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return { accent: DEFAULT_ACCENT, hiddenListIds: [], setupDone: false, showMyDay: true, ...JSON.parse(raw) };
+    if (raw) return { accent: DEFAULT_ACCENT, hiddenListIds: [], setupDone: false, showMyDay: true, pinnedOrder: [], customOrder: [], ...JSON.parse(raw) };
   } catch {}
-  return { accent: DEFAULT_ACCENT, hiddenListIds: [], setupDone: false, showMyDay: true };
+  return { accent: DEFAULT_ACCENT, hiddenListIds: [], setupDone: false, showMyDay: true, pinnedOrder: [], customOrder: [] };
 }
 
 function saveSettings(s: Settings) {
@@ -179,6 +183,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     },
     markSetupDone: () => update({ setupDone: true }),
     setShowMyDay: (showMyDay) => update({ showMyDay }),
+    setPinnedOrder: (pinnedOrder) => update({ pinnedOrder }),
+    setCustomOrder: (customOrder) => update({ customOrder }),
   };
 
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;

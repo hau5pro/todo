@@ -1,8 +1,9 @@
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import { useState } from 'react';
 import { Check, Palette, LayoutList, Sun, List, CalendarCheck, ShoppingCart } from 'lucide-react';
-import { useSettings, ACCENT_COLORS } from '../contexts/SettingsContext';
+import { useSettings } from '../contexts/SettingsContext';
 import { createList } from '../db/lists';
+import { ColorSwatchPicker } from '../components/ColorSwatchPicker';
 const LIST_OPTIONS = [
     { key: 'My Day', label: 'My Day', icon: _jsx(Sun, { size: 15, strokeWidth: 1.75 }) },
     { key: 'Tasks', label: 'Tasks', icon: _jsx(List, { size: 15, strokeWidth: 1.75 }) },
@@ -15,7 +16,7 @@ const STEPS = [
     { icon: _jsx(LayoutList, { size: 20, strokeWidth: 1.75 }), title: 'Your lists', body: 'Choose which lists you want to start with.' },
 ];
 export function SetupWizard() {
-    const { accent, setAccent, markSetupDone, setShowMyDay } = useSettings();
+    const { accent, setAccent, markSetupDone, setShowMyDay, setPinnedOrder } = useSettings();
     const [step, setStep] = useState(0);
     const [lists, setLists] = useState({
         'My Day': true, 'Tasks': true, 'Habits': true, 'Groceries': true,
@@ -27,13 +28,15 @@ export function SetupWizard() {
     async function finish() {
         setSaving(true);
         setShowMyDay(lists['My Day']);
+        const createdIds = [];
         if (lists['Tasks'])
-            await createList('Tasks', 'general');
+            createdIds.push((await createList('Tasks', 'general')).id);
         if (lists['Habits'])
-            await createList('Habits', 'daily');
+            createdIds.push((await createList('Habits', 'daily')).id);
         if (lists['Groceries'])
-            await createList('Groceries', 'shopping');
+            createdIds.push((await createList('Groceries', 'shopping')).id);
+        setPinnedOrder(createdIds);
         markSetupDone();
     }
-    return (_jsx("div", { className: "wizard-screen", children: _jsxs("div", { className: "wizard-step", children: [_jsxs("div", { className: "wizard-step__content", children: [_jsxs("div", { className: "wizard-step__header", children: [_jsx("div", { className: "wizard-step__icon", children: STEPS[step].icon }), _jsx("h1", { className: "wizard-title", children: STEPS[step].title })] }), _jsx("p", { className: "wizard-body", children: STEPS[step].body }), step === 1 && (_jsx("div", { className: "color-swatches", children: ACCENT_COLORS.map((c) => (_jsx("button", { className: `color-swatch${accent === c.key ? ' color-swatch--selected' : ''}`, style: { background: c.hex, '--swatch-hex': c.hex }, onClick: () => setAccent(c.key), title: c.label, "aria-label": `${c.label} accent color`, children: accent === c.key && _jsx(Check, { size: 11, strokeWidth: 2.5, color: "white" }) }, c.key))) })), step === 2 && (_jsx("div", { className: "wizard-list-options", children: LIST_OPTIONS.map(({ key, label, icon }) => (_jsxs("button", { className: `wizard-list-option${lists[key] ? ' wizard-list-option--on' : ''}`, onClick: () => toggle(key), children: [_jsxs("span", { className: "wizard-list-option__label", children: [icon, label] }), _jsx("span", { className: `toggle-btn${lists[key] ? ' toggle-btn--on' : ''}`, "aria-hidden": "true" })] }, key))) }))] }), _jsxs("div", { className: "wizard-step__controls", children: [_jsx("div", { className: "wizard-actions", children: step === 0 ? (_jsxs(_Fragment, { children: [_jsx("button", { className: "btn-ghost", onClick: markSetupDone, children: "Skip" }), _jsx("button", { className: "btn-primary", onClick: () => setStep(1), children: "Get started" })] })) : step === 1 ? (_jsxs(_Fragment, { children: [_jsx("button", { className: "btn-ghost", onClick: () => setStep(0), children: "Back" }), _jsx("button", { className: "btn-primary", onClick: () => setStep(2), children: "Next" })] })) : (_jsxs(_Fragment, { children: [_jsx("button", { className: "btn-ghost", onClick: () => setStep(1), children: "Back" }), _jsx("button", { className: "btn-primary", onClick: finish, disabled: saving, children: "Done" })] })) }), _jsx("div", { className: "wizard-dots", children: STEPS.map((_, i) => (_jsx("span", { className: `wizard-dot${step === i ? ' wizard-dot--active' : ''}` }, i))) })] })] }) }));
+    return (_jsx("div", { className: "wizard-screen", children: _jsxs("div", { className: "wizard-step", children: [_jsxs("div", { className: "wizard-step__content", children: [_jsxs("div", { className: "wizard-step__header", children: [_jsx("div", { className: "wizard-step__icon", children: STEPS[step].icon }), _jsx("h1", { className: "wizard-title", children: STEPS[step].title })] }), _jsx("p", { className: "wizard-body", children: STEPS[step].body }), step === 1 && _jsx(ColorSwatchPicker, { accent: accent, onSelect: setAccent }), step === 2 && (_jsx("div", { className: "wizard-list-options", children: LIST_OPTIONS.map(({ key, label, icon }) => (_jsxs("button", { className: `wizard-list-option${lists[key] ? ' wizard-list-option--on' : ''}`, onClick: () => toggle(key), children: [_jsxs("span", { className: "wizard-list-option__label", children: [icon, label] }), _jsx("span", { className: `toggle-btn${lists[key] ? ' toggle-btn--on' : ''}`, "aria-hidden": "true" })] }, key))) }))] }), _jsxs("div", { className: "wizard-step__controls", children: [_jsx("div", { className: "wizard-actions", children: step === 0 ? (_jsxs(_Fragment, { children: [_jsx("button", { className: "btn-ghost", onClick: markSetupDone, children: "Skip" }), _jsx("button", { className: "btn-primary", onClick: () => setStep(1), children: "Get started" })] })) : step === 1 ? (_jsxs(_Fragment, { children: [_jsx("button", { className: "btn-ghost", onClick: () => setStep(0), children: "Back" }), _jsx("button", { className: "btn-primary", onClick: () => setStep(2), children: "Next" })] })) : (_jsxs(_Fragment, { children: [_jsx("button", { className: "btn-ghost", onClick: () => setStep(1), children: "Back" }), _jsx("button", { className: "btn-primary", onClick: finish, disabled: saving, children: "Done" })] })) }), _jsx("div", { className: "wizard-dots", children: STEPS.map((_, i) => (_jsx("span", { className: `wizard-dot${step === i ? ' wizard-dot--active' : ''}` }, i))) })] })] }) }));
 }

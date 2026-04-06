@@ -3,8 +3,8 @@ import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { onAuthStateChange } from '../supabase/auth';
 import { fetchCloudSettings, pushCloudSettings } from '../db/settings';
 export const ACCENT_COLORS = [
-    { key: 'purple', label: 'Purple', hex: '#7c3aed', darkHex: '#a78bfa' },
     { key: 'blue', label: 'Blue', hex: '#2563eb', darkHex: '#60a5fa' },
+    { key: 'purple', label: 'Purple', hex: '#7c3aed', darkHex: '#a78bfa' },
     { key: 'green', label: 'Green', hex: '#16a34a', darkHex: '#4ade80' },
     { key: 'rose', label: 'Rose', hex: '#e11d48', darkHex: '#fb7185' },
     { key: 'orange', label: 'Orange', hex: '#ea580c', darkHex: '#fb923c' },
@@ -16,10 +16,10 @@ function loadSettings() {
     try {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (raw)
-            return { accent: DEFAULT_ACCENT, hiddenListIds: [], setupDone: false, showMyDay: true, ...JSON.parse(raw) };
+            return { accent: DEFAULT_ACCENT, hiddenListIds: [], setupDone: false, showMyDay: true, pinnedOrder: [], customOrder: [], ...JSON.parse(raw) };
     }
     catch { }
-    return { accent: DEFAULT_ACCENT, hiddenListIds: [], setupDone: false, showMyDay: true };
+    return { accent: DEFAULT_ACCENT, hiddenListIds: [], setupDone: false, showMyDay: true, pinnedOrder: [], customOrder: [] };
 }
 function saveSettings(s) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
@@ -147,6 +147,8 @@ export function SettingsProvider({ children }) {
         },
         markSetupDone: () => update({ setupDone: true }),
         setShowMyDay: (showMyDay) => update({ showMyDay }),
+        setPinnedOrder: (pinnedOrder) => update({ pinnedOrder }),
+        setCustomOrder: (customOrder) => update({ customOrder }),
     };
     return _jsx(SettingsContext.Provider, { value: value, children: children });
 }

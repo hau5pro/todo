@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Trash2 } from 'lucide-react';
+import { Trash2, GripVertical } from 'lucide-react';
+import { Reorder, useDragControls } from 'framer-motion';
 import { useSettings } from '../contexts/SettingsContext';
 import { getLists } from '../db/lists';
 import { clearAllLocalData } from '../db/client';
@@ -10,8 +11,34 @@ import type { List } from '../types';
 import { ColorSwatchPicker } from '../components/ColorSwatchPicker';
 import { SettingsRow } from '../components/SettingsRow';
 
+// ── SortableSettingsRow ───────────────────────────────────────────────────────
+
+function SortableSettingsRow({ list, checked, onChange }: {
+  list: List;
+  checked: boolean;
+  onChange: () => void;
+}) {
+  const dragControls = useDragControls();
+  return (
+    <Reorder.Item as="div" value={list} dragListener={false} dragControls={dragControls} className="settings-row-sortable">
+      <div className="settings-drag-handle" onPointerDown={(e) => dragControls.start(e)}>
+        <GripVertical size={13} strokeWidth={1.75} />
+      </div>
+      <SettingsRow label={list.name} sublabel={list.type} checked={checked} onChange={onChange} />
+    </Reorder.Item>
+  );
+}
+
+// ── SettingsView ──────────────────────────────────────────────────────────────
+
 export function SettingsView() {
-  const { accent, setAccent, hiddenListIds, toggleListVisibility, showMyDay, setShowMyDay } = useSettings();
+  const {
+    accent, setAccent,
+    hiddenListIds, toggleListVisibility,
+    showMyDay, setShowMyDay,
+    pinnedOrder, customOrder,
+    setPinnedOrder, setCustomOrder,
+  } = useSettings();
   const [lists, setLists] = useState<List[]>([]);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -36,7 +63,19 @@ export function SettingsView() {
     }
   }
 
-  const userLists = lists.filter((l) => l.type !== 'template');
+  const pinnedSet = new Set(pinnedOrder);
+  const pinnedLists = pinnedOrder
+    .map((id) => lists.find((l) => l.id === id))
+    .filter((l): l is List => l !== undefined);
+
+  const nonPinnedLists = lists.filter((l) => l.type !== 'template' && !pinnedSet.has(l.id));
+  const customOrderedIds = customOrder.filter((id) => nonPinnedLists.some((l) => l.id === id));
+  const remainder = nonPinnedLists.filter((l) => !customOrder.includes(l.id));
+  const customLists: List[] = [
+    ...customOrderedIds.map((id) => nonPinnedLists.find((l) => l.id === id)!),
+    ...remainder,
+  ];
+
   const templates = lists.filter((l) => l.type === 'template');
 
   return (
@@ -57,19 +96,54 @@ export function SettingsView() {
         <p style={{ fontSize: '0.85rem', color: 'var(--fg-muted)', margin: '0.5rem 0 0.875rem' }}>
           Choose which lists appear in the sidebar.
         </p>
+
         <SettingsRow label="My Day" sublabel="built-in" checked={showMyDay} onChange={() => setShowMyDay(!showMyDay)} />
-        {userLists.length === 0 && templates.length === 0 && (
+
+        {pinnedLists.length === 0 && customLists.length === 0 && templates.length === 0 && (
           <p className="empty-state" style={{ marginTop: '0.5rem' }}>No lists yet.</p>
         )}
-        {userLists.map((l) => (
-          <SettingsRow
-            key={l.id}
-            label={l.name}
-            sublabel={l.type}
-            checked={!hiddenListIds.includes(l.id)}
-            onChange={() => toggleListVisibility(l.id)}
-          />
-        ))}
+
+        {pinnedLists.length > 0 && (
+          <Reorder.Group
+            as="div"
+            axis="y"
+            values={pinnedLists}
+            onReorder={(newOrder) => setPinnedOrder(newOrder.map((l) => l.id))}
+          >
+            {pinnedLists.map((l) => (
+              <SortableSettingsRow
+                key={l.id}
+                list={l}
+                checked={!hiddenListIds.includes(l.id)}
+                onChange={() => toggleListVisibility(l.id)}
+              />
+            ))}
+          </Reorder.Group>
+        )}
+
+        {customLists.length > 0 && (
+          <>
+            {pinnedLists.length > 0 && (
+              <div style={{ fontSize: '0.72rem', fontFamily: 'var(--mono)', color: 'var(--fg-muted)', padding: '0.875rem 0 0.375rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Custom</div>
+            )}
+            <Reorder.Group
+              as="div"
+              axis="y"
+              values={customLists}
+              onReorder={(newOrder) => setCustomOrder(newOrder.map((l) => l.id))}
+            >
+              {customLists.map((l) => (
+                <SortableSettingsRow
+                  key={l.id}
+                  list={l}
+                  checked={!hiddenListIds.includes(l.id)}
+                  onChange={() => toggleListVisibility(l.id)}
+                />
+              ))}
+            </Reorder.Group>
+          </>
+        )}
+
         {templates.length > 0 && (
           <>
             <div style={{ fontSize: '0.72rem', fontFamily: 'var(--mono)', color: 'var(--fg-muted)', padding: '0.875rem 0 0.375rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Templates</div>
