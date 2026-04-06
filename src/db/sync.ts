@@ -132,3 +132,14 @@ export async function initialSync(db: IDBDatabase, supabase: SupabaseClient): Pr
   localStorage.removeItem(LAST_SYNC_KEY);
   await pullFromSupabase(db, supabase);
 }
+
+/** Delete all of the user's records from Supabase. Children before parents to respect FK order. */
+export async function deleteAllCloudData(supabase: SupabaseClient, userId: string): Promise<void> {
+  const tables = ['habit_completions', 'tasks', 'lists'] as const;
+  const errors: string[] = [];
+  for (const table of tables) {
+    const { error } = await supabase.from(table).delete().eq('user_id', userId);
+    if (error) errors.push(`${table}: ${error.message}`);
+  }
+  if (errors.length > 0) throw new Error(`deleteAllCloudData failed: ${errors.join('; ')}`);
+}

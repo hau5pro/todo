@@ -22,7 +22,7 @@ export function AppShell() {
               />
             </svg>
           </div>
-          <span className="app-title">TODO</span>
+          <span className="app-title">TO DO</span>
         </div>
         <SyncDot pendingCount={pendingCount} isSyncing={isSyncing} />
       </header>

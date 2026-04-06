@@ -15,6 +15,20 @@ export function _resetForTesting(): void {
   dbPromise = null;
 }
 
+export function clearAllLocalData(): Promise<void> {
+  return getDB().then(
+    (db) =>
+      new Promise((resolve, reject) => {
+        const tx = db.transaction(['lists', 'tasks', 'habit_completions'], 'readwrite');
+        tx.objectStore('lists').clear();
+        tx.objectStore('tasks').clear();
+        tx.objectStore('habit_completions').clear();
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      }),
+  );
+}
+
 function openDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);

@@ -26,6 +26,8 @@
   "homepage": "https://github.com/hau5pro/todo#readme",
   "dependencies": {
     "@supabase/supabase-js": "^2.101.1",
+    "framer-motion": "^12.38.0",
+    "lucide-react": "^1.7.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-router-dom": "^7.14.0"

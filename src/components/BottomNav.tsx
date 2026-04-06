@@ -15,6 +15,9 @@ export function BottomNav() {
       {inList && (
         <span className="bottom-tab bottom-tab--active">List</span>
       )}
+      <NavLink to="/settings" className={({ isActive }) => isActive ? 'bottom-tab bottom-tab--active' : 'bottom-tab'}>
+        Settings
+      </NavLink>
     </nav>
   );
 }
