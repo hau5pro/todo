@@ -1,6 +1,8 @@
 - cycles, due dates, recurrances
 - date picker, calender
 
+- ability to reorder tasks in a list and in habits.
+
 - keyboard nav with arrows (tab and space fns?)
 
 - think about how to copy a list easily. e.g. duplicate a vaca packing list.

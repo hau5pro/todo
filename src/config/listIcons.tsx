@@ -1,4 +1,4 @@
-import { ShoppingCart, RefreshCw, CalendarCheck, Copy, Sparkles } from 'lucide-react';
+import { List, ShoppingCart, RefreshCw, CalendarCheck, Copy, Sparkles } from 'lucide-react';
 import { ICON_SIZE } from './icons';
 import type { List as ListData, ListType } from '../types';
 
@@ -10,6 +10,7 @@ const LIST_TYPE_ICONS: Partial<Record<ListType, React.ReactNode>> = {
 };
 
 const LIST_NAME_ICONS: Record<string, React.ReactNode> = {
+  'Tasks':  <List size={ICON_SIZE} strokeWidth={1.75} />,
   'Chores': <Sparkles size={ICON_SIZE} strokeWidth={1.75} />,
 };
 
