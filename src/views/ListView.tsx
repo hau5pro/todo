@@ -14,12 +14,28 @@ import { LIST_TYPE_LABELS } from '../types';
 import { getListIcon } from '../config/listIcons';
 import type { Task } from '../types';
 
+const headerVariants = {
+  show: { transition: { staggerChildren: 0.05, delayChildren: 0.03 } },
+};
+const headerItemVariants = {
+  hidden: { opacity: 0, y: 5 },
+  show:   { opacity: 1, y: 0, transition: { duration: 0.2, ease: 'easeOut' as const } },
+};
+const taskListVariants = {
+  show: { transition: { staggerChildren: 0.04, delayChildren: 0.16 } },
+};
+const taskItemVariants = {
+  hidden: { opacity: 0, y: -10 },
+  show:   { opacity: 1, y: 0, transition: { duration: 0.2, ease: 'easeOut' as const, delay: 0.05 } },
+  exit:   { opacity: 0, height: 0, marginBottom: 0, transition: { duration: 0.22, ease: 'easeIn' as const } },
+};
+
 function applyOrder(tasks: Task[], order: string[]): Task[] {
   if (order.length === 0) return tasks;
   const map = new Map(tasks.map((t) => [t.id, t]));
   const ordered = order.flatMap((id) => (map.has(id) ? [map.get(id)!] : []));
   const rest = tasks.filter((t) => !order.includes(t.id));
-  return [...ordered, ...rest];
+  return [...rest, ...ordered];
 }
 
 export function ListView() {
@@ -51,7 +67,7 @@ export function ListView() {
 
   if (!list || tasks === undefined) return null;
 
-  const activeTasks = tasks.filter((t) => !t.completed && t.deleted_at === null);
+  const activeTasks = tasks.filter((t) => !t.completed && t.deleted_at === null).reverse();
   const completedTasks = tasks.filter((t) => t.completed && t.deleted_at === null);
   const orderedActive = applyOrder(activeTasks, listOrders[listId!] ?? []);
 
@@ -109,7 +125,8 @@ export function ListView() {
 
   return (
     <div>
-      <div className="view-title-row">
+      <motion.div variants={headerVariants} initial="hidden" animate="show">
+      <motion.div variants={headerItemVariants} className="view-title-row">
         {editingListName ? (
           <>
             <input
@@ -164,9 +181,11 @@ export function ListView() {
             </AnimatePresence>
           </>
         )}
-      </div>
-      <p className="view-subtitle">{list.type === 'general' ? 'tasks' : LIST_TYPE_LABELS[list.type]}</p>
-      <form onSubmit={handleAdd}>
+      </motion.div>
+      <motion.p variants={headerItemVariants} className="view-subtitle">
+        {list.type === 'general' ? 'tasks' : LIST_TYPE_LABELS[list.type]}
+      </motion.p>
+      <motion.form variants={headerItemVariants} onSubmit={handleAdd}>
         <input
           className="add-task-input"
           placeholder="+ Add task"
@@ -174,12 +193,17 @@ export function ListView() {
           onChange={(e) => setNewTitle(e.target.value)}
           data-add-task
         />
-      </form>
+      </motion.form>
+      </motion.div>
 
-      <Reorder.Group as="div" axis="y" values={orderedActive} onReorder={handleReorder}>
-        <AnimatePresence initial={false}>
+      <Reorder.Group as="div" axis="y" values={orderedActive} onReorder={handleReorder}
+        variants={taskListVariants} initial="hidden" animate="show"
+      >
+        <AnimatePresence>
           {orderedActive.map((task) => (
-            <Reorder.Item as="div" key={task.id} value={task}>
+            <Reorder.Item as="div" key={task.id} value={task} variants={taskItemVariants}
+              layout transition={{ layout: { duration: 0.2, ease: 'easeOut' } }}
+            >
               <TaskItem
                 title={task.title}
                 completed={task.completed}
@@ -213,18 +237,25 @@ export function ListView() {
               transition={{ duration: 0.25, ease: ease.out }}
               style={{ overflow: 'hidden' }}
             >
-              <AnimatePresence initial={false}>
+              <AnimatePresence>
                 {completedTasks.map((task) => (
-                  <TaskItem
+                  <motion.div
                     key={task.id}
-                    title={task.title}
-                    completed={true}
-                    dueDate={task.due_date}
-                    today={today}
-                    onToggle={() => handleToggle(task)}
-                    onSelect={() => handleSelectTask(task)}
-                    isSelected={detail?.task.id === task.id}
-                  />
+                    initial={{ opacity: 0, y: -6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, height: 0, marginBottom: 0, transition: { duration: 0.22, ease: 'easeIn' as const } }}
+                    transition={{ duration: 0.2, ease: 'easeOut' as const }}
+                  >
+                    <TaskItem
+                      title={task.title}
+                      completed={true}
+                      dueDate={task.due_date}
+                      today={today}
+                      onToggle={() => handleToggle(task)}
+                      onSelect={() => handleSelectTask(task)}
+                      isSelected={detail?.task.id === task.id}
+                    />
+                  </motion.div>
                 ))}
               </AnimatePresence>
             </motion.div>
@@ -232,18 +263,34 @@ export function ListView() {
         </AnimatePresence>
       </section>
 
-      {confirmDeleteList && (
-        <div className="modal-backdrop" onClick={() => setConfirmDeleteList(false)}>
-          <div className="modal-popup" onClick={(e) => e.stopPropagation()}>
-            <h3 className="modal-popup__title">Delete "{list.name}"?</h3>
-            <p className="modal-popup__body">This will permanently delete the list and all its tasks.</p>
-            <div className="modal-popup__actions">
-              <button className="btn-danger-sm" onClick={executeDeleteList}>Delete</button>
-              <button className="btn-ghost-sm" onClick={() => setConfirmDeleteList(false)}>Cancel</button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {confirmDeleteList && (
+          <motion.div
+            className="modal-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            onClick={() => setConfirmDeleteList(false)}
+          >
+            <motion.div
+              className="modal-popup"
+              initial={{ opacity: 0, scale: 0.94, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.94, y: 6 }}
+              transition={{ duration: 0.15, ease: [0, 0, 0.2, 1] }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="modal-popup__title">Delete "{list.name}"?</h3>
+              <p className="modal-popup__body">This will permanently delete the list and all its tasks.</p>
+              <div className="modal-popup__actions">
+                <button className="btn-danger-sm" onClick={executeDeleteList}>Delete</button>
+                <button className="btn-ghost-sm" onClick={() => setConfirmDeleteList(false)}>Cancel</button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

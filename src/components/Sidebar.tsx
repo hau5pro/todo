@@ -19,6 +19,7 @@ import type { List as ListType, ListFolder } from '../types';
 const MY_DAY_SENTINEL = { id: 'my-day' as const };
 type PinnedItem = ListType | typeof MY_DAY_SENTINEL;
 
+
 const COLLAPSED_ICON_SIZE = 20;
 
 // ── Portal tooltip for overflow-clipped containers ────────────────────────────
@@ -105,7 +106,7 @@ function SortableItem({
           style={allowFolderDrag ? { cursor: 'grab' } : undefined}
         >
           {getListIcon(list)}
-          {list.name}
+          <span className="nav-item__name">{list.name}</span>
         </div>
       ) : (
         <NavLink
@@ -114,7 +115,7 @@ function SortableItem({
           data-nav-item
         >
           {getListIcon(list)}
-          {list.name}
+          <span className="nav-item__name">{list.name}</span>
         </NavLink>
       )}
     </Reorder.Item>
@@ -378,6 +379,7 @@ function FolderRow({
 // ── Sidebar ───────────────────────────────────────────────────────────────────
 
 const SIDEBAR_W = 208;
+const SIDEBAR_W_MOBILE = 160;
 const COLLAPSED_W = 40;
 
 export function Sidebar() {
@@ -399,6 +401,11 @@ export function Sidebar() {
   const addFolderInputRef = useRef<HTMLInputElement>(null);
   const addMenuBtnRef = useRef<HTMLButtonElement>(null);
   const navigate = useNavigate();
+
+  // Collapse sidebar by default on mobile
+  useEffect(() => {
+    if (window.innerWidth < 640) setSidebarCollapsed(true);
+  }, []);
 
   // Close add menu on scroll/resize
   useEffect(() => {
@@ -576,7 +583,7 @@ export function Sidebar() {
   return (
     <motion.nav
       className="sidebar"
-      animate={{ width: sidebarCollapsed ? COLLAPSED_W : SIDEBAR_W }}
+      animate={{ width: sidebarCollapsed ? COLLAPSED_W : (window.innerWidth < 640 ? SIDEBAR_W_MOBILE : SIDEBAR_W) }}
       initial={false}
       transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
     >

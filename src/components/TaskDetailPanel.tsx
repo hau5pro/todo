@@ -86,7 +86,7 @@ export function TaskDetailPanel() {
       initial={{ clipPath: 'inset(0 0 0 100%)' }}
       animate={{ clipPath: 'inset(0 0 0 0%)' }}
       exit={{ clipPath: 'inset(0 0 0 100%)', transition: { duration: 0.16, ease: ease.in } }}
-      transition={{ duration: 0.28, ease: ease.bounce }}
+      transition={{ duration: 0.26, ease: ease.snap }}
     >
       <div className="task-detail-panel__header">
         <button className="task-detail-close" onClick={close} title="Close">

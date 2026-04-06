@@ -1,8 +1,8 @@
 import { useEffect, useMemo } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
+import { ease } from '../utils/easing';
 import { Sidebar } from './Sidebar';
-import { BottomNav } from './BottomNav';
 import { SyncDot } from './SyncDot';
 import { TaskDetailPanel } from './TaskDetailPanel';
 import { TaskDetailProvider, useTaskDetail } from '../contexts/TaskDetailContext';
@@ -29,6 +29,7 @@ function KeyboardNavController() {
 }
 
 export function AppShell() {
+  const { pathname } = useLocation();
   const { pendingCount, isSyncing, syncError: _syncError } = useSync();
   const loadLists = useAppStore((s) => s.loadLists);
   const loadFolders = useAppStore((s) => s.loadFolders);
@@ -67,11 +68,17 @@ export function AppShell() {
         <div className="app-body">
           <Sidebar />
           <main className="app-main">
-            <Outlet />
+            <motion.div
+              key={pathname}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.18, ease: ease.out }}
+            >
+              <Outlet />
+            </motion.div>
           </main>
           <DetailSlot />
         </div>
-        <BottomNav />
       </div>
     </TaskDetailProvider>
   );

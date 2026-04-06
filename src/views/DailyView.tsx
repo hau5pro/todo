@@ -1,6 +1,14 @@
 import { useParams } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { Reorder } from 'framer-motion';
+
+const habitListVariants = {
+  show: { transition: { staggerChildren: 0.04, delayChildren: 0.05 } },
+};
+const habitItemVariants = {
+  hidden: { opacity: 0, y: 6 },
+  show:   { opacity: 1, y: 0, transition: { duration: 0.2, ease: 'easeOut' as const } },
+};
 import { useHabits } from '../hooks/useHabits';
 import { useAppStore } from '../store';
 import { useTaskDetail } from '../contexts/TaskDetailContext';
@@ -72,9 +80,11 @@ export function DailyView() {
           onChange={(e) => setNewTitle(e.target.value)}
         />
       </form>
-      <Reorder.Group as="div" axis="y" values={orderedRows} onReorder={handleReorder}>
+      <Reorder.Group as="div" axis="y" values={orderedRows} onReorder={handleReorder}
+        variants={habitListVariants} initial="hidden" animate="show"
+      >
         {orderedRows.map((row) => (
-          <Reorder.Item as="div" key={row.task.id} value={row}>
+          <Reorder.Item as="div" key={row.task.id} value={row} variants={habitItemVariants}>
             <HabitItem
               title={row.task.title}
               completedToday={row.completedToday}

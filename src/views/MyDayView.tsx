@@ -1,10 +1,24 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Sun, CalendarCheck, Clock } from '@phosphor-icons/react';
+import { motion } from 'framer-motion';
 import { useAppStore } from '../store';
 import { TaskItem } from '../components/TaskItem';
 import { HabitItem } from '../components/HabitItem';
 import { toggleHabitCompletion, getCompletionsForTask, calculateStreak } from '../db/habits';
 import { ICON_SIZE } from '../config/icons';
+import { ease } from '../utils/easing';
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 6 },
+  show:   { opacity: 1, y: 0, transition: { duration: 0.2, ease: ease.out } },
+};
+const sectionVariants = {
+  hidden: { opacity: 0, y: 8 },
+  show:   { opacity: 1, y: 0, transition: { duration: 0.22, ease: ease.out } },
+};
+const containerVariants = {
+  show: { transition: { staggerChildren: 0.06, delayChildren: 0.03 } },
+};
 
 function sortByDueDate<T extends { due_date?: string | null }>(tasks: T[]): T[] {
   return [...tasks].sort((a, b) => {
@@ -54,59 +68,60 @@ export function MyDayView() {
 
   return (
     <div>
-      <div className="view-title-row">
+      <motion.div variants={containerVariants} initial="hidden" animate="show">
+      <motion.div variants={itemVariants} className="view-title-row">
         <span className="view-title-icon"><Sun size={20} weight="fill" /></span>
         <h1 className="view-title">My Day</h1>
-      </div>
-      <p className="view-subtitle">{todayLabel}</p>
-      {!hasAnything && <p className="empty-state">Nothing due today.</p>}
+      </motion.div>
+      <motion.p variants={itemVariants} className="view-subtitle">{todayLabel}</motion.p>
+      {!hasAnything && <motion.p variants={itemVariants} className="empty-state">Nothing due today.</motion.p>}
+        {myDayHabits.length > 0 && (
+          <motion.section variants={sectionVariants}>
+            <div className="section-heading"><CalendarCheck size={ICON_SIZE} weight="fill" />Habits</div>
+            {myDayHabits.map(({ task, completedToday }) => (
+              <HabitItem
+                key={task.id}
+                title={task.title}
+                completedToday={completedToday}
+                streak={streaks.get(task.id) ?? 0}
+                onToggle={() => handleHabitToggle(task.id)}
+              />
+            ))}
+          </motion.section>
+        )}
 
-      {myDayHabits.length > 0 && (
-        <section>
-          <div className="section-heading"><CalendarCheck size={ICON_SIZE} weight="fill" />Habits</div>
-          {myDayHabits.map(({ task, completedToday }) => (
-            <HabitItem
-              key={task.id}
-              title={task.title}
-              completedToday={completedToday}
-              streak={streaks.get(task.id) ?? 0}
-              onToggle={() => handleHabitToggle(task.id)}
-            />
-          ))}
-        </section>
-      )}
+        {myDayOverdue.length > 0 && (
+          <motion.section variants={sectionVariants}>
+            <div className="section-heading"><Clock size={ICON_SIZE} weight="fill" />Overdue</div>
+            {sortedOverdue.map((task) => (
+              <TaskItem
+                key={task.id}
+                title={task.title}
+                completed={task.completed}
+                dueDate={task.due_date}
+                today={today}
+                onToggle={() => handleTaskToggle(task)}
+              />
+            ))}
+          </motion.section>
+        )}
 
-      {myDayOverdue.length > 0 && (
-        <section>
-          <div className="section-heading"><Clock size={ICON_SIZE} weight="fill" />Overdue</div>
-          {sortedOverdue.map((task) => (
-            <TaskItem
-              key={task.id}
-              title={task.title}
-              completed={task.completed}
-              dueDate={task.due_date}
-              today={today}
-              onToggle={() => handleTaskToggle(task)}
-            />
-          ))}
-        </section>
-      )}
-
-      {myDayToday.length > 0 && (
-        <section>
-          <div className="section-heading"><Sun size={ICON_SIZE} weight="fill" />Today</div>
-          {sortedToday.map((task) => (
-            <TaskItem
-              key={task.id}
-              title={task.title}
-              completed={task.completed}
-              dueDate={task.due_date}
-              today={today}
-              onToggle={() => handleTaskToggle(task)}
-            />
-          ))}
-        </section>
-      )}
+        {myDayToday.length > 0 && (
+          <motion.section variants={sectionVariants}>
+            <div className="section-heading"><Sun size={ICON_SIZE} weight="fill" />Today</div>
+            {sortedToday.map((task) => (
+              <TaskItem
+                key={task.id}
+                title={task.title}
+                completed={task.completed}
+                dueDate={task.due_date}
+                today={today}
+                onToggle={() => handleTaskToggle(task)}
+              />
+            ))}
+          </motion.section>
+        )}
+      </motion.div>
 
     </div>
   );

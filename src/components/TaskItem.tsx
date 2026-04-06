@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import { AnimatedCheckbox } from './AnimatedCheckbox';
 import { useSettings } from '../contexts/SettingsContext';
 import { playComplete } from '../utils/sound';
-import { ease } from '../utils/easing';
 
 interface Props {
   title: string;
@@ -35,9 +34,11 @@ export function TaskItem({ title, completed, dueDate, today, onToggle, onSelect,
       if (soundEnabled) playComplete(soundStyle);
       setFlashing(true);
       setPopping(true);
-      setTimeout(() => { setFlashing(false); setPopping(false); }, 650);
+      setTimeout(() => { setFlashing(false); setPopping(false); }, 400);
+      setTimeout(onToggle, 120);
+    } else {
+      onToggle();
     }
-    onToggle();
   }
 
   return (
@@ -48,11 +49,9 @@ export function TaskItem({ title, completed, dueDate, today, onToggle, onSelect,
         onSelect ? 'task-item--selectable' : '',
         flashing ? 'task-item--flash' : '',
       ].filter(Boolean).join(' ')}
-      style={{ clipPath: 'inset(0% 0% 0% 0% round 8px)' }}
       tabIndex={0}
       data-nav-row
       onClick={onSelect}
-      exit={{ clipPath: 'inset(100% 0% 0% 0% round 8px)', y: 10, transition: { duration: 0.36, ease: ease.wipe } }}
     >
       <AnimatedCheckbox checked={completed} onChange={handleToggle} popping={popping} />
       <span className={`task-item__title${completed ? ' task-item__title--completed' : ''}`}>
