@@ -21,6 +21,7 @@ const DEFAULTS = {
     pinnedOrder: [],
     customOrder: [],
     myDayOrder: [],
+    soundEnabled: true,
 };
 function loadSettings() {
     try {
@@ -200,6 +201,7 @@ export function SettingsProvider({ children }) {
         setPinnedOrder: (pinnedOrder) => update({ pinnedOrder }),
         setCustomOrder: (customOrder) => update({ customOrder }),
         setMyDayOrder: (myDayOrder) => update({ myDayOrder }),
+        setSoundEnabled: (soundEnabled) => update({ soundEnabled }),
     };
     return _jsx(SettingsContext.Provider, { value: value, children: children });
 }

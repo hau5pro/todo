@@ -75,6 +75,21 @@ export async function advanceCyclicalTask(id) {
     await req(store.put(updated));
     return updated;
 }
+export async function restoreTask(id) {
+    const db = await getDB();
+    const tx = db.transaction('tasks', 'readwrite');
+    const store = tx.objectStore('tasks');
+    const existing = await req(store.get(id));
+    const updated = {
+        ...existing,
+        deleted_at: null,
+        completed: false,
+        updated_at: new Date().toISOString(),
+        pending_sync: true,
+    };
+    await req(store.put(updated));
+    return updated;
+}
 export async function softDeleteTask(id, deletedAt) {
     const db = await getDB();
     const tx = db.transaction('tasks', 'readwrite');

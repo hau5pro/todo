@@ -14,7 +14,7 @@ export function ListView() {
   const list = useAppStore((s) => s.lists.find((l) => l.id === listId));
   const tasks = useAppStore((s) => s.tasksByList[listId!]);
   const loadTasks = useAppStore((s) => s.loadTasks);
-  const { renameList, deleteList, addTask, completeTask, shoppingCompleteTask, advanceCyclicalTask } = useAppStore();
+  const { renameList, deleteList, addTask, completeTask, shoppingCompleteTask, shoppingRestoreTask, advanceCyclicalTask } = useAppStore();
 
   const { detail, open: openDetail, close: closeDetail } = useTaskDetail();
 
@@ -167,7 +167,7 @@ export function ListView() {
               title={task.title}
               completed={true}
               today={today}
-              onToggle={() => {}}
+              onToggle={() => shoppingRestoreTask(task.id, listId!)}
             />
           ))}
         </section>

@@ -1,4 +1,7 @@
-import { ICON_SIZE } from '../config/icons';
+import { useEffect, useRef, useState } from 'react';
+import { AnimatedCheckbox } from './AnimatedCheckbox';
+import { useSettings } from '../contexts/SettingsContext';
+import { playComplete } from '../utils/sound';
 
 interface Props {
   title: string;
@@ -12,19 +15,31 @@ interface Props {
 
 export function TaskItem({ title, completed, dueDate, today, onToggle, onSelect, isSelected }: Props) {
   const isOverdue = dueDate && dueDate < today;
+  const { soundEnabled } = useSettings();
+  const [flashing, setFlashing] = useState(false);
+  const prev = useRef(completed);
+
+  useEffect(() => {
+    if (completed && !prev.current) {
+      setFlashing(true);
+      if (soundEnabled) playComplete();
+      const t = setTimeout(() => setFlashing(false), 600);
+      return () => clearTimeout(t);
+    }
+    prev.current = completed;
+  }, [completed, soundEnabled]);
 
   return (
     <div
-      className={`task-item${isSelected ? ' task-item--selected' : ''}${onSelect ? ' task-item--selectable' : ''}`}
+      className={[
+        'task-item',
+        isSelected ? 'task-item--selected' : '',
+        onSelect ? 'task-item--selectable' : '',
+        flashing ? 'task-item--flash' : '',
+      ].filter(Boolean).join(' ')}
       onClick={onSelect}
     >
-      <input
-        type="checkbox"
-        checked={completed}
-        onChange={onToggle}
-        onClick={(e) => e.stopPropagation()}
-        style={{ width: ICON_SIZE, height: ICON_SIZE, flexShrink: 0 }}
-      />
+      <AnimatedCheckbox checked={completed} onChange={onToggle} />
       <span className={`task-item__title${completed ? ' task-item__title--completed' : ''}`}>
         {title}
       </span>

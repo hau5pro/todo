@@ -3,6 +3,7 @@ import { Trash2, GripVertical } from 'lucide-react';
 import { ICON_SIZE } from '../config/icons';
 import { Reorder, useDragControls } from 'framer-motion';
 import { useSettings } from '../contexts/SettingsContext';
+import { playComplete } from '../utils/sound';
 import { useAppStore } from '../store';
 import { clearAllLocalData } from '../db/client';
 import type { List } from '../types';
@@ -55,6 +56,7 @@ export function SettingsView() {
     showMyDay, setShowMyDay,
     pinnedOrder, customOrder,
     setPinnedOrder, setCustomOrder,
+    soundEnabled, setSoundEnabled,
   } = useSettings();
 
   const lists = useAppStore((s) => s.lists);
@@ -121,6 +123,21 @@ export function SettingsView() {
             </div>
           </div>
         </div>
+      </section>
+
+      {/* Sound */}
+      <section className="settings-section">
+        <div className="settings-section-title">Sound</div>
+        <SettingsRow
+          label="Completion sound"
+          sublabel="plays when a task is checked off"
+          checked={soundEnabled}
+          onChange={() => {
+            const next = !soundEnabled;
+            setSoundEnabled(next);
+            if (next) playComplete();
+          }}
+        />
       </section>
 
       {/* Navigation */}

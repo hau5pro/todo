@@ -68,10 +68,10 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 /* ── Base ────────────────────────────────────────────────── */
-html { font-size: 15px; }
-@media (min-width: 768px)  { html { font-size: 16px; } }
-@media (min-width: 1280px) { html { font-size: 17px; } }
-@media (min-width: 1600px) { html { font-size: 18px; } }
+html { font-size: 16px; }
+@media (min-width: 768px)  { html { font-size: 17px; } }
+@media (min-width: 1280px) { html { font-size: 18px; } }
+@media (min-width: 1600px) { html { font-size: 19px; } }
 
 body {
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
@@ -473,11 +473,71 @@ button.nav-section-label--button:hover { color: var(--fg); }
   border-bottom: 1px solid var(--divider);
 }
 
-.task-item__title { flex: 1; }
-
+.task-item__title {
+  flex: 1;
+  position: relative;
+}
+.task-item__title::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  height: 1.5px;
+  background: var(--fg-muted);
+  width: 0;
+  transition: width 0.22s ease;
+  transform: translateY(-50%);
+  border-radius: 1px;
+  pointer-events: none;
+}
 .task-item__title--completed {
-  text-decoration: line-through;
   color: var(--fg-muted);
+}
+.task-item__title--completed::after {
+  width: 100%;
+}
+
+@keyframes task-flash {
+  0%   { background: transparent; }
+  20%  { background: var(--accent-dim); }
+  100% { background: transparent; }
+}
+.task-item--flash { animation: task-flash 0.55s ease; }
+
+/* ── Animated Checkbox ───────────────────────────────── */
+.animated-checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 1px;
+  cursor: pointer;
+  flex-shrink: 0;
+  border-radius: 50%;
+  transition: opacity 0.1s;
+}
+.animated-checkbox:active { opacity: 0.65; }
+
+.animated-checkbox__circle {
+  fill: transparent;
+  stroke: var(--fg-muted);
+  stroke-width: 1.5;
+  transition: fill 0.15s ease, stroke 0.15s ease;
+}
+.animated-checkbox--checked .animated-checkbox__circle {
+  fill: var(--accent);
+  stroke: var(--accent);
+}
+
+@keyframes checkbox-pop {
+  0%   { transform: scale(1); }
+  28%  { transform: scale(1.35); }
+  60%  { transform: scale(0.88); }
+  100% { transform: scale(1); }
+}
+.animated-checkbox--pop svg {
+  animation: checkbox-pop 0.38s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .task-item__date {

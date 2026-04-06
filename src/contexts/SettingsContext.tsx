@@ -24,6 +24,7 @@ export interface Settings {
   pinnedOrder: string[];
   customOrder: string[];
   myDayOrder: string[];
+  soundEnabled: boolean;
 }
 
 interface SettingsContextValue extends Settings {
@@ -35,6 +36,7 @@ interface SettingsContextValue extends Settings {
   setPinnedOrder: (ids: string[]) => void;
   setCustomOrder: (ids: string[]) => void;
   setMyDayOrder: (ids: string[]) => void;
+  setSoundEnabled: (v: boolean) => void;
 }
 
 const STORAGE_KEY = 'todo_settings';
@@ -49,6 +51,7 @@ const DEFAULTS: Settings = {
   pinnedOrder: [],
   customOrder: [],
   myDayOrder: [],
+  soundEnabled: true,
 };
 
 function loadSettings(): Settings {
@@ -240,6 +243,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     setPinnedOrder: (pinnedOrder) => update({ pinnedOrder }),
     setCustomOrder: (customOrder) => update({ customOrder }),
     setMyDayOrder: (myDayOrder) => update({ myDayOrder }),
+    setSoundEnabled: (soundEnabled) => update({ soundEnabled }),
   };
 
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;
