@@ -270,6 +270,7 @@ body {
   color: var(--fg);
   background: var(--hover);
 }
+.nav-item:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 6px; }
 
 .nav-item--active {
   color: var(--accent);
@@ -769,6 +770,7 @@ button.nav-section-label--button:hover { color: var(--fg); }
 }
 .task-item--selectable { cursor: pointer; }
 .task-item--selected { background: var(--hover); border-radius: 8px; }
+.task-item:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 8px; }
 
 .task-item__title {
   flex: 1;
@@ -930,6 +932,7 @@ button.nav-section-label--button:hover { color: var(--fg); }
 
 .habit-item--selectable { cursor: pointer; }
 .habit-item--selected { background: var(--hover); border-radius: 8px; }
+.habit-item:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 8px; }
 
 .habit-item__title {
   flex: 1;
@@ -1536,9 +1539,10 @@ button.nav-section-label--button:hover { color: var(--fg); }
   border-radius: 6px;
   min-width: 36px;
   min-height: 36px;
+  font-size: 1.1rem;
   transition: color 0.15s, background 0.15s;
 }
-.task-detail-close:hover { color: var(--fg); background: var(--hover); }
+.task-detail-close:hover { color: var(--danger); background: var(--hover); }
 
 .task-detail-panel__body {
   padding: 0.75rem 1.25rem 1rem;

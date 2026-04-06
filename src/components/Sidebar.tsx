@@ -111,6 +111,7 @@ function SortableItem({
         <NavLink
           to={`/list/${list.id}`}
           className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'}
+          data-nav-item
         >
           {getListIcon(list)}
           {list.name}
@@ -155,6 +156,7 @@ function SortableMyDayItem({ editMode }: { editMode: boolean }) {
         <NavLink
           to="/my-day"
           className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'}
+          data-nav-item
         >
           <Sun size={ICON_SIZE} weight="fill" />
           My Day

@@ -3,10 +3,6 @@ session counter: 4 + 5x lol
 
 - keyboard nav with arrows (tab and space fns?)
 
-- 1 level deep of folders for user lists?
-- think about how to copy a list easily. e.g. duplicate a vaca packing list.
-- collapsible user lists, collapsible folders
-
 - ability to have groups in lists for vaca packing.
 
 - bug: view transitions between lists. list items prob shouldnt animate how they are currently?
@@ -19,3 +15,4 @@ session counter: 4 + 5x lol
 
 - feat: user to select icon on user-created lists
 - cyclical list type, unused?
+- fix theming, light theme seems off

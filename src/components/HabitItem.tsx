@@ -35,6 +35,8 @@ export function HabitItem({ title, completedToday, streak, onToggle, onSelect, i
         onSelect ? 'habit-item--selectable' : '',
         flashing ? 'habit-item--flash' : '',
       ].filter(Boolean).join(' ')}
+      tabIndex={0}
+      data-nav-row
       onClick={onSelect}
     >
       <AnimatedCheckbox

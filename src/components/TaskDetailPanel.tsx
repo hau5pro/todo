@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import dayjs from 'dayjs';
 import { motion } from 'framer-motion';
-import { X, Trash, CalendarBlank } from '@phosphor-icons/react';
+import { Trash, CalendarBlank } from '@phosphor-icons/react';
 import { useTaskDetail } from '../contexts/TaskDetailContext';
 import { useAppStore } from '../store';
 import { ICON_SIZE } from '../config/icons';
@@ -42,6 +42,7 @@ export function TaskDetailPanel() {
       focusLater(inputRef);
     }
   }, [detail?.task.id]);
+
 
   if (!task) return null;
 
@@ -89,7 +90,7 @@ export function TaskDetailPanel() {
     >
       <div className="task-detail-panel__header">
         <button className="task-detail-close" onClick={close} title="Close">
-          <X size={ICON_SIZE} weight="fill" />
+          ✕
         </button>
       </div>
 

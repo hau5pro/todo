@@ -27,6 +27,7 @@ export function AnimatedCheckbox({ checked, onChange, popping = false, variant, 
         popping ? 'animated-checkbox--pop' : '',
         isHabit ? 'animated-checkbox--habit' : '',
       ].filter(Boolean).join(' ')}
+      tabIndex={-1}
       onClick={(e) => { e.stopPropagation(); onChange(); }}
     >
       <svg width={22} height={22} viewBox="0 0 16 16" overflow="visible">

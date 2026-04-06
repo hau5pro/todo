@@ -141,6 +141,7 @@ export function ListView() {
           placeholder="+ Add task"
           value={newTitle}
           onChange={(e) => setNewTitle(e.target.value)}
+          data-add-task
         />
       </form>
 

@@ -49,6 +49,8 @@ export function TaskItem({ title, completed, dueDate, today, onToggle, onSelect,
         flashing ? 'task-item--flash' : '',
       ].filter(Boolean).join(' ')}
       style={{ clipPath: 'inset(0% 0% 0% 0% round 8px)' }}
+      tabIndex={0}
+      data-nav-row
       onClick={onSelect}
       exit={{ clipPath: 'inset(100% 0% 0% 0% round 8px)', y: 10, transition: { duration: 0.36, ease: ease.wipe } }}
     >

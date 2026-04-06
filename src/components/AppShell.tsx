@@ -8,6 +8,7 @@ import { TaskDetailPanel } from './TaskDetailPanel';
 import { TaskDetailProvider, useTaskDetail } from '../contexts/TaskDetailContext';
 import { useSync } from '../hooks/useSync';
 import { useAppStore } from '../store';
+import { useKeyboardNav } from '../hooks/useKeyboardNav';
 
 function DetailSlot() {
   const { detail, close } = useTaskDetail();
@@ -20,6 +21,11 @@ function DetailSlot() {
       {detail && <TaskDetailPanel />}
     </AnimatePresence>
   );
+}
+
+function KeyboardNavController() {
+  useKeyboardNav();
+  return null;
 }
 
 export function AppShell() {
@@ -37,6 +43,7 @@ export function AppShell() {
 
   return (
     <TaskDetailProvider>
+      <KeyboardNavController />
       <div className="app-shell">
         <header className="app-header">
           <div className="app-logo">
