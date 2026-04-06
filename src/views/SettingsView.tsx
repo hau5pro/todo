@@ -1,23 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Check, Trash2 } from 'lucide-react';
-import { useSettings, ACCENT_COLORS } from '../contexts/SettingsContext';
+import { Trash2 } from 'lucide-react';
+import { useSettings } from '../contexts/SettingsContext';
 import { getLists } from '../db/lists';
 import { clearAllLocalData } from '../db/client';
 import { deleteAllCloudData } from '../db/sync';
 import { signOut } from '../supabase/auth';
 import { supabase } from '../supabase/client';
 import type { List } from '../types';
-
-function ToggleButton({ checked, onChange }: { checked: boolean; onChange: () => void }) {
-  return (
-    <button
-      role="switch"
-      aria-checked={checked}
-      onClick={onChange}
-      className={`toggle-btn${checked ? ' toggle-btn--on' : ''}`}
-    />
-  );
-}
+import { ColorSwatchPicker } from '../components/ColorSwatchPicker';
+import { SettingsRow } from '../components/SettingsRow';
 
 export function SettingsView() {
   const { accent, setAccent, hiddenListIds, toggleListVisibility, showMyDay, setShowMyDay } = useSettings();
@@ -55,19 +46,8 @@ export function SettingsView() {
       {/* Appearance */}
       <section className="settings-section">
         <div className="settings-section-title">Appearance</div>
-        <div className="color-swatches" style={{ marginTop: '0.75rem' }}>
-          {ACCENT_COLORS.map((c) => (
-            <button
-              key={c.key}
-              className={`color-swatch${accent === c.key ? ' color-swatch--selected' : ''}`}
-              style={{ background: c.hex, '--swatch-hex': c.hex } as React.CSSProperties}
-              onClick={() => setAccent(c.key)}
-              title={c.label}
-              aria-label={`${c.label} accent color`}
-            >
-              {accent === c.key && <Check size={11} strokeWidth={2.5} color="white" />}
-            </button>
-          ))}
+        <div style={{ marginTop: '0.75rem' }}>
+          <ColorSwatchPicker accent={accent} onSelect={setAccent} />
         </div>
       </section>
 
@@ -77,42 +57,30 @@ export function SettingsView() {
         <p style={{ fontSize: '0.85rem', color: 'var(--fg-muted)', margin: '0.5rem 0 0.875rem' }}>
           Choose which lists appear in the sidebar.
         </p>
-        <div className="settings-row">
-          <div>
-            <div style={{ fontSize: '0.875rem' }}>My Day</div>
-            <div style={{ fontSize: '0.72rem', color: 'var(--fg-muted)', fontFamily: 'var(--mono)' }}>built-in</div>
-          </div>
-          <ToggleButton checked={showMyDay} onChange={() => setShowMyDay(!showMyDay)} />
-        </div>
+        <SettingsRow label="My Day" sublabel="built-in" checked={showMyDay} onChange={() => setShowMyDay(!showMyDay)} />
         {userLists.length === 0 && templates.length === 0 && (
           <p className="empty-state" style={{ marginTop: '0.5rem' }}>No lists yet.</p>
         )}
         {userLists.map((l) => (
-          <div key={l.id} className="settings-row">
-            <div>
-              <div style={{ fontSize: '0.875rem' }}>{l.name}</div>
-              <div style={{ fontSize: '0.72rem', color: 'var(--fg-muted)', fontFamily: 'var(--mono)' }}>{l.type}</div>
-            </div>
-            <ToggleButton
-              checked={!hiddenListIds.includes(l.id)}
-              onChange={() => toggleListVisibility(l.id)}
-            />
-          </div>
+          <SettingsRow
+            key={l.id}
+            label={l.name}
+            sublabel={l.type}
+            checked={!hiddenListIds.includes(l.id)}
+            onChange={() => toggleListVisibility(l.id)}
+          />
         ))}
         {templates.length > 0 && (
           <>
             <div style={{ fontSize: '0.72rem', fontFamily: 'var(--mono)', color: 'var(--fg-muted)', padding: '0.875rem 0 0.375rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Templates</div>
             {templates.map((l) => (
-              <div key={l.id} className="settings-row">
-                <div>
-                  <div style={{ fontSize: '0.875rem' }}>{l.name}</div>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--fg-muted)', fontFamily: 'var(--mono)' }}>template</div>
-                </div>
-                <ToggleButton
-                  checked={!hiddenListIds.includes(l.id)}
-                  onChange={() => toggleListVisibility(l.id)}
-                />
-              </div>
+              <SettingsRow
+                key={l.id}
+                label={l.name}
+                sublabel="template"
+                checked={!hiddenListIds.includes(l.id)}
+                onChange={() => toggleListVisibility(l.id)}
+              />
             ))}
           </>
         )}

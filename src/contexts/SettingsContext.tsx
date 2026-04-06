@@ -3,11 +3,11 @@ import type { User } from '@supabase/supabase-js';
 import { onAuthStateChange } from '../supabase/auth';
 import { fetchCloudSettings, pushCloudSettings } from '../db/settings';
 
-export type AccentColor = 'purple' | 'blue' | 'green' | 'rose' | 'orange' | 'teal';
+export type AccentColor = 'blue' | 'purple' | 'green' | 'rose' | 'orange' | 'teal';
 
 export const ACCENT_COLORS: { key: AccentColor; label: string; hex: string; darkHex: string }[] = [
-  { key: 'purple', label: 'Purple', hex: '#7c3aed', darkHex: '#a78bfa' },
   { key: 'blue',   label: 'Blue',   hex: '#2563eb', darkHex: '#60a5fa' },
+  { key: 'purple', label: 'Purple', hex: '#7c3aed', darkHex: '#a78bfa' },
   { key: 'green',  label: 'Green',  hex: '#16a34a', darkHex: '#4ade80' },
   { key: 'rose',   label: 'Rose',   hex: '#e11d48', darkHex: '#fb7185' },
   { key: 'orange', label: 'Orange', hex: '#ea580c', darkHex: '#fb923c' },

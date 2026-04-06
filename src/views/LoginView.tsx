@@ -165,7 +165,7 @@ export function LoginView() {
         </motion.div>
 
         {/* Tabs */}
-        <motion.div variants={fade} className="auth-tabs">
+        <motion.div variants={fade} className="auth-tabs" style={{ width: '100%' }}>
           <button className={`auth-tab${mode === 'signin' ? ' auth-tab--active' : ''}`} onClick={() => switchMode('signin')}>
             Sign in
           </button>
@@ -175,7 +175,7 @@ export function LoginView() {
         </motion.div>
 
         {/* Email / password form */}
-        <motion.form variants={fade} onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <motion.form variants={fade} onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '100%' }}>
           <div className="auth-field">
             <Mail size={16} strokeWidth={1.75} className="auth-field__icon" />
             <input

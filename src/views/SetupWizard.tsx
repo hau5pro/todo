@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Check, Palette, LayoutList, Sun, List, CalendarCheck, ShoppingCart } from 'lucide-react';
-import { useSettings, ACCENT_COLORS } from '../contexts/SettingsContext';
+import { useSettings } from '../contexts/SettingsContext';
 import { createList } from '../db/lists';
+import { ColorSwatchPicker } from '../components/ColorSwatchPicker';
 
 const LIST_OPTIONS: { key: string; label: string; icon: React.ReactNode }[] = [
   { key: 'My Day',    label: 'My Day',    icon: <Sun size={15} strokeWidth={1.75} /> },
@@ -48,22 +49,7 @@ export function SetupWizard() {
 
           <p className="wizard-body">{STEPS[step].body}</p>
 
-          {step === 1 && (
-            <div className="color-swatches">
-              {ACCENT_COLORS.map((c) => (
-                <button
-                  key={c.key}
-                  className={`color-swatch${accent === c.key ? ' color-swatch--selected' : ''}`}
-                  style={{ background: c.hex, '--swatch-hex': c.hex } as React.CSSProperties}
-                  onClick={() => setAccent(c.key)}
-                  title={c.label}
-                  aria-label={`${c.label} accent color`}
-                >
-                  {accent === c.key && <Check size={11} strokeWidth={2.5} color="white" />}
-                </button>
-              ))}
-            </div>
-          )}
+          {step === 1 && <ColorSwatchPicker accent={accent} onSelect={setAccent} />}
 
           {step === 2 && (
             <div className="wizard-list-options">
