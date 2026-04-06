@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Trash2, GripVertical } from 'lucide-react';
+import { Trash, DotsSixVertical } from '@phosphor-icons/react';
 import { ICON_SIZE } from '../config/icons';
 import { Reorder, useDragControls } from 'framer-motion';
 import { useSettings } from '../contexts/SettingsContext';
@@ -24,7 +24,7 @@ function SortableSettingsRow({ list, checked, onChange }: { list: List; checked:
   return (
     <Reorder.Item as="div" value={list} dragListener={false} dragControls={dragControls} className="settings-row-sortable">
       <div className="settings-drag-handle" onPointerDown={(e) => dragControls.start(e)}>
-        <GripVertical size={ICON_SIZE} strokeWidth={1.75} />
+        <DotsSixVertical size={ICON_SIZE} weight="fill" />
       </div>
       <SettingsRow label={list.name} sublabel={LIST_TYPE_LABELS[list.type]} checked={checked} onChange={onChange} />
     </Reorder.Item>
@@ -36,7 +36,7 @@ function SortableMyDaySettingsRow({ checked, onChange }: { checked: boolean; onC
   return (
     <Reorder.Item as="div" value={MY_DAY_SENTINEL} dragListener={false} dragControls={dragControls} className="settings-row-sortable">
       <div className="settings-drag-handle" onPointerDown={(e) => dragControls.start(e)}>
-        <GripVertical size={ICON_SIZE} strokeWidth={1.75} />
+        <DotsSixVertical size={ICON_SIZE} weight="fill" />
       </div>
       <SettingsRow label="My Day" sublabel="built-in" checked={checked} onChange={onChange} />
     </Reorder.Item>
@@ -211,7 +211,7 @@ export function SettingsView() {
                 Permanently deletes all your data from this device and the cloud.
               </p>
               <button className="btn-danger" onClick={() => setConfirmDelete(true)} disabled={busy}>
-                <Trash2 size={ICON_SIZE} strokeWidth={2} />
+                <Trash size={ICON_SIZE} weight="fill" />
                 Delete everything and sign out
               </button>
             </>

@@ -1,22 +1,22 @@
 import { useState } from 'react';
-import { Check, Palette, LayoutList, Sun, List, CalendarCheck, ShoppingCart, Sparkles } from 'lucide-react';
+import { Check, Palette, ListDashes, Sun, List, CalendarCheck, ShoppingCart, Sparkle } from '@phosphor-icons/react';
 import { ICON_SIZE } from '../config/icons';
 import { useSettings } from '../contexts/SettingsContext';
 import { createList } from '../db/lists';
 import { ColorSwatchPicker } from '../components/ColorSwatchPicker';
 
 const LIST_OPTIONS: { key: string; label: string; icon: React.ReactNode }[] = [
-  { key: 'My Day',    label: 'My Day',    icon: <Sun size={ICON_SIZE} strokeWidth={1.75} /> },
-  { key: 'Tasks',     label: 'Tasks',     icon: <List size={ICON_SIZE} strokeWidth={1.75} /> },
-  { key: 'Habits',    label: 'Habits',    icon: <CalendarCheck size={ICON_SIZE} strokeWidth={1.75} /> },
-  { key: 'Groceries', label: 'Groceries', icon: <ShoppingCart size={ICON_SIZE} strokeWidth={1.75} /> },
-  { key: 'Chores',    label: 'Chores',    icon: <Sparkles size={ICON_SIZE} strokeWidth={1.75} /> },
+  { key: 'My Day',    label: 'My Day',    icon: <Sun size={ICON_SIZE} weight="fill" /> },
+  { key: 'Tasks',     label: 'Tasks',     icon: <List size={ICON_SIZE} weight="fill" /> },
+  { key: 'Habits',    label: 'Habits',    icon: <CalendarCheck size={ICON_SIZE} weight="fill" /> },
+  { key: 'Groceries', label: 'Groceries', icon: <ShoppingCart size={ICON_SIZE} weight="fill" /> },
+  { key: 'Chores',    label: 'Chores',    icon: <Sparkle size={ICON_SIZE} weight="fill" /> },
 ];
 
 const STEPS = [
-  { icon: <Check size={20} strokeWidth={2.5} />,       title: 'Welcome to TO DO', body: 'A minimal, offline-first task manager.' },
-  { icon: <Palette size={20} strokeWidth={2} />,        title: 'Appearance',      body: 'Choose your accent color and theme.' },
-  { icon: <LayoutList size={20} strokeWidth={1.75} />,  title: 'Your lists',      body: 'Choose which lists you want to start with.' },
+  { icon: <Check size={20} weight="fill" />,      title: 'Welcome to TO DO', body: 'A minimal, offline-first task manager.' },
+  { icon: <Palette size={20} weight="fill" />,    title: 'Appearance',      body: 'Choose your accent color and theme.' },
+  { icon: <ListDashes size={20} weight="fill" />, title: 'Your lists',      body: 'Choose which lists you want to start with.' },
 ];
 
 export function SetupWizard() {

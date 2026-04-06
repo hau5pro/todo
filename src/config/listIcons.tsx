@@ -1,17 +1,17 @@
-import { List, ShoppingCart, RefreshCw, CalendarCheck, Copy, Sparkles } from 'lucide-react';
+import { List, ShoppingCart, ArrowClockwise, CalendarCheck, Copy, Sparkle } from '@phosphor-icons/react';
 import { ICON_SIZE } from './icons';
 import type { List as ListData, ListType } from '../types';
 
 const LIST_TYPE_ICONS: Partial<Record<ListType, React.ReactNode>> = {
-  shopping: <ShoppingCart size={ICON_SIZE} strokeWidth={1.75} />,
-  cyclical: <RefreshCw size={ICON_SIZE} strokeWidth={1.75} />,
-  daily:    <CalendarCheck size={ICON_SIZE} strokeWidth={1.75} />,
-  template: <Copy size={ICON_SIZE} strokeWidth={1.75} />,
+  shopping: <ShoppingCart size={ICON_SIZE} weight="fill" />,
+  cyclical: <ArrowClockwise size={ICON_SIZE} weight="fill" />,
+  daily:    <CalendarCheck size={ICON_SIZE} weight="fill" />,
+  template: <Copy size={ICON_SIZE} weight="fill" />,
 };
 
 const LIST_NAME_ICONS: Record<string, React.ReactNode> = {
-  'Tasks':  <List size={ICON_SIZE} strokeWidth={1.75} />,
-  'Chores': <Sparkles size={ICON_SIZE} strokeWidth={1.75} />,
+  'Tasks':  <List size={ICON_SIZE} weight="fill" />,
+  'Chores': <Sparkle size={ICON_SIZE} weight="fill" />,
 };
 
 export function getListIcon(list: Pick<ListData, 'name' | 'type'>): React.ReactNode {

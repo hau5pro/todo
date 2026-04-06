@@ -2,9 +2,9 @@ import { NavLink } from 'react-router-dom';
 import { useState, useRef } from 'react';
 import { Reorder, useDragControls } from 'framer-motion';
 import {
-  Sun, Settings2, LogOut, ChevronDown, ChevronRight,
-  GripVertical, Plus, Check, X,
-} from 'lucide-react';
+  Sun, GearSix, SignOut, CaretDown, CaretRight,
+  DotsSixVertical, Plus, Check, X,
+} from '@phosphor-icons/react';
 import { signOut } from '../supabase/auth';
 import { useSettings } from '../contexts/SettingsContext';
 import { useAppStore } from '../store';
@@ -31,7 +31,7 @@ function SortableItem({ list }: { list: ListType }) {
       className="nav-item-row"
     >
       <div className="nav-drag-handle" onPointerDown={(e) => dragControls.start(e)}>
-        <GripVertical size={ICON_SIZE} strokeWidth={1.75} />
+        <DotsSixVertical size={ICON_SIZE} weight="fill" />
       </div>
       <NavLink
         to={`/list/${list.id}`}
@@ -55,10 +55,10 @@ function SortableMyDayItem() {
       className="nav-item-row"
     >
       <div className="nav-drag-handle" onPointerDown={(e) => dragControls.start(e)}>
-        <GripVertical size={ICON_SIZE} strokeWidth={1.75} />
+        <DotsSixVertical size={ICON_SIZE} weight="fill" />
       </div>
       <NavLink to="/my-day" className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'}>
-        <Sun size={ICON_SIZE} strokeWidth={1.75} />
+        <Sun size={ICON_SIZE} weight="fill" />
         My Day
       </NavLink>
     </Reorder.Item>
@@ -153,7 +153,7 @@ export function Sidebar() {
       <div className="nav-section-label">
         Lists
         <button className="nav-add-btn" onClick={startAddList} title="New list">
-          <Plus size={ICON_SIZE} strokeWidth={2} />
+          <Plus size={ICON_SIZE} weight="fill" />
         </button>
       </div>
 
@@ -186,10 +186,10 @@ export function Sidebar() {
             }}
           />
           <button className="nav-action-btn" onClick={commitAddList} title="Create">
-            <Check size={ICON_SIZE} strokeWidth={2} />
+            <Check size={ICON_SIZE} weight="fill" />
           </button>
           <button className="nav-action-btn" onClick={cancelAddList} title="Cancel">
-            <X size={ICON_SIZE} strokeWidth={2} />
+            <X size={ICON_SIZE} weight="fill" />
           </button>
         </div>
       )}
@@ -198,7 +198,7 @@ export function Sidebar() {
       {templates.length > 0 && (
         <>
           <button className="nav-section-label nav-section-label--button" onClick={() => setTemplatesOpen((o) => !o)}>
-            Templates {templatesOpen ? <ChevronDown size={ICON_SIZE} /> : <ChevronRight size={ICON_SIZE} />}
+            Templates {templatesOpen ? <CaretDown size={ICON_SIZE} weight="fill" /> : <CaretRight size={ICON_SIZE} weight="fill" />}
           </button>
           {templatesOpen && templates.map((l) => (
             <NavLink
@@ -216,12 +216,12 @@ export function Sidebar() {
       <div className="sidebar-spacer" />
 
       <NavLink to="/settings" className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'}>
-        <Settings2 size={ICON_SIZE} strokeWidth={1.75} />
+        <GearSix size={ICON_SIZE} weight="fill" />
         Settings
       </NavLink>
       <div style={{ height: '0.5rem' }} />
       <button className="nav-item nav-btn nav-item--signout" onClick={() => signOut().catch(console.error)}>
-        <LogOut size={ICON_SIZE} strokeWidth={1.75} />
+        <SignOut size={ICON_SIZE} weight="fill" />
         Sign out
       </button>
     </nav>

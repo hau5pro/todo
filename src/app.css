@@ -297,10 +297,12 @@ button.nav-section-label--button:hover { color: var(--fg); }
 .bottom-nav { display: none; }
 
 /* ── Sync dot ────────────────────────────────────────────── */
-.sync-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; }
-.sync-dot--synced  { background: transparent; }
+.sync-indicator { display: inline-flex; align-items: center; gap: 5px; }
+.sync-cloud-icon { color: var(--fg-muted); flex-shrink: 0; }
+.sync-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.sync-dot--synced  { background: #4ade80; }
 .sync-dot--pending { background: var(--warn); }
-.sync-dot--syncing { background: var(--fg-muted); animation: pulse 1s infinite; }
+.sync-dot--syncing { background: #facc15; animation: pulse 1s infinite; }
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 @keyframes spin { to { transform: rotate(360deg); } }
 .spin { animation: spin 0.75s linear infinite; display: block; }

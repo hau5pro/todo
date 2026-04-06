@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import dayjs from 'dayjs';
 import { motion } from 'framer-motion';
-import { X, Trash2, Calendar } from 'lucide-react';
+import { X, Trash, CalendarBlank } from '@phosphor-icons/react';
 import { useTaskDetail } from '../contexts/TaskDetailContext';
 import { useAppStore } from '../store';
 import { ICON_SIZE } from '../config/icons';
@@ -89,7 +89,7 @@ export function TaskDetailPanel() {
     >
       <div className="task-detail-panel__header">
         <button className="task-detail-close" onClick={close} title="Close">
-          <X size={ICON_SIZE} strokeWidth={2} />
+          <X size={ICON_SIZE} weight="fill" />
         </button>
       </div>
 
@@ -113,7 +113,7 @@ export function TaskDetailPanel() {
             className={`task-detail-field-btn${dueDate ? ' task-detail-field-btn--set' : ''}`}
             onClick={() => setCalOpen((o) => !o)}
           >
-            <Calendar size={14} strokeWidth={2} />
+            <CalendarBlank size={14} weight="fill" />
             <span>{dueDate ? formatDueDate(dueDate) : 'Add due date'}</span>
           </button>
 
@@ -145,7 +145,7 @@ export function TaskDetailPanel() {
           </div>
         ) : (
           <button className="task-detail-delete-btn" onClick={() => setConfirmDelete(true)}>
-            <Trash2 size={ICON_SIZE} strokeWidth={2} />
+            <Trash size={ICON_SIZE} weight="fill" />
             Delete task
           </button>
         )}

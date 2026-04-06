@@ -1,4 +1,4 @@
-import { Check } from 'lucide-react';
+import { Check } from '@phosphor-icons/react';
 import { ACCENT_COLORS } from '../contexts/SettingsContext';
 import type { AccentColor } from '../contexts/SettingsContext';
 
@@ -14,7 +14,7 @@ export function ColorSwatchPicker({ accent, onSelect }: { accent: AccentColor; o
           title={c.label}
           aria-label={`${c.label} accent color`}
         >
-          {accent === c.key && <Check size={11} strokeWidth={2.5} color="white" />}
+          {accent === c.key && <Check size={11} weight="fill" color="white" />}
         </button>
       ))}
     </div>

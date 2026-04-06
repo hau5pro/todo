@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Reorder } from 'framer-motion';
-import { Sun, CalendarCheck, Clock } from 'lucide-react';
+import { Sun, CalendarCheck, Clock } from '@phosphor-icons/react';
 import { useAppStore } from '../store';
 import { useSettings } from '../contexts/SettingsContext';
 import { TaskItem } from '../components/TaskItem';
@@ -68,14 +68,14 @@ export function MyDayView() {
   return (
     <div>
       <div className="view-title-row">
-        <span className="view-title-icon"><Sun size={ICON_SIZE} strokeWidth={1.75} /></span>
+        <span className="view-title-icon"><Sun size={ICON_SIZE} weight="fill" /></span>
         <h1 className="view-title">My Day</h1>
       </div>
       {!hasAnything && <p className="empty-state">Nothing due today.</p>}
 
       {myDayHabits.length > 0 && (
         <section>
-          <div className="section-heading"><CalendarCheck size={ICON_SIZE} strokeWidth={1.75} />Habits</div>
+          <div className="section-heading"><CalendarCheck size={ICON_SIZE} weight="fill" />Habits</div>
           {myDayHabits.map(({ task, completedToday }) => (
             <HabitItem
               key={task.id}
@@ -90,7 +90,7 @@ export function MyDayView() {
 
       {myDayOverdue.length > 0 && (
         <section>
-          <div className="section-heading"><Clock size={ICON_SIZE} strokeWidth={1.75} />Overdue</div>
+          <div className="section-heading"><Clock size={ICON_SIZE} weight="fill" />Overdue</div>
           <Reorder.Group as="div" axis="y" values={orderedOverdue} onReorder={handleReorder}>
             {orderedOverdue.map((task) => (
               <Reorder.Item as="div" key={task.id} value={task}>
@@ -109,7 +109,7 @@ export function MyDayView() {
 
       {myDayToday.length > 0 && (
         <section>
-          <div className="section-heading"><Sun size={ICON_SIZE} strokeWidth={1.75} />Today</div>
+          <div className="section-heading"><Sun size={ICON_SIZE} weight="fill" />Today</div>
           <Reorder.Group as="div" axis="y" values={orderedToday} onReorder={handleReorder}>
             {orderedToday.map((task) => (
               <Reorder.Item as="div" key={task.id} value={task}>

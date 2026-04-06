@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { Pencil, Trash2, Check, X, ChevronDown, ChevronRight } from 'lucide-react';
+import { PencilSimple, Trash, Check, X, CaretDown, CaretRight } from '@phosphor-icons/react';
 import { AnimatePresence, motion, Reorder } from 'framer-motion';
 import { ease } from '../utils/easing';
 import { focusLater } from '../utils/dom';
@@ -112,16 +112,16 @@ export function ListView() {
                 if (e.key === 'Escape') setEditingListName(false);
               }}
             />
-            <button className="view-title-action-btn" onClick={commitEditListName} title="Save"><Check size={ICON_SIZE} strokeWidth={2} /></button>
-            <button className="view-title-action-btn" onClick={() => setEditingListName(false)} title="Cancel"><X size={ICON_SIZE} strokeWidth={2} /></button>
+            <button className="view-title-action-btn" onClick={commitEditListName} title="Save"><Check size={ICON_SIZE} weight="fill" /></button>
+            <button className="view-title-action-btn" onClick={() => setEditingListName(false)} title="Cancel"><X size={ICON_SIZE} weight="fill" /></button>
           </>
         ) : (
           <>
             {getListIcon(list) && <span className="view-title-icon">{getListIcon(list)}</span>}
             <h1 className="view-title">{list.name}</h1>
             <span className="view-title-actions">
-              <button className="view-title-action-btn" onClick={startEditListName} title="Rename list"><Pencil size={ICON_SIZE} strokeWidth={2} /></button>
-              <button className="view-title-action-btn view-title-action-btn--danger" onClick={() => setConfirmDeleteList(true)} title="Delete list"><Trash2 size={ICON_SIZE} strokeWidth={2} /></button>
+              <button className="view-title-action-btn" onClick={startEditListName} title="Rename list"><PencilSimple size={ICON_SIZE} weight="fill" /></button>
+              <button className="view-title-action-btn view-title-action-btn--danger" onClick={() => setConfirmDeleteList(true)} title="Delete list"><Trash size={ICON_SIZE} weight="fill" /></button>
             </span>
           </>
         )}
@@ -160,8 +160,8 @@ export function ListView() {
             Completed{completedTasks.length > 0 ? ` (${completedTasks.length})` : ''}
           </span>
           {showCompleted
-            ? <ChevronDown size={ICON_SIZE} strokeWidth={2} />
-            : <ChevronRight size={ICON_SIZE} strokeWidth={2} />}
+            ? <CaretDown size={ICON_SIZE} weight="fill" />
+            : <CaretRight size={ICON_SIZE} weight="fill" />}
         </button>
         <AnimatePresence>
           {showCompleted && (
