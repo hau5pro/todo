@@ -10,7 +10,6 @@ import {
   createTask as dbCreateTask,
   updateTask as dbUpdateTask,
   softDeleteTask as dbSoftDelete,
-  restoreTask as dbRestoreTask,
   setTaskCompleted as dbSetCompleted,
   advanceCyclicalTask as dbAdvanceCyclical,
   getMyDayTasks,
@@ -82,8 +81,7 @@ interface AppStore {
   addTask: (listId: string, title: string) => Promise<Task>;
   renameTask: (id: string, listId: string, title: string) => Promise<Task>;
   completeTask: (id: string, listId: string, completed: boolean) => Promise<void>;
-  shoppingCompleteTask: (id: string, listId: string) => Promise<void>;
-  shoppingRestoreTask: (id: string, listId: string) => Promise<void>;
+
   advanceCyclicalTask: (id: string, listId: string) => Promise<void>;
   removeTask: (id: string, listId: string) => Promise<void>;
 }
@@ -192,20 +190,6 @@ export const useAppStore = create<AppStore>((set, get) => ({
     if (get().myDayLoaded) get().loadMyDay();
   },
 
-  shoppingCompleteTask: async (id, listId) => {
-    await dbSoftDelete(id);
-    // Mark as soft-deleted in store so "recently completed" section still works
-    set((s) =>
-      updateTaskInSlices(s, listId, (t) =>
-        t.id === id ? { ...t, deleted_at: new Date().toISOString() } : t
-      )
-    );
-  },
-
-  shoppingRestoreTask: async (id, listId) => {
-    const updated = await dbRestoreTask(id);
-    set((s) => updateTaskInSlices(s, listId, (t) => (t.id === id ? updated : t)));
-  },
 
   advanceCyclicalTask: async (id, listId) => {
     const updated = await dbAdvanceCyclical(id);

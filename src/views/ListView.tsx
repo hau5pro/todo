@@ -14,7 +14,7 @@ export function ListView() {
   const list = useAppStore((s) => s.lists.find((l) => l.id === listId));
   const tasks = useAppStore((s) => s.tasksByList[listId!]);
   const loadTasks = useAppStore((s) => s.loadTasks);
-  const { renameList, deleteList, addTask, completeTask, shoppingCompleteTask, shoppingRestoreTask, advanceCyclicalTask } = useAppStore();
+  const { renameList, deleteList, addTask, completeTask, advanceCyclicalTask } = useAppStore();
 
   const { detail, open: openDetail, close: closeDetail } = useTaskDetail();
 
@@ -34,18 +34,11 @@ export function ListView() {
   if (!list || tasks === undefined) return null;
 
   const activeTasks = tasks.filter((t) => !t.completed && t.deleted_at === null);
-  const completedTasks = list.type !== 'shopping'
-    ? tasks.filter((t) => t.completed && t.deleted_at === null)
-    : [];
-  const recentCompleted = list.type === 'shopping'
-    ? tasks.filter((t) => t.deleted_at !== null)
-    : [];
+  const completedTasks = tasks.filter((t) => t.completed && t.deleted_at === null);
 
   async function handleToggle(task: typeof tasks[0]) {
     if (list!.type === 'cyclical' && task.recurrence_interval) {
       await advanceCyclicalTask(task.id, listId!);
-    } else if (list!.type === 'shopping') {
-      await shoppingCompleteTask(task.id, listId!);
     } else {
       await completeTask(task.id, listId!, !task.completed);
     }
@@ -157,21 +150,6 @@ export function ListView() {
           />
         ))}
       </section>
-
-      {recentCompleted.length > 0 && (
-        <section>
-          <div className="section-heading">Recently completed</div>
-          {recentCompleted.map((task) => (
-            <TaskItem
-              key={task.id}
-              title={task.title}
-              completed={true}
-              today={today}
-              onToggle={() => shoppingRestoreTask(task.id, listId!)}
-            />
-          ))}
-        </section>
-      )}
 
       {confirmDeleteList && (
         <div className="modal-backdrop" onClick={() => setConfirmDeleteList(false)}>
