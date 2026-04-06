@@ -1,14 +1,14 @@
 import { useParams } from 'react-router-dom';
 import { useState } from 'react';
 import { useHabits } from '../hooks/useHabits';
-import { useList } from '../hooks/useList';
+import { useAppStore } from '../store';
 import { HabitItem } from '../components/HabitItem';
 import { toggleHabitCompletion } from '../db/habits';
-import { createTask } from '../db/tasks';
 
 export function DailyView() {
   const { listId } = useParams<{ listId: string }>();
-  const { list } = useList(listId!);
+  const list = useAppStore((s) => s.lists.find((l) => l.id === listId));
+  const addTask = useAppStore((s) => s.addTask);
   const { rows, isLoading, reload, today } = useHabits(listId!);
   const [newTitle, setNewTitle] = useState('');
 
@@ -22,7 +22,7 @@ export function DailyView() {
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
     if (!newTitle.trim()) return;
-    await createTask(listId!, newTitle.trim());
+    await addTask(listId!, newTitle.trim());
     setNewTitle('');
     reload();
   }

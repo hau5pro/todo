@@ -1,13 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Trash2, GripVertical } from 'lucide-react';
+import { ICON_SIZE } from '../config/icons';
 import { Reorder, useDragControls } from 'framer-motion';
 import { useSettings } from '../contexts/SettingsContext';
-import { getLists } from '../db/lists';
+import { useAppStore } from '../store';
 import { clearAllLocalData } from '../db/client';
+import type { List } from '../types';
 import { deleteAllCloudData } from '../db/sync';
 import { signOut } from '../supabase/auth';
 import { supabase } from '../supabase/client';
-import type { List } from '../types';
 import { ColorSwatchPicker } from '../components/ColorSwatchPicker';
 import { SettingsRow } from '../components/SettingsRow';
 
@@ -22,7 +23,7 @@ function SortableSettingsRow({ list, checked, onChange }: {
   return (
     <Reorder.Item as="div" value={list} dragListener={false} dragControls={dragControls} className="settings-row-sortable">
       <div className="settings-drag-handle" onPointerDown={(e) => dragControls.start(e)}>
-        <GripVertical size={13} strokeWidth={1.75} />
+        <GripVertical size={ICON_SIZE} strokeWidth={1.75} />
       </div>
       <SettingsRow label={list.name} sublabel={list.type} checked={checked} onChange={onChange} />
     </Reorder.Item>
@@ -34,19 +35,16 @@ function SortableSettingsRow({ list, checked, onChange }: {
 export function SettingsView() {
   const {
     accent, setAccent,
+    theme, setTheme,
     hiddenListIds, toggleListVisibility,
     showMyDay, setShowMyDay,
     pinnedOrder, customOrder,
     setPinnedOrder, setCustomOrder,
   } = useSettings();
-  const [lists, setLists] = useState<List[]>([]);
+  const lists = useAppStore((s) => s.lists);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [busy, setBusy] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-
-  useEffect(() => {
-    getLists().then(setLists).catch((err) => console.error('Failed to load lists', err));
-  }, []);
 
   async function handleDeleteAll() {
     setBusy(true);
@@ -85,8 +83,25 @@ export function SettingsView() {
       {/* Appearance */}
       <section className="settings-section">
         <div className="settings-section-title">Appearance</div>
-        <div style={{ marginTop: '0.75rem' }}>
-          <ColorSwatchPicker accent={accent} onSelect={setAccent} />
+        <div className="settings-appearance-fields">
+          <div className="settings-appearance-field">
+            <span className="settings-field-label">Accent color</span>
+            <ColorSwatchPicker accent={accent} onSelect={setAccent} />
+          </div>
+          <div className="settings-appearance-field">
+            <span className="settings-field-label">Theme</span>
+            <div className="theme-btn-group theme-btn-group--vertical">
+              {(['system', 'light', 'dark'] as const).map((t) => (
+                <button
+                  key={t}
+                  className={`theme-btn${theme === t ? ' theme-btn--active' : ''}`}
+                  onClick={() => setTheme(t)}
+                >
+                  {t.charAt(0).toUpperCase() + t.slice(1)}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
@@ -170,7 +185,7 @@ export function SettingsView() {
                 Permanently deletes all your data from this device and the cloud.
               </p>
               <button className="btn-danger" onClick={() => setConfirmDelete(true)} disabled={busy}>
-                <Trash2 size={14} strokeWidth={2} />
+                <Trash2 size={ICON_SIZE} strokeWidth={2} />
                 Delete everything and sign out
               </button>
             </>

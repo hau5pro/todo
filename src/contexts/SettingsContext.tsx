@@ -4,6 +4,7 @@ import { onAuthStateChange } from '../supabase/auth';
 import { fetchCloudSettings, pushCloudSettings } from '../db/settings';
 
 export type AccentColor = 'blue' | 'purple' | 'green' | 'rose' | 'orange' | 'teal';
+export type Theme = 'system' | 'light' | 'dark';
 
 export const ACCENT_COLORS: { key: AccentColor; label: string; hex: string; darkHex: string }[] = [
   { key: 'blue',   label: 'Blue',   hex: '#2563eb', darkHex: '#60a5fa' },
@@ -16,31 +17,46 @@ export const ACCENT_COLORS: { key: AccentColor; label: string; hex: string; dark
 
 export interface Settings {
   accent: AccentColor;
+  theme: Theme;
   hiddenListIds: string[];
   setupDone: boolean;
   showMyDay: boolean;
   pinnedOrder: string[];
   customOrder: string[];
+  myDayOrder: string[];
 }
 
 interface SettingsContextValue extends Settings {
   setAccent: (color: AccentColor) => void;
+  setTheme: (t: Theme) => void;
   toggleListVisibility: (listId: string) => void;
   markSetupDone: () => void;
   setShowMyDay: (v: boolean) => void;
   setPinnedOrder: (ids: string[]) => void;
   setCustomOrder: (ids: string[]) => void;
+  setMyDayOrder: (ids: string[]) => void;
 }
 
 const STORAGE_KEY = 'todo_settings';
 const DEFAULT_ACCENT: AccentColor = 'blue';
 
+const DEFAULTS: Settings = {
+  accent: DEFAULT_ACCENT,
+  theme: 'system',
+  hiddenListIds: [],
+  setupDone: false,
+  showMyDay: true,
+  pinnedOrder: [],
+  customOrder: [],
+  myDayOrder: [],
+};
+
 function loadSettings(): Settings {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return { accent: DEFAULT_ACCENT, hiddenListIds: [], setupDone: false, showMyDay: true, pinnedOrder: [], customOrder: [], ...JSON.parse(raw) };
+    if (raw) return { ...DEFAULTS, ...JSON.parse(raw) };
   } catch {}
-  return { accent: DEFAULT_ACCENT, hiddenListIds: [], setupDone: false, showMyDay: true, pinnedOrder: [], customOrder: [] };
+  return { ...DEFAULTS };
 }
 
 function saveSettings(s: Settings) {
@@ -91,8 +107,20 @@ function hexToRgb(hex: string) {
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 }
 
-function applyAccentVars(accent: AccentColor) {
-  const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+function resolveIsDark(theme: Theme): boolean {
+  if (theme === 'dark') return true;
+  if (theme === 'light') return false;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+
+function applyTheme(theme: Theme) {
+  const root = document.documentElement;
+  if (theme === 'system') root.removeAttribute('data-theme');
+  else root.setAttribute('data-theme', theme);
+}
+
+function applyAccentVars(accent: AccentColor, theme: Theme) {
+  const isDark = resolveIsDark(theme);
   const color = ACCENT_COLORS.find((c) => c.key === accent)!;
   const hex = isDark ? color.darkHex : color.hex;
   const [r, g, b] = hexToRgb(hex);
@@ -102,8 +130,8 @@ function applyAccentVars(accent: AccentColor) {
   root.style.setProperty('--accent-dim', `rgba(${r}, ${g}, ${b}, ${alpha})`);
 }
 
-function applyFavicon(accent: AccentColor) {
-  const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+function applyFavicon(accent: AccentColor, theme: Theme) {
+  const isDark = resolveIsDark(theme);
   const color = ACCENT_COLORS.find((c) => c.key === accent)!;
   const hex = isDark ? color.darkHex : color.hex;
 
@@ -121,16 +149,21 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   const userRef   = useRef<User | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Apply accent vars + favicon whenever accent changes
+  // Apply theme + accent vars + favicon whenever either changes
   useEffect(() => {
-    applyAccentVars(settings.accent);
-    applyFavicon(settings.accent);
+    applyTheme(settings.theme);
+    applyAccentVars(settings.accent, settings.theme);
+    applyFavicon(settings.accent, settings.theme);
 
+    // Re-apply when system preference changes (only matters in 'system' mode)
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    const handler = () => { applyAccentVars(settings.accent); applyFavicon(settings.accent); };
+    const handler = () => {
+      applyAccentVars(settings.accent, settings.theme);
+      applyFavicon(settings.accent, settings.theme);
+    };
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);
-  }, [settings.accent]);
+  }, [settings.accent, settings.theme]);
 
   // Sync with cloud on login
   useEffect(() => {
@@ -170,6 +203,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   const value: SettingsContextValue = {
     ...settings,
     setAccent: (accent) => update({ accent }),
+    setTheme: (theme) => update({ theme }),
     toggleListVisibility: (listId) => {
       setSettings((prev) => {
         const hiddenListIds = prev.hiddenListIds.includes(listId)
@@ -185,6 +219,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     setShowMyDay: (showMyDay) => update({ showMyDay }),
     setPinnedOrder: (pinnedOrder) => update({ pinnedOrder }),
     setCustomOrder: (customOrder) => update({ customOrder }),
+    setMyDayOrder: (myDayOrder) => update({ myDayOrder }),
   };
 
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;

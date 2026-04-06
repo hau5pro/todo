@@ -1,38 +1,52 @@
+import { useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { BottomNav } from './BottomNav';
 import { SyncDot } from './SyncDot';
+import { TaskDetailPanel } from './TaskDetailPanel';
+import { TaskDetailProvider } from '../contexts/TaskDetailContext';
 import { useSync } from '../hooks/useSync';
+import { useAppStore } from '../store';
 
 export function AppShell() {
   const { pendingCount, isSyncing, syncError: _syncError } = useSync();
+  const loadLists = useAppStore((s) => s.loadLists);
+
+  useEffect(() => {
+    loadLists();
+  }, []);
 
   return (
-    <div className="app-shell">
-      <header className="app-header">
-        <div className="app-logo">
-          <div className="app-logo__mark">
-            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
-              <polyline
-                points="2,8 6,12 13,4"
-                stroke="var(--accent)"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+    <TaskDetailProvider>
+      <div className="app-shell">
+        <header className="app-header">
+          <div className="app-logo">
+            <div className="app-logo__mark">
+              <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+                <polyline
+                  points="2,8 6,12 13,4"
+                  stroke="var(--accent)"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+            <span className="app-title">
+              {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase()}
+            </span>
           </div>
-          <span className="app-title">TO DO</span>
+          <SyncDot pendingCount={pendingCount} isSyncing={isSyncing} />
+        </header>
+        <div className="app-body">
+          <Sidebar />
+          <main className="app-main">
+            <Outlet />
+          </main>
+          <TaskDetailPanel />
         </div>
-        <SyncDot pendingCount={pendingCount} isSyncing={isSyncing} />
-      </header>
-      <div className="app-body">
-        <Sidebar />
-        <main className="app-main">
-          <Outlet />
-        </main>
+        <BottomNav />
       </div>
-      <BottomNav />
-    </div>
+    </TaskDetailProvider>
   );
 }

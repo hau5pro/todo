@@ -1,25 +1,26 @@
 import { useState } from 'react';
 import { Check, Palette, LayoutList, Sun, List, CalendarCheck, ShoppingCart, ClipboardList } from 'lucide-react';
+import { ICON_SIZE } from '../config/icons';
 import { useSettings } from '../contexts/SettingsContext';
 import { createList } from '../db/lists';
 import { ColorSwatchPicker } from '../components/ColorSwatchPicker';
 
 const LIST_OPTIONS: { key: string; label: string; icon: React.ReactNode }[] = [
-  { key: 'My Day',    label: 'My Day',    icon: <Sun size={15} strokeWidth={1.75} /> },
-  { key: 'Tasks',     label: 'Tasks',     icon: <List size={15} strokeWidth={1.75} /> },
-  { key: 'Habits',    label: 'Habits',    icon: <CalendarCheck size={15} strokeWidth={1.75} /> },
-  { key: 'Groceries', label: 'Groceries', icon: <ShoppingCart size={15} strokeWidth={1.75} /> },
-  { key: 'Chores',    label: 'Chores',    icon: <ClipboardList size={15} strokeWidth={1.75} /> },
+  { key: 'My Day',    label: 'My Day',    icon: <Sun size={ICON_SIZE} strokeWidth={1.75} /> },
+  { key: 'Tasks',     label: 'Tasks',     icon: <List size={ICON_SIZE} strokeWidth={1.75} /> },
+  { key: 'Habits',    label: 'Habits',    icon: <CalendarCheck size={ICON_SIZE} strokeWidth={1.75} /> },
+  { key: 'Groceries', label: 'Groceries', icon: <ShoppingCart size={ICON_SIZE} strokeWidth={1.75} /> },
+  { key: 'Chores',    label: 'Chores',    icon: <ClipboardList size={ICON_SIZE} strokeWidth={1.75} /> },
 ];
 
 const STEPS = [
   { icon: <Check size={20} strokeWidth={2.5} />,       title: 'Welcome to TO DO', body: 'A minimal, offline-first task manager.' },
-  { icon: <Palette size={20} strokeWidth={2} />,        title: 'Pick a color',    body: 'You can always change this in settings.' },
+  { icon: <Palette size={20} strokeWidth={2} />,        title: 'Appearance',      body: 'Choose your accent color and theme.' },
   { icon: <LayoutList size={20} strokeWidth={1.75} />,  title: 'Your lists',      body: 'Choose which lists you want to start with.' },
 ];
 
 export function SetupWizard() {
-  const { accent, setAccent, markSetupDone, setShowMyDay, setPinnedOrder } = useSettings();
+  const { accent, setAccent, theme, setTheme, markSetupDone, setShowMyDay, setPinnedOrder } = useSettings();
   const [step, setStep] = useState(0);
   const [lists, setLists] = useState<Record<string, boolean>>({
     'My Day': true, 'Tasks': true, 'Habits': true, 'Groceries': true, 'Chores': true,
@@ -53,7 +54,28 @@ export function SetupWizard() {
 
           <p className="wizard-body">{STEPS[step].body}</p>
 
-          {step === 1 && <ColorSwatchPicker accent={accent} onSelect={setAccent} />}
+          {step === 1 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem', width: '100%' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', width: '100%' }}>
+                <span className="wizard-field-label">Accent</span>
+                <ColorSwatchPicker accent={accent} onSelect={setAccent} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <span className="wizard-field-label">Mode</span>
+                <div className="theme-btn-group theme-btn-group--vertical">
+                  {(['system', 'light', 'dark'] as const).map((t) => (
+                    <button
+                      key={t}
+                      className={`theme-btn${theme === t ? ' theme-btn--active' : ''}`}
+                      onClick={() => setTheme(t)}
+                    >
+                      {t.charAt(0).toUpperCase() + t.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
           {step === 2 && (
             <div className="wizard-list-options">

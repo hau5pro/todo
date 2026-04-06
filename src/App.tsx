@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { createBrowserRouter, RouterProvider, Navigate, Outlet } from 'react-router-dom';
 import { SettingsProvider, useSettings } from './contexts/SettingsContext';
 import { AuthGate } from './components/AuthGate';
@@ -14,32 +15,36 @@ function AuthenticatedLayout() {
   return <AppShell />;
 }
 
-const router = createBrowserRouter([
-  {
-    element: (
-      <AuthGate>
-        <Outlet />
-      </AuthGate>
-    ),
-    children: [
-      { path: '/login', element: <LoginView /> },
-      {
-        element: <AuthenticatedLayout />,
-        children: [
-          { index: true, element: <Navigate to="/my-day" replace /> },
-          { path: '/my-day', element: <MyDayView /> },
-          { path: '/list/:listId', element: <ListRouter /> },
-          { path: '/settings', element: <SettingsView /> },
-        ],
-      },
-    ],
-  },
-]);
+function RouterTree() {
+  const router = useMemo(() => createBrowserRouter([
+    {
+      element: (
+        <AuthGate>
+          <Outlet />
+        </AuthGate>
+      ),
+      children: [
+        { path: '/login', element: <LoginView /> },
+        {
+          element: <AuthenticatedLayout />,
+          children: [
+            { index: true, element: <Navigate to="/my-day" replace /> },
+            { path: '/my-day', element: <MyDayView /> },
+            { path: '/list/:listId', element: <ListRouter /> },
+            { path: '/settings', element: <SettingsView /> },
+          ],
+        },
+      ],
+    },
+  ]), []);
+
+  return <RouterProvider router={router} />;
+}
 
 export default function App() {
   return (
     <SettingsProvider>
-      <RouterProvider router={router} />
+      <RouterTree />
     </SettingsProvider>
   );
 }

@@ -1,47 +1,61 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useState, useMemo, useRef } from 'react';
-import { Pencil, Trash2, Check, X } from 'lucide-react';
-import { useList } from '../hooks/useList';
+import { useState, useMemo, useRef, useEffect } from 'react';
+import { Pencil, Trash2, Check, X, ChevronDown, ChevronRight } from 'lucide-react';
+import { useAppStore } from '../store';
+import { useTaskDetail } from '../contexts/TaskDetailContext';
 import { TaskItem } from '../components/TaskItem';
-import { createTask, setTaskCompleted, advanceCyclicalTask, softDeleteTask, updateTask } from '../db/tasks';
-import { updateList, deleteList } from '../db/lists';
-import type { Task } from '../types';
+import { ICON_SIZE } from '../config/icons';
 
 export function ListView() {
   const { listId } = useParams<{ listId: string }>();
   const navigate = useNavigate();
   const today = useMemo(() => new Date().toISOString().split('T')[0], []);
-  const { list, tasks, isLoading, reload } = useList(listId!);
+
+  const list = useAppStore((s) => s.lists.find((l) => l.id === listId));
+  const tasks = useAppStore((s) => s.tasksByList[listId!]);
+  const loadTasks = useAppStore((s) => s.loadTasks);
+  const { renameList, deleteList, addTask, completeTask, shoppingCompleteTask, advanceCyclicalTask } = useAppStore();
+
+  const { detail, open: openDetail, close: closeDetail } = useTaskDetail();
+
   const [newTitle, setNewTitle] = useState('');
   const [editingListName, setEditingListName] = useState(false);
   const [newListName, setNewListName] = useState('');
+  const [confirmDeleteList, setConfirmDeleteList] = useState(false);
+  const [showCompleted, setShowCompleted] = useState(false);
   const listNameInputRef = useRef<HTMLInputElement>(null);
 
-  if (isLoading || !list) return null;
+  useEffect(() => {
+    if (tasks === undefined) loadTasks(listId!);
+  }, [listId]);
 
-  // Shopping: show soft-deleted items as recent history; others: show active only
+  useEffect(() => { closeDetail(); }, [listId]);
+
+  if (!list || tasks === undefined) return null;
+
   const activeTasks = tasks.filter((t) => !t.completed && t.deleted_at === null);
+  const completedTasks = list.type !== 'shopping'
+    ? tasks.filter((t) => t.completed && t.deleted_at === null)
+    : [];
   const recentCompleted = list.type === 'shopping'
     ? tasks.filter((t) => t.deleted_at !== null)
     : [];
 
-  async function handleToggle(task: Task) {
+  async function handleToggle(task: typeof tasks[0]) {
     if (list!.type === 'cyclical' && task.recurrence_interval) {
-      await advanceCyclicalTask(task.id);
+      await advanceCyclicalTask(task.id, listId!);
     } else if (list!.type === 'shopping') {
-      await softDeleteTask(task.id);
+      await shoppingCompleteTask(task.id, listId!);
     } else {
-      await setTaskCompleted(task.id, !task.completed);
+      await completeTask(task.id, listId!, !task.completed);
     }
-    reload();
   }
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
     if (!newTitle.trim()) return;
-    await createTask(listId!, newTitle.trim());
+    await addTask(listId!, newTitle.trim());
     setNewTitle('');
-    reload();
   }
 
   function startEditListName() {
@@ -52,31 +66,22 @@ export function ListView() {
 
   async function commitEditListName() {
     const name = newListName.trim();
-    if (name && name !== list!.name) {
-      await updateList(listId!, { name });
-      reload();
-    }
+    if (name && name !== list!.name) await renameList(listId!, name);
     setEditingListName(false);
   }
 
-  function cancelEditListName() {
-    setEditingListName(false);
-  }
-
-  async function handleDeleteList() {
-    if (!confirm(`Delete "${list!.name}" and all its tasks?`)) return;
+  async function executeDeleteList() {
     await deleteList(listId!);
+    closeDetail();
     navigate('/');
   }
 
-  async function handleRenameTask(task: Task, title: string) {
-    await updateTask(task.id, { title });
-    reload();
-  }
-
-  async function handleDeleteTask(task: Task) {
-    await softDeleteTask(task.id);
-    reload();
+  function handleSelectTask(task: typeof tasks[0]) {
+    if (detail?.task.id === task.id) {
+      closeDetail();
+    } else {
+      openDetail({ task });
+    }
   }
 
   return (
@@ -91,18 +96,18 @@ export function ListView() {
               onChange={(e) => setNewListName(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') commitEditListName();
-                if (e.key === 'Escape') cancelEditListName();
+                if (e.key === 'Escape') setEditingListName(false);
               }}
             />
-            <button className="view-title-action-btn" onClick={commitEditListName} title="Save"><Check size={15} strokeWidth={2} /></button>
-            <button className="view-title-action-btn" onClick={cancelEditListName} title="Cancel"><X size={15} strokeWidth={2} /></button>
+            <button className="view-title-action-btn" onClick={commitEditListName} title="Save"><Check size={ICON_SIZE} strokeWidth={2} /></button>
+            <button className="view-title-action-btn" onClick={() => setEditingListName(false)} title="Cancel"><X size={ICON_SIZE} strokeWidth={2} /></button>
           </>
         ) : (
           <>
             <h1 className="view-title">{list.name}</h1>
             <span className="view-title-actions">
-              <button className="view-title-action-btn" onClick={startEditListName} title="Rename list"><Pencil size={14} strokeWidth={1.75} /></button>
-              <button className="view-title-action-btn view-title-action-btn--danger" onClick={handleDeleteList} title="Delete list"><Trash2 size={14} strokeWidth={1.75} /></button>
+              <button className="view-title-action-btn" onClick={startEditListName} title="Rename list"><Pencil size={ICON_SIZE} strokeWidth={2} /></button>
+              <button className="view-title-action-btn view-title-action-btn--danger" onClick={() => setConfirmDeleteList(true)} title="Delete list"><Trash2 size={ICON_SIZE} strokeWidth={2} /></button>
             </span>
           </>
         )}
@@ -116,8 +121,8 @@ export function ListView() {
           dueDate={task.due_date}
           today={today}
           onToggle={() => handleToggle(task)}
-          onRename={(newTitle) => handleRenameTask(task, newTitle)}
-          onDelete={() => handleDeleteTask(task)}
+          onSelect={() => handleSelectTask(task)}
+          isSelected={detail?.task.id === task.id}
         />
       ))}
 
@@ -129,6 +134,29 @@ export function ListView() {
           onChange={(e) => setNewTitle(e.target.value)}
         />
       </form>
+
+      <section>
+        <button className="section-collapse-btn" onClick={() => setShowCompleted((p) => !p)}>
+          <span className="section-heading" style={{ margin: 0 }}>
+            Completed{completedTasks.length > 0 ? ` (${completedTasks.length})` : ''}
+          </span>
+          {showCompleted
+            ? <ChevronDown size={ICON_SIZE} strokeWidth={2} />
+            : <ChevronRight size={ICON_SIZE} strokeWidth={2} />}
+        </button>
+        {showCompleted && completedTasks.map((task) => (
+          <TaskItem
+            key={task.id}
+            title={task.title}
+            completed={true}
+            dueDate={task.due_date}
+            today={today}
+            onToggle={() => handleToggle(task)}
+            onSelect={() => handleSelectTask(task)}
+            isSelected={detail?.task.id === task.id}
+          />
+        ))}
+      </section>
 
       {recentCompleted.length > 0 && (
         <section>
@@ -143,6 +171,19 @@ export function ListView() {
             />
           ))}
         </section>
+      )}
+
+      {confirmDeleteList && (
+        <div className="modal-backdrop" onClick={() => setConfirmDeleteList(false)}>
+          <div className="modal-popup" onClick={(e) => e.stopPropagation()}>
+            <h3 className="modal-popup__title">Delete "{list.name}"?</h3>
+            <p className="modal-popup__body">This will permanently delete the list and all its tasks.</p>
+            <div className="modal-popup__actions">
+              <button className="btn-danger-sm" onClick={executeDeleteList}>Delete</button>
+              <button className="btn-ghost-sm" onClick={() => setConfirmDeleteList(false)}>Cancel</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

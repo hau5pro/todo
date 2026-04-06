@@ -1,22 +1,23 @@
 import { NavLink } from 'react-router-dom';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { Reorder, useDragControls } from 'framer-motion';
 import {
   Sun, Settings2, LogOut, ChevronDown, ChevronRight,
   List, ShoppingCart, RefreshCw, CalendarCheck, Copy,
   GripVertical, Plus, Check, X,
 } from 'lucide-react';
-import { getLists, createList } from '../db/lists';
 import { signOut } from '../supabase/auth';
 import { useSettings } from '../contexts/SettingsContext';
+import { useAppStore } from '../store';
+import { ICON_SIZE } from '../config/icons';
 import type { List as ListType, ListType as LT } from '../types';
 
 const LIST_ICONS: Record<LT, React.ReactNode> = {
-  general:  <List size={14} strokeWidth={1.75} />,
-  shopping: <ShoppingCart size={14} strokeWidth={1.75} />,
-  cyclical: <RefreshCw size={14} strokeWidth={1.75} />,
-  daily:    <CalendarCheck size={14} strokeWidth={1.75} />,
-  template: <Copy size={14} strokeWidth={1.75} />,
+  general:  <List size={ICON_SIZE} strokeWidth={1.75} />,
+  shopping: <ShoppingCart size={ICON_SIZE} strokeWidth={1.75} />,
+  cyclical: <RefreshCw size={ICON_SIZE} strokeWidth={1.75} />,
+  daily:    <CalendarCheck size={ICON_SIZE} strokeWidth={1.75} />,
+  template: <Copy size={ICON_SIZE} strokeWidth={1.75} />,
 };
 
 // ── SortableItem ─────────────────────────────────────────────────────────────
@@ -33,7 +34,7 @@ function SortableItem({ list }: { list: ListType }) {
       className="nav-item-row"
     >
       <div className="nav-drag-handle" onPointerDown={(e) => dragControls.start(e)}>
-        <GripVertical size={13} strokeWidth={1.75} />
+        <GripVertical size={ICON_SIZE} strokeWidth={1.75} />
       </div>
       <NavLink
         to={`/list/${list.id}`}
@@ -49,7 +50,8 @@ function SortableItem({ list }: { list: ListType }) {
 // ── Sidebar ───────────────────────────────────────────────────────────────────
 
 export function Sidebar() {
-  const [lists, setLists] = useState<ListType[]>([]);
+  const lists = useAppStore((s) => s.lists);
+  const createList = useAppStore((s) => s.createList);
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const [addingList, setAddingList] = useState(false);
   const [newListName, setNewListName] = useState('');
@@ -63,10 +65,6 @@ export function Sidebar() {
     setPinnedOrder,
     setCustomOrder,
   } = useSettings();
-
-  useEffect(() => {
-    getLists().then(setLists).catch((err) => console.error('Failed to load lists', err));
-  }, []);
 
   // Pinned: IDs in pinnedOrder mapped to list objects, filtered to existing
   const pinnedLists: ListType[] = pinnedOrder
@@ -98,7 +96,6 @@ export function Sidebar() {
     if (!name) { setAddingList(false); return; }
     try {
       const created = await createList(name, 'general');
-      setLists((prev) => [...prev, created]);
       setCustomOrder([...customOrder, created.id]);
     } catch (err) {
       console.error(err);
@@ -116,7 +113,7 @@ export function Sidebar() {
     <nav className="sidebar">
       {showMyDay && (
         <NavLink to="/my-day" className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'}>
-          <Sun size={14} strokeWidth={1.75} />
+          <Sun size={ICON_SIZE} strokeWidth={1.75} />
           My Day
         </NavLink>
       )}
@@ -140,7 +137,7 @@ export function Sidebar() {
       <div className="nav-section-label">
         Lists
         <button className="nav-add-btn" onClick={startAddList} title="New list">
-          <Plus size={13} strokeWidth={2} />
+          <Plus size={ICON_SIZE} strokeWidth={2} />
         </button>
       </div>
 
@@ -172,10 +169,10 @@ export function Sidebar() {
             }}
           />
           <button className="nav-action-btn" onClick={commitAddList} title="Create">
-            <Check size={13} strokeWidth={2} />
+            <Check size={ICON_SIZE} strokeWidth={2} />
           </button>
           <button className="nav-action-btn" onClick={cancelAddList} title="Cancel">
-            <X size={13} strokeWidth={2} />
+            <X size={ICON_SIZE} strokeWidth={2} />
           </button>
         </div>
       )}
@@ -184,7 +181,7 @@ export function Sidebar() {
       {templates.length > 0 && (
         <>
           <button className="nav-section-label nav-section-label--button" onClick={() => setTemplatesOpen((o) => !o)}>
-            Templates {templatesOpen ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
+            Templates {templatesOpen ? <ChevronDown size={ICON_SIZE} /> : <ChevronRight size={ICON_SIZE} />}
           </button>
           {templatesOpen && templates.map((l) => (
             <NavLink
@@ -202,11 +199,11 @@ export function Sidebar() {
       <div className="sidebar-spacer" />
 
       <NavLink to="/settings" className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'}>
-        <Settings2 size={14} strokeWidth={1.75} />
+        <Settings2 size={ICON_SIZE} strokeWidth={1.75} />
         Settings
       </NavLink>
       <button className="nav-item nav-btn" onClick={() => signOut().catch(console.error)}>
-        <LogOut size={14} strokeWidth={1.75} />
+        <LogOut size={ICON_SIZE} strokeWidth={1.75} />
         Sign out
       </button>
     </nav>
