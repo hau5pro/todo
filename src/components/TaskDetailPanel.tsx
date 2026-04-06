@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { X, Trash2 } from 'lucide-react';
 import { useTaskDetail } from '../contexts/TaskDetailContext';
 import { useAppStore } from '../store';
 import { ICON_SIZE } from '../config/icons';
+import { ease } from '../utils/easing';
 
 export function TaskDetailPanel() {
   const { detail, close, updateTask: updateCtx } = useTaskDetail();
@@ -36,7 +38,12 @@ export function TaskDetailPanel() {
   }
 
   return (
-    <aside className="task-detail-panel">
+    <motion.aside
+      className="task-detail-panel"
+      initial={{ x: '100%', opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      exit={{ x: '100%', opacity: 0 }}
+      transition={{ duration: 0.26, ease: ease.snap }}
       <div className="task-detail-panel__header">
         <button className="task-detail-close" onClick={close} title="Close">
           <X size={ICON_SIZE} strokeWidth={2} />
@@ -73,6 +80,6 @@ export function TaskDetailPanel() {
           </button>
         )}
       </div>
-    </aside>
+    </motion.aside>
   );
 }

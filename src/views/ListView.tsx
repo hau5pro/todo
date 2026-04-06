@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { Pencil, Trash2, Check, X, ChevronDown, ChevronRight } from 'lucide-react';
+import { AnimatePresence } from 'framer-motion';
 import { useAppStore } from '../store';
 import { useTaskDetail } from '../contexts/TaskDetailContext';
 import { TaskItem } from '../components/TaskItem';
@@ -106,19 +107,6 @@ export function ListView() {
         )}
       </div>
 
-      {activeTasks.map((task) => (
-        <TaskItem
-          key={task.id}
-          title={task.title}
-          completed={task.completed}
-          dueDate={task.due_date}
-          today={today}
-          onToggle={() => handleToggle(task)}
-          onSelect={() => handleSelectTask(task)}
-          isSelected={detail?.task.id === task.id}
-        />
-      ))}
-
       <form onSubmit={handleAdd}>
         <input
           className="add-task-input"
@@ -127,6 +115,21 @@ export function ListView() {
           onChange={(e) => setNewTitle(e.target.value)}
         />
       </form>
+
+      <AnimatePresence>
+        {activeTasks.map((task) => (
+          <TaskItem
+            key={task.id}
+            title={task.title}
+            completed={task.completed}
+            dueDate={task.due_date}
+            today={today}
+            onToggle={() => handleToggle(task)}
+            onSelect={() => handleSelectTask(task)}
+            isSelected={detail?.task.id === task.id}
+          />
+        ))}
+      </AnimatePresence>
 
       <section>
         <button className="section-collapse-btn" onClick={() => setShowCompleted((p) => !p)}>

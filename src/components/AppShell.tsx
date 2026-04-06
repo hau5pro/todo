@@ -1,12 +1,22 @@
 import { useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
 import { Sidebar } from './Sidebar';
 import { BottomNav } from './BottomNav';
 import { SyncDot } from './SyncDot';
 import { TaskDetailPanel } from './TaskDetailPanel';
-import { TaskDetailProvider } from '../contexts/TaskDetailContext';
+import { TaskDetailProvider, useTaskDetail } from '../contexts/TaskDetailContext';
 import { useSync } from '../hooks/useSync';
 import { useAppStore } from '../store';
+
+function DetailSlot() {
+  const { detail } = useTaskDetail();
+  return (
+    <AnimatePresence>
+      {detail && <TaskDetailPanel />}
+    </AnimatePresence>
+  );
+}
 
 export function AppShell() {
   const { pendingCount, isSyncing, syncError: _syncError } = useSync();
@@ -43,7 +53,7 @@ export function AppShell() {
           <main className="app-main">
             <Outlet />
           </main>
-          <TaskDetailPanel />
+          <DetailSlot />
         </div>
         <BottomNav />
       </div>
