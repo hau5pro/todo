@@ -3,7 +3,6 @@ import { useState, useRef } from 'react';
 import { Reorder, useDragControls } from 'framer-motion';
 import {
   Sun, Settings2, LogOut, ChevronDown, ChevronRight,
-  List, ShoppingCart, RefreshCw, CalendarCheck, Copy,
   GripVertical, Plus, Check, X,
 } from 'lucide-react';
 import { signOut } from '../supabase/auth';
@@ -11,15 +10,9 @@ import { useSettings } from '../contexts/SettingsContext';
 import { useAppStore } from '../store';
 import { focusLater } from '../utils/dom';
 import { ICON_SIZE } from '../config/icons';
-import type { List as ListType, ListType as LT } from '../types';
+import { getListIcon } from '../config/listIcons';
+import type { List as ListType } from '../types';
 
-const LIST_ICONS: Record<LT, React.ReactNode> = {
-  general:  <List size={ICON_SIZE} strokeWidth={1.75} />,
-  shopping: <ShoppingCart size={ICON_SIZE} strokeWidth={1.75} />,
-  cyclical: <RefreshCw size={ICON_SIZE} strokeWidth={1.75} />,
-  daily:    <CalendarCheck size={ICON_SIZE} strokeWidth={1.75} />,
-  template: <Copy size={ICON_SIZE} strokeWidth={1.75} />,
-};
 
 const MY_DAY_SENTINEL = { id: 'my-day' as const };
 type PinnedItem = ListType | typeof MY_DAY_SENTINEL;
@@ -44,7 +37,7 @@ function SortableItem({ list }: { list: ListType }) {
         to={`/list/${list.id}`}
         className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'}
       >
-        {LIST_ICONS[list.type]}
+        {getListIcon(list)}
         {list.name}
       </NavLink>
     </Reorder.Item>
@@ -226,7 +219,7 @@ export function Sidebar() {
         <Settings2 size={ICON_SIZE} strokeWidth={1.75} />
         Settings
       </NavLink>
-      <button className="nav-item nav-btn" onClick={() => signOut().catch(console.error)}>
+      <button className="nav-item nav-btn nav-item--signout" onClick={() => signOut().catch(console.error)}>
         <LogOut size={ICON_SIZE} strokeWidth={1.75} />
         Sign out
       </button>

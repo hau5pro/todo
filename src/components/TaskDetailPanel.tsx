@@ -33,6 +33,7 @@ export function TaskDetailPanel() {
   if (!task) return null;
 
   async function commitTitle() {
+    if (!task) return;
     const t = editTitle.trim();
     if (!t || t === task.title) return;
     const updated = await renameTask(task.id, task.list_id, t);
@@ -40,6 +41,7 @@ export function TaskDetailPanel() {
   }
 
   async function executeDelete() {
+    if (!task) return;
     await removeTask(task.id, task.list_id);
     close();
   }

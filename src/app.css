@@ -168,6 +168,9 @@ body {
   font-family: inherit;
 }
 
+.nav-item--signout { opacity: 0.5; font-size: 0.8rem; }
+.nav-item--signout:hover { opacity: 1; }
+
 .nav-item:hover {
   color: var(--fg);
   background: var(--hover);
@@ -473,6 +476,7 @@ button.nav-section-label--button:hover { color: var(--fg); }
   padding: 9px 0;
   border-bottom: 1px solid var(--divider);
 }
+.task-item--selectable { cursor: pointer; }
 
 .task-item__title {
   flex: 1;
@@ -624,11 +628,57 @@ button.nav-section-label--button:hover { color: var(--fg); }
   border-bottom: 1px solid var(--divider);
 }
 
+@keyframes habit-flash {
+  0%   { background: transparent; }
+  12%  { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+  100% { background: transparent; }
+}
+.habit-item--flash { animation: habit-flash 0.65s ease; border-radius: 8px; }
+
+.habit-item--selectable { cursor: pointer; }
+.habit-item--selected { background: var(--hover); border-radius: 8px; }
+
+.habit-item__title {
+  flex: 1;
+  min-width: 0;
+}
+.habit-item__title--completed {
+  opacity: 0.45;
+  text-decoration: line-through;
+}
+
 .habit-item__streak {
   font-size: 0.78rem;
   font-family: var(--mono);
   color: var(--accent);
   margin-left: auto;
+  flex-shrink: 0;
+}
+.habit-item__streak--hot {
+  animation: streak-pulse 2s ease-in-out infinite;
+}
+@keyframes streak-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.6; }
+}
+
+/* Habit checkbox differentiation */
+.animated-checkbox--habit .animated-checkbox__circle {
+  stroke-dasharray: 2 2.5;
+}
+.animated-checkbox--habit.animated-checkbox--checked .animated-checkbox__circle {
+  stroke-dasharray: none;
+}
+
+/* Streak particles — warm orange-gold */
+.animated-checkbox__particle--streak {
+  background: color-mix(in srgb, var(--accent) 70%, #f97316);
+}
+
+/* Delayed ring for streak >= 7 */
+.animated-checkbox__ring--delayed {
+  animation: ring-expand 0.5s ease-out 0.12s forwards;
+  opacity: 0;
 }
 
 /* ── View typography ─────────────────────────────────────── */
@@ -654,6 +704,15 @@ button.nav-section-label--button:hover { color: var(--fg); }
   letter-spacing: -0.01em;
   margin-bottom: 0;
   flex: 1;
+}
+
+.view-subtitle {
+  font-size: 0.7rem;
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--fg-muted);
+  margin: 0.1rem 0 0.75rem;
 }
 
 .view-title-actions {
@@ -814,17 +873,17 @@ button.nav-section-label--button:hover { color: var(--fg); }
 .btn-signout {
   padding: 8px 16px;
   background: none;
-  color: var(--fg-muted);
-  border: 1px solid var(--border);
+  color: var(--fg);
+  border: 1px solid var(--fg-muted);
   border-radius: 7px;
   font-size: 0.875rem;
   font-family: inherit;
   cursor: pointer;
-  transition: color 0.15s, border-color 0.15s;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
   width: fit-content;
 }
 
-.btn-signout:hover { color: var(--fg); border-color: var(--fg-muted); }
+.btn-signout:hover { background: var(--hover); }
 .btn-signout:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .btn-danger {

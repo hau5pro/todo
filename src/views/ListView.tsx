@@ -8,6 +8,8 @@ import { useAppStore } from '../store';
 import { useTaskDetail } from '../contexts/TaskDetailContext';
 import { TaskItem } from '../components/TaskItem';
 import { ICON_SIZE } from '../config/icons';
+import { LIST_TYPE_LABELS } from '../types';
+import { getListIcon } from '../config/listIcons';
 
 export function ListView() {
   const { listId } = useParams<{ listId: string }>();
@@ -99,6 +101,7 @@ export function ListView() {
           </>
         ) : (
           <>
+            <span className="view-title-icon">{getListIcon(list)}</span>
             <h1 className="view-title">{list.name}</h1>
             <span className="view-title-actions">
               <button className="view-title-action-btn" onClick={startEditListName} title="Rename list"><Pencil size={ICON_SIZE} strokeWidth={2} /></button>
@@ -107,7 +110,7 @@ export function ListView() {
           </>
         )}
       </div>
-
+      <p className="view-subtitle">{LIST_TYPE_LABELS[list.type]}</p>
       <form onSubmit={handleAdd}>
         <input
           className="add-task-input"

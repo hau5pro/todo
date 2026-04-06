@@ -26,7 +26,7 @@ export function AppShell() {
   const { pendingCount, isSyncing, syncError: _syncError } = useSync();
   const loadLists = useAppStore((s) => s.loadLists);
   const headerDate = useMemo(() =>
-    new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase()
+    new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).toUpperCase()
   , []);
 
   useEffect(() => {

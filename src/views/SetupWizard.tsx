@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Check, Palette, LayoutList, Sun, List, CalendarCheck, ShoppingCart, ClipboardList } from 'lucide-react';
+import { Check, Palette, LayoutList, Sun, List, CalendarCheck, ShoppingCart, Sparkles } from 'lucide-react';
 import { ICON_SIZE } from '../config/icons';
 import { useSettings } from '../contexts/SettingsContext';
 import { createList } from '../db/lists';
@@ -10,7 +10,7 @@ const LIST_OPTIONS: { key: string; label: string; icon: React.ReactNode }[] = [
   { key: 'Tasks',     label: 'Tasks',     icon: <List size={ICON_SIZE} strokeWidth={1.75} /> },
   { key: 'Habits',    label: 'Habits',    icon: <CalendarCheck size={ICON_SIZE} strokeWidth={1.75} /> },
   { key: 'Groceries', label: 'Groceries', icon: <ShoppingCart size={ICON_SIZE} strokeWidth={1.75} /> },
-  { key: 'Chores',    label: 'Chores',    icon: <ClipboardList size={ICON_SIZE} strokeWidth={1.75} /> },
+  { key: 'Chores',    label: 'Chores',    icon: <Sparkles size={ICON_SIZE} strokeWidth={1.75} /> },
 ];
 
 const STEPS = [

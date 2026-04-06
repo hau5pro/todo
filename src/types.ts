@@ -1,4 +1,12 @@
 export type ListType = 'general' | 'cyclical' | 'daily' | 'shopping' | 'template';
+
+export const LIST_TYPE_LABELS: Record<ListType, string> = {
+  general:  'tasks',
+  cyclical: 'cycles',
+  daily:    'daily',
+  shopping: 'shopping',
+  template: 'template',
+};
 export type RecurrenceUnit = 'days' | 'weeks' | 'months';
 
 export interface List {

@@ -7,6 +7,7 @@ import { playComplete } from '../utils/sound';
 import { useAppStore } from '../store';
 import { clearAllLocalData } from '../db/client';
 import type { List } from '../types';
+import { LIST_TYPE_LABELS } from '../types';
 import { deleteAllCloudData } from '../db/sync';
 import { signOut } from '../supabase/auth';
 import { supabase } from '../supabase/client';
@@ -29,7 +30,7 @@ function SortableSettingsRow({ list, checked, onChange }: {
       <div className="settings-drag-handle" onPointerDown={(e) => dragControls.start(e)}>
         <GripVertical size={ICON_SIZE} strokeWidth={1.75} />
       </div>
-      <SettingsRow label={list.name} sublabel={list.type} checked={checked} onChange={onChange} />
+      <SettingsRow label={list.name} sublabel={LIST_TYPE_LABELS[list.type]} checked={checked} onChange={onChange} />
     </Reorder.Item>
   );
 }
