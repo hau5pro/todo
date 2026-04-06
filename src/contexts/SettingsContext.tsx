@@ -28,6 +28,7 @@ export interface Settings {
   listOrders: Record<string, string[]>;
   soundEnabled: boolean;
   soundStyle: SoundStyle;
+  sidebarCollapsed: boolean;
 }
 
 interface SettingsContextValue extends Settings {
@@ -41,6 +42,7 @@ interface SettingsContextValue extends Settings {
   setListOrder: (listId: string, ids: string[]) => void;
   setSoundEnabled: (v: boolean) => void;
   setSoundStyle: (s: SoundStyle) => void;
+  setSidebarCollapsed: (v: boolean) => void;
 }
 
 const STORAGE_KEY = 'todo_settings';
@@ -58,6 +60,7 @@ const DEFAULTS: Settings = {
   listOrders: {},
   soundEnabled: true,
   soundStyle: 'pop',
+  sidebarCollapsed: false,
 };
 
 function loadSettings(): Settings {
@@ -251,6 +254,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       }),
     setSoundEnabled: (soundEnabled) => update({ soundEnabled }),
     setSoundStyle: (soundStyle) => update({ soundStyle }),
+    setSidebarCollapsed: (sidebarCollapsed) => update({ sidebarCollapsed }),
   };
 
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;

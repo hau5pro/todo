@@ -69,6 +69,7 @@ export function ListView() {
     if (!newTitle.trim()) return;
     await addTask(listId!, newTitle.trim());
     setNewTitle('');
+    closeDetail();
   }
 
   function startEditListName() {

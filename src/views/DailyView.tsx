@@ -54,6 +54,7 @@ export function DailyView() {
     await addTask(listId!, newTitle.trim());
     setNewTitle('');
     reload();
+    closeDetail();
   }
 
   return (

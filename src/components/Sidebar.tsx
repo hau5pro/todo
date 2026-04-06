@@ -3,7 +3,7 @@ import { useState, useRef } from 'react';
 import { Reorder, useDragControls, motion, AnimatePresence } from 'framer-motion';
 import {
   Sun, GearSix, SignOut, CaretDown, CaretRight,
-  List, Plus, Check, X, PencilSimple,
+  List, Plus, Check, X, PencilSimple, SidebarSimple,
 } from '@phosphor-icons/react';
 import { signOut } from '../supabase/auth';
 import { useSettings } from '../contexts/SettingsContext';
@@ -16,6 +16,13 @@ import type { List as ListType } from '../types';
 
 const MY_DAY_SENTINEL = { id: 'my-day' as const };
 type PinnedItem = ListType | typeof MY_DAY_SENTINEL;
+
+const COLLAPSED_ICON_SIZE = 20;
+
+function pinnedIcon(item: PinnedItem): React.ReactNode {
+  if (item.id === 'my-day') return <Sun size={COLLAPSED_ICON_SIZE} weight="fill" />;
+  return getListIcon(item as ListType, COLLAPSED_ICON_SIZE) ?? <List size={COLLAPSED_ICON_SIZE} weight="fill" />;
+}
 
 // ── Sortable components ───────────────────────────────────────────────────────
 
@@ -99,12 +106,14 @@ function SortableMyDayItem({ editMode }: { editMode: boolean }) {
 
 // ── Sidebar ───────────────────────────────────────────────────────────────────
 
+const SIDEBAR_W = 208;
+const COLLAPSED_W = 40;
+
 export function Sidebar() {
   const lists = useAppStore((s) => s.lists);
   const createList = useAppStore((s) => s.createList);
   const [templatesOpen, setTemplatesOpen] = useState(false);
-  const [editPinned, setEditPinned] = useState(false);
-  const [editLists, setEditLists] = useState(false);
+  const [editMode, setEditMode] = useState(false);
   const [addingList, setAddingList] = useState(false);
   const [newListName, setNewListName] = useState('');
   const addInputRef = useRef<HTMLInputElement>(null);
@@ -115,9 +124,11 @@ export function Sidebar() {
     customOrder,
     setPinnedOrder,
     setCustomOrder,
+    sidebarCollapsed,
+    setSidebarCollapsed,
   } = useSettings();
 
-  // Pinned: IDs in pinnedOrder mapped to list objects or the my-day sentinel
+  // Pinned
   const pinnedItems: PinnedItem[] = pinnedOrder
     .map((id): PinnedItem | undefined =>
       id === 'my-day' ? MY_DAY_SENTINEL : lists.find((l) => l.id === id)
@@ -125,7 +136,7 @@ export function Sidebar() {
     .filter((item): item is PinnedItem => item !== undefined)
     .filter((item) => !hiddenListIds.includes(item.id));
 
-  // Custom: non-template lists NOT in pinnedOrder, sorted by customOrder
+  // Custom lists
   const pinnedSet = new Set(pinnedOrder);
   const nonPinnedLists = lists.filter(
     (l) => l.type !== 'template' && !pinnedSet.has(l.id) && !hiddenListIds.includes(l.id)
@@ -164,119 +175,185 @@ export function Sidebar() {
   }
 
   return (
-    <nav className="sidebar">
-      {/* Pinned section */}
-      {pinnedItems.length > 0 && (
-        <>
-          <div className="nav-section-label">
-            Pinned
-            <button
-              className="nav-add-btn"
-              onClick={() => setEditPinned((e) => !e)}
-              title={editPinned ? 'Done' : 'Reorder pinned'}
-            >
-              {editPinned ? <Check size={ICON_SIZE} weight="fill" /> : <PencilSimple size={ICON_SIZE} weight="fill" />}
-            </button>
-          </div>
-          <Reorder.Group
-            as="div"
-            axis="y"
-            values={pinnedItems}
-            onReorder={(newOrder) => setPinnedOrder(newOrder.map((item) => item.id))}
-            className="nav-reorder-group"
-            initial={false}
+    <motion.nav
+      className="sidebar"
+      animate={{ width: sidebarCollapsed ? COLLAPSED_W : SIDEBAR_W }}
+      initial={false}
+      transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+    >
+      <AnimatePresence mode="wait" initial={false}>
+        {sidebarCollapsed ? (
+          <motion.div
+            key="collapsed"
+            className="sidebar--collapsed"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, transition: { duration: 0.12, delay: 0.1 } }}
+            exit={{ opacity: 0, transition: { duration: 0.08 } }}
           >
-            {pinnedItems.map((item) =>
-              item.id === 'my-day'
-                ? <SortableMyDayItem key="my-day" editMode={editPinned} />
-                : <SortableItem key={item.id} list={item as ListType} editMode={editPinned} />
-            )}
-          </Reorder.Group>
-        </>
-      )}
+            <div className="sidebar-toolbar">
+              <button
+                className="sidebar-collapse-btn"
+                onClick={() => setSidebarCollapsed(false)}
+                title="Expand sidebar"
+              >
+                <SidebarSimple size={COLLAPSED_ICON_SIZE} weight="fill" />
+              </button>
+            </div>
 
-      {/* Lists section */}
-      <div className="nav-section-label">
-        Lists
-        <button
-          className="nav-add-btn"
-          onClick={() => setEditLists((e) => !e)}
-          title={editLists ? 'Done' : 'Reorder lists'}
-        >
-          {editLists ? <Check size={ICON_SIZE} weight="fill" /> : <PencilSimple size={ICON_SIZE} weight="fill" />}
-        </button>
-      </div>
-      <Reorder.Group
-        as="div"
-        axis="y"
-        values={customLists}
-        onReorder={(newOrder) => setCustomOrder(newOrder.map((l) => l.id))}
-        className="nav-reorder-group"
-        initial={false}
-      >
-        {customLists.map((l) => (
-          <SortableItem key={l.id} list={l} editMode={editLists} />
-        ))}
-      </Reorder.Group>
+            {pinnedItems.map((item) => {
+              const label = item.id === 'my-day' ? 'My Day' : (item as ListType).name;
+              return (
+                <NavLink
+                  key={item.id}
+                  to={item.id === 'my-day' ? '/my-day' : `/list/${item.id}`}
+                  className={({ isActive }) => isActive ? 'nav-icon-btn nav-icon-btn--active' : 'nav-icon-btn'}
+                  aria-label={label}
+                  data-tooltip={label}
+                >
+                  {pinnedIcon(item)}
+                </NavLink>
+              );
+            })}
 
-      {/* Add list — inline form or button */}
-      {addingList ? (
-        <div className="nav-item nav-item--editing">
-          <input
-            ref={addInputRef}
-            className="nav-inline-input"
-            placeholder="List name"
-            value={newListName}
-            onChange={(e) => setNewListName(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') commitAddList();
-              if (e.key === 'Escape') cancelAddList();
-            }}
-          />
-          <button className="nav-action-btn" onClick={commitAddList} title="Create">
-            <Check size={ICON_SIZE} weight="fill" />
-          </button>
-          <button className="nav-action-btn" onClick={cancelAddList} title="Cancel">
-            <X size={ICON_SIZE} weight="fill" />
-          </button>
-        </div>
-      ) : (
-        <button className="nav-item nav-btn nav-add-list-btn" onClick={startAddList}>
-          <Plus size={ICON_SIZE} weight="fill" />
-          New list
-        </button>
-      )}
+            <div className="sidebar-spacer" />
 
-      {/* Templates section */}
-      {templates.length > 0 && (
-        <>
-          <button className="nav-section-label nav-section-label--button" onClick={() => setTemplatesOpen((o) => !o)}>
-            Templates {templatesOpen ? <CaretDown size={ICON_SIZE} weight="fill" /> : <CaretRight size={ICON_SIZE} weight="fill" />}
-          </button>
-          {templatesOpen && templates.map((l) => (
             <NavLink
-              key={l.id}
-              to={`/list/${l.id}`}
-              className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'}
+              to="/settings"
+              className={({ isActive }) => isActive ? 'nav-icon-btn nav-icon-btn--active' : 'nav-icon-btn'}
+              aria-label="Settings"
+              data-tooltip="Settings"
             >
-              {getListIcon(l)}
-              {l.name}
+              <GearSix size={20} weight="fill" />
             </NavLink>
-          ))}
-        </>
-      )}
+            <button
+              className="nav-icon-btn"
+              onClick={() => signOut().catch(console.error)}
+              aria-label="Sign out"
+              data-tooltip="Sign out"
+            >
+              <SignOut size={20} weight="fill" />
+            </button>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="expanded"
+            className="sidebar__inner"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, transition: { duration: 0.14, delay: 0.1 } }}
+            exit={{ opacity: 0, transition: { duration: 0.08 } }}
+          >
+            {/* Top toolbar: edit + collapse */}
+            <div className="sidebar-toolbar">
+              <button
+                className="sidebar-collapse-btn"
+                onClick={() => setEditMode((e) => !e)}
+                title={editMode ? 'Done reordering' : 'Reorder lists'}
+              >
+                {editMode ? <Check size={ICON_SIZE} weight="fill" /> : <PencilSimple size={ICON_SIZE} weight="fill" />}
+              </button>
+              <button
+                className="sidebar-collapse-btn"
+                onClick={() => setSidebarCollapsed(true)}
+                title="Collapse sidebar"
+              >
+                <SidebarSimple size={ICON_SIZE} weight="fill" />
+              </button>
+            </div>
 
-      <div className="sidebar-spacer" />
+            {/* Pinned section */}
+            {pinnedItems.length > 0 && (
+              <Reorder.Group
+                as="div"
+                axis="y"
+                values={pinnedItems}
+                onReorder={(newOrder) => setPinnedOrder(newOrder.map((item) => item.id))}
+                className="nav-reorder-group"
+                initial={false}
+              >
+                {pinnedItems.map((item) =>
+                  item.id === 'my-day'
+                    ? <SortableMyDayItem key="my-day" editMode={editMode} />
+                    : <SortableItem key={item.id} list={item as ListType} editMode={editMode} />
+                )}
+              </Reorder.Group>
+            )}
 
-      <NavLink to="/settings" className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'}>
-        <GearSix size={ICON_SIZE} weight="fill" />
-        Settings
-      </NavLink>
-      <div style={{ height: '0.5rem' }} />
-      <button className="nav-item nav-btn nav-item--signout" onClick={() => signOut().catch(console.error)}>
-        <SignOut size={ICON_SIZE} weight="fill" />
-        Sign out
-      </button>
-    </nav>
+            {/* Lists section */}
+            <div className="nav-section-label">Lists</div>
+            <Reorder.Group
+              as="div"
+              axis="y"
+              values={customLists}
+              onReorder={(newOrder) => setCustomOrder(newOrder.map((l) => l.id))}
+              className="nav-reorder-group"
+              initial={false}
+            >
+              {customLists.map((l) => (
+                <SortableItem key={l.id} list={l} editMode={editMode} />
+              ))}
+            </Reorder.Group>
+
+            {/* Add list */}
+            {addingList ? (
+              <div className="nav-item nav-item--editing">
+                <input
+                  ref={addInputRef}
+                  className="nav-inline-input"
+                  placeholder="List name"
+                  value={newListName}
+                  onChange={(e) => setNewListName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') commitAddList();
+                    if (e.key === 'Escape') cancelAddList();
+                  }}
+                />
+                <button className="nav-action-btn" onClick={commitAddList} title="Create">
+                  <Check size={ICON_SIZE} weight="fill" />
+                </button>
+                <button className="nav-action-btn" onClick={cancelAddList} title="Cancel">
+                  <X size={ICON_SIZE} weight="fill" />
+                </button>
+              </div>
+            ) : (
+              <button className="nav-item nav-btn nav-add-list-btn" onClick={startAddList}>
+                <Plus size={ICON_SIZE} weight="fill" />
+                New list
+              </button>
+            )}
+
+            {/* Templates section */}
+            {templates.length > 0 && (
+              <>
+                <button className="nav-section-label nav-section-label--button" onClick={() => setTemplatesOpen((o) => !o)}>
+                  Templates {templatesOpen ? <CaretDown size={ICON_SIZE} weight="fill" /> : <CaretRight size={ICON_SIZE} weight="fill" />}
+                </button>
+                {templatesOpen && templates.map((l) => (
+                  <NavLink
+                    key={l.id}
+                    to={`/list/${l.id}`}
+                    className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'}
+                  >
+                    {getListIcon(l)}
+                    {l.name}
+                  </NavLink>
+                ))}
+              </>
+            )}
+
+            <div className="sidebar-spacer" />
+
+            <NavLink to="/settings" className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'}>
+              <GearSix size={ICON_SIZE} weight="fill" />
+              Settings
+            </NavLink>
+            <div style={{ height: '0.5rem' }} />
+            <button className="nav-item nav-btn nav-item--signout" onClick={() => signOut().catch(console.error)}>
+              <SignOut size={ICON_SIZE} weight="fill" />
+              Sign out
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.nav>
   );
 }

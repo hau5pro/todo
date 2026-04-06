@@ -1,11 +1,6 @@
 session counter: 4
 +extra usage ~$50
 
-
-
-- in my day we shouldnt order I think. it just goes by due date.
-- no user select in completed or my day.
-
 - keyboard nav with arrows (tab and space fns?)
 
 - 2 levels deep of folders for user lists?
