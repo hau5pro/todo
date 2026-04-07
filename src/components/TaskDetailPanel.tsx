@@ -26,7 +26,6 @@ export function TaskDetailPanel() {
   const updateTaskFields = useAppStore((s) => s.updateTaskFields);
 
   const [editTitle, setEditTitle] = useState('');
-  const [confirmDelete, setConfirmDelete] = useState(false);
   const [calOpen, setCalOpen] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -37,7 +36,6 @@ export function TaskDetailPanel() {
   useEffect(() => {
     if (detail) {
       setEditTitle(detail.task.title);
-      setConfirmDelete(false);
       setCalOpen(false);
       focusLater(inputRef);
     }
@@ -136,20 +134,10 @@ export function TaskDetailPanel() {
       </div>
 
       <div className="task-detail-panel__footer">
-        {confirmDelete ? (
-          <div className="task-detail-delete-confirm">
-            <p>Delete this task?</p>
-            <div className="task-detail-delete-confirm__actions">
-              <button className="btn-danger-sm" onClick={executeDelete}>Delete</button>
-              <button className="btn-ghost-sm" onClick={() => setConfirmDelete(false)}>Cancel</button>
-            </div>
-          </div>
-        ) : (
-          <button className="task-detail-delete-btn" onClick={() => setConfirmDelete(true)}>
-            <Trash size={ICON_SIZE} weight="fill" />
-            Delete task
-          </button>
-        )}
+        <button className="task-detail-delete-btn" onClick={executeDelete}>
+          <Trash size={ICON_SIZE} weight="fill" />
+          Delete task
+        </button>
       </div>
     </motion.aside>
   );

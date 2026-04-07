@@ -191,7 +191,6 @@ function FolderRow({
   const [newName, setNewName] = useState(folder.name);
   const [showMenu, setShowMenu] = useState(false);
   const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const menuBtnRef = useRef<HTMLButtonElement>(null);
@@ -201,13 +200,11 @@ function FolderRow({
       const rect = menuBtnRef.current.getBoundingClientRect();
       setMenuPos({ top: rect.bottom + 4, left: rect.left });
     }
-    setConfirmDelete(false);
     setShowMenu(true);
   }
 
   function closeMenu() {
     setShowMenu(false);
-    setConfirmDelete(false);
   }
 
   function startRename() {
@@ -320,24 +317,14 @@ function FolderRow({
           <>
             <div className="folder-picker-backdrop" onClick={closeMenu} />
             <div className="folder-picker" style={{ position: 'fixed', top: menuPos.top, left: menuPos.left }}>
-              {!confirmDelete ? (
-                <>
-                  <button onClick={startRename}>
-                    <PencilSimple size={13} weight="fill" />
-                    Rename
-                  </button>
-                  <button className="folder-picker-danger" onClick={() => setConfirmDelete(true)}>
-                    <Trash size={13} weight="fill" />
-                    Delete
-                  </button>
-                </>
-              ) : (
-                <>
-                  <span className="folder-picker-label">Delete "{folder.name}"?</span>
-                  <button className="folder-picker-danger" onClick={handleDelete}>Yes, delete</button>
-                  <button onClick={() => setConfirmDelete(false)}>Cancel</button>
-                </>
-              )}
+              <button onClick={startRename}>
+                <PencilSimple size={13} weight="fill" />
+                Rename
+              </button>
+              <button className="folder-picker-danger" onClick={handleDelete}>
+                <Trash size={13} weight="fill" />
+                Delete
+              </button>
             </div>
           </>,
           document.body
