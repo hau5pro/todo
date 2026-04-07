@@ -120,7 +120,7 @@ function SortableItem({
           onDragStart={allowFolderDrag ? handleDragStart : undefined}
           style={allowFolderDrag ? { cursor: 'grab' } : undefined}
         >
-          {getListIcon(list)}
+          {getListIcon(list) ?? <List size={ICON_SIZE} weight="fill" />}
           <span className="nav-item__name">{list.name}</span>
         </div>
       ) : (
@@ -129,7 +129,7 @@ function SortableItem({
           className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'}
           data-nav-item
         >
-          {getListIcon(list)}
+          {getListIcon(list) ?? <List size={ICON_SIZE} weight="fill" />}
           <span className="nav-item__name">{list.name}</span>
         </NavLink>
       )}
