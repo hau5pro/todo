@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { PencilSimple, Trash, CaretDown, CaretRight, CopySimple, List as ListIcon, CheckCircle } from '@phosphor-icons/react';
+import { PencilSimple, Trash, CaretDown, CaretRight, CopySimple, List as ListIcon, CheckCircle, Plus, DotsThree } from '@phosphor-icons/react';
 import { AnimatePresence, motion, Reorder, useDragControls } from 'framer-motion';
 import { ease } from '../utils/easing';
 import { focusLater } from '../utils/dom';
@@ -38,29 +38,58 @@ function applyOrder(tasks: Task[], order: string[]): Task[] {
   return [...rest, ...ordered];
 }
 
-function TaskRow({ task, editMode, today, onToggle, onSelect, onDelete, isSelected }: {
-  task: Task; editMode: boolean; today: string;
+function reorderGroupInGlobal(globalOrder: string[], newGroupOrder: string[]): string[] {
+  const groupSet = new Set(newGroupOrder);
+  const result = [...globalOrder];
+  const positions: number[] = [];
+  for (let i = 0; i < result.length; i++) {
+    if (groupSet.has(result[i])) positions.push(i);
+  }
+  newGroupOrder.filter((id) => globalOrder.includes(id)).forEach((id, i) => {
+    result[positions[i]] = id;
+  });
+  const missing = newGroupOrder.filter((id) => !globalOrder.includes(id));
+  return [...result, ...missing];
+}
+
+function TaskRow({
+  task, editMode, today, dragging, onDragStart, onDragEnd,
+  onToggle, onSelect, onDelete, isSelected,
+}: {
+  task: Task; editMode: boolean; today: string; dragging: boolean;
+  onDragStart: (e: React.DragEvent) => void;
+  onDragEnd: () => void;
   onToggle: () => void; onSelect: () => void; onDelete: () => void; isSelected: boolean;
 }) {
   const dragControls = useDragControls();
   return (
-    <Reorder.Item as="div" value={task} dragListener={false} dragControls={dragControls}
+    <Reorder.Item
+      as="div"
+      value={task}
+      dragListener={false}
+      dragControls={dragControls}
       variants={taskItemVariants}
       className="task-row"
-      style={{ cursor: 'default' }}
+      style={{ cursor: 'default', opacity: dragging ? 0.4 : 1 }}
     >
       <span style={{ width: editMode ? 26 : 0, opacity: editMode ? 1 : 0, overflow: 'hidden', flexShrink: 0, display: 'flex', transition: 'width 0.15s, opacity 0.15s' }}>
         <span className="task-edit-drag" onPointerDown={(e) => dragControls.start(e)}>
           <ListIcon size={ICON_SIZE} weight="bold" />
         </span>
       </span>
-      <div style={{ flex: 1, minWidth: 0 }}>
+      {/* Wrap content in a draggable div so it doesn't conflict with FM's onDragStart typing */}
+      <div
+        style={{ flex: 1, minWidth: 0 }}
+        draggable={!editMode}
+        onDragStart={editMode ? undefined : onDragStart}
+        onDragEnd={editMode ? undefined : onDragEnd}
+      >
         <TaskItem
           title={task.title}
           completed={task.completed}
           dueDate={task.due_date}
           today={today}
-          onToggle={onToggle}
+          onToggle={editMode ? undefined : onToggle}
           onSelect={editMode ? undefined : onSelect}
           isSelected={!editMode && isSelected}
         />
@@ -77,6 +106,248 @@ function TaskRow({ task, editMode, today, onToggle, onSelect, onDelete, isSelect
   );
 }
 
+function GroupSection({
+  groupName, tasks, editMode, today, listId, globalOrder, draggingTaskId,
+  onReorder, onToggle, onSelect, onDelete, onRename, onDeleteGroup, selectedTaskId,
+}: {
+  groupName: string;
+  tasks: Task[];
+  editMode: boolean;
+  today: string;
+  listId: string;
+  globalOrder: string[];
+  draggingTaskId: string | null;
+  onReorder: (newGlobalOrder: string[]) => void;
+  onToggle: (task: Task) => void;
+  onSelect: (task: Task) => void;
+  onDelete: (task: Task) => void;
+  onRename: (oldName: string, newName: string) => void;
+  onDeleteGroup: (name: string) => void;
+  selectedTaskId: string | undefined;
+}) {
+  const { addTask, moveTaskToGroup } = useAppStore();
+  const [collapsed, setCollapsed] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  const [nameValue, setNameValue] = useState(groupName);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [addingTask, setAddingTask] = useState(false);
+  const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const nameInputRef = useRef<HTMLInputElement>(null);
+  const addInputRef = useRef<HTMLInputElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+    if (menuOpen) document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [menuOpen]);
+
+  function startEditName() {
+    setNameValue(groupName);
+    setEditingName(true);
+    setMenuOpen(false);
+    focusLater(nameInputRef);
+  }
+
+  function commitEditName() {
+    const trimmed = nameValue.trim();
+    if (trimmed && trimmed !== groupName) onRename(groupName, trimmed);
+    setEditingName(false);
+  }
+
+  async function handleAddTask(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newTaskTitle.trim()) { setAddingTask(false); return; }
+    await addTask(listId, newTaskTitle.trim(), groupName);
+    setNewTaskTitle('');
+    focusLater(addInputRef);
+  }
+
+  function handleGroupReorder(reordered: Task[]) {
+    onReorder(reorderGroupInGlobal(globalOrder, reordered.map((t) => t.id)));
+  }
+
+  function handleDragOver(e: React.DragEvent) {
+    if (!draggingTaskId) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setIsDragOver(true);
+  }
+
+  function handleDragLeave(e: React.DragEvent) {
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setIsDragOver(false);
+    }
+  }
+
+  async function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setIsDragOver(false);
+    const taskId = e.dataTransfer.getData('text/plain');
+    if (taskId) await moveTaskToGroup(taskId, listId, groupName);
+  }
+
+  return (
+    <div className={`group-section${isDragOver ? ' group-section--drag-over' : ''}`}>
+      <div
+        className="group-header"
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
+        <button
+          className="group-header-collapse"
+          onClick={() => setCollapsed((p) => !p)}
+          aria-label={collapsed ? 'Expand group' : 'Collapse group'}
+        >
+          {collapsed ? <CaretRight size={12} weight="bold" /> : <CaretDown size={12} weight="bold" />}
+        </button>
+
+        {editingName ? (
+          <input
+            ref={nameInputRef}
+            className="group-header-name-input"
+            value={nameValue}
+            onChange={(e) => setNameValue(e.target.value)}
+            onBlur={commitEditName}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') commitEditName();
+              if (e.key === 'Escape') setEditingName(false);
+            }}
+          />
+        ) : (
+          <span className="group-header-name" onDoubleClick={startEditName}>{groupName}</span>
+        )}
+
+        <span className="group-header-count">{tasks.length}</span>
+
+        <div className="group-header-menu" ref={menuRef}>
+          <button
+            className="group-header-menu-btn"
+            onClick={() => setMenuOpen((p) => !p)}
+            aria-label="Group actions"
+          >
+            <DotsThree size={16} weight="bold" />
+          </button>
+          <AnimatePresence>
+            {menuOpen && (
+              <motion.div
+                className="group-header-dropdown"
+                initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                transition={{ duration: 0.1 }}
+              >
+                <button className="group-header-dropdown-item" onClick={startEditName}>
+                  <PencilSimple size={13} weight="fill" /> Rename
+                </button>
+                <button
+                  className="group-header-dropdown-item group-header-dropdown-item--danger"
+                  onClick={() => { setConfirmDelete(true); setMenuOpen(false); }}
+                >
+                  <Trash size={13} weight="fill" /> Delete group
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+
+      <AnimatePresence>
+        {!collapsed && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: ease.out }}
+            style={{ overflow: 'hidden' }}
+          >
+            <Reorder.Group as="div" axis="y" values={tasks} onReorder={handleGroupReorder}
+              variants={taskListVariants} initial="hidden" animate="show"
+            >
+              <AnimatePresence>
+                {tasks.map((task) => (
+                  <TaskRow
+                    key={task.id}
+                    task={task}
+                    editMode={editMode}
+                    today={today}
+                    dragging={task.id === draggingTaskId}
+                    onDragStart={(e) => {
+                      e.dataTransfer.effectAllowed = 'move';
+                      e.dataTransfer.setData('text/plain', task.id);
+                      // bubble draggingTaskId up is handled by parent via drop
+                    }}
+                    onDragEnd={() => { /* parent clears via drop */ }}
+                    onToggle={() => onToggle(task)}
+                    onSelect={() => onSelect(task)}
+                    onDelete={() => onDelete(task)}
+                    isSelected={selectedTaskId === task.id}
+                  />
+                ))}
+              </AnimatePresence>
+            </Reorder.Group>
+
+            {addingTask ? (
+              <form onSubmit={handleAddTask} className="group-add-task-form">
+                <input
+                  ref={addInputRef}
+                  className="group-add-task-input"
+                  placeholder="Add item…"
+                  value={newTaskTitle}
+                  onChange={(e) => setNewTaskTitle(e.target.value)}
+                  onBlur={() => { if (!newTaskTitle.trim()) setAddingTask(false); }}
+                  autoFocus
+                  onKeyDown={(e) => { if (e.key === 'Escape') { setAddingTask(false); setNewTaskTitle(''); } }}
+                />
+              </form>
+            ) : (
+              <button className="group-add-task-btn" onClick={() => setAddingTask(true)}>
+                <Plus size={12} weight="bold" /> Add item
+              </button>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {confirmDelete && (
+          <motion.div
+            className="modal-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            onClick={() => setConfirmDelete(false)}
+          >
+            <motion.div
+              className="modal-popup"
+              initial={{ opacity: 0, scale: 0.94, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.94, y: 6 }}
+              transition={{ duration: 0.15, ease: [0, 0, 0.2, 1] }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="modal-popup__title">Delete "{groupName}"?</h3>
+              <p className="modal-popup__body">Items will be moved to the main list, not deleted.</p>
+              <div className="modal-popup__actions">
+                <button className="btn-danger-sm" onClick={() => { onDeleteGroup(groupName); setConfirmDelete(false); }}>Delete group</button>
+                <button className="btn-ghost-sm" onClick={() => setConfirmDelete(false)}>Cancel</button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 export function ListView() {
   const { listId } = useParams<{ listId: string }>();
   const navigate = useNavigate();
@@ -85,10 +356,10 @@ export function ListView() {
   const list = useAppStore((s) => s.lists.find((l) => l.id === listId));
   const tasks = useAppStore((s) => s.tasksByList[listId!]);
   const loadTasks = useAppStore((s) => s.loadTasks);
-  const { renameList, updateListIcon, deleteList, duplicateList, addTask, completeTask, advanceCyclicalTask, removeTask } = useAppStore();
+  const { renameList, updateListIcon, deleteList, duplicateList, addTask, completeTask, advanceCyclicalTask, removeTask, moveTaskToGroup, renameGroup, deleteGroup } = useAppStore();
 
   const { detail, open: openDetail, close: closeDetail } = useTaskDetail();
-  const { listOrders, setListOrder, customOrder, setCustomOrder, pinnedOrder } = useSettings();
+  const { listOrders, setListOrder, listGroupOrders, setListGroupOrder, customOrder, setCustomOrder, pinnedOrder } = useSettings();
 
   const [newTitle, setNewTitle] = useState('');
   const [editingListName, setEditingListName] = useState(false);
@@ -97,6 +368,8 @@ export function ListView() {
   const [showCompleted, setShowCompleted] = useState(false);
   const [iconPickerAnchor, setIconPickerAnchor] = useState<DOMRect | null>(null);
   const [taskEditMode, setTaskEditMode] = useState(false);
+  const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
+  const [ungroupedDragOver, setUngroupedDragOver] = useState(false);
   const listNameInputRef = useRef<HTMLInputElement>(null);
   const iconBtnRef = useRef<HTMLButtonElement>(null);
 
@@ -108,6 +381,19 @@ export function ListView() {
     setTaskEditMode(false);
   }, [listId]);
 
+  // Auto-sync group order: add any new groups that appear in tasks
+  useEffect(() => {
+    if (!tasks) return;
+    const activeGroups = [...new Set(
+      tasks.filter((t) => t.group && !t.deleted_at).map((t) => t.group!)
+    )];
+    const saved = listGroupOrders[listId!] ?? [];
+    const newOnes = activeGroups.filter((g) => !saved.includes(g));
+    if (newOnes.length > 0) {
+      setListGroupOrder(listId!, [...saved, ...newOnes]);
+    }
+  }, [tasks, listId]);
+
   if (!list || tasks === undefined) return null;
 
   const isPinned = pinnedOrder.includes(listId!);
@@ -115,8 +401,29 @@ export function ListView() {
   const completedTasks = tasks.filter((t) => t.completed && t.deleted_at === null);
   const orderedActive = applyOrder(activeTasks, listOrders[listId!] ?? []);
 
+  const ungroupedTasks = orderedActive.filter((t) => !t.group);
+  const groupMap = new Map<string, Task[]>();
+  for (const task of orderedActive) {
+    if (task.group) {
+      if (!groupMap.has(task.group)) groupMap.set(task.group, []);
+      groupMap.get(task.group)!.push(task);
+    }
+  }
+
+  const savedGroupOrder = listGroupOrders[listId!] ?? [];
+  const allGroupNames = [
+    ...savedGroupOrder.filter((g) => groupMap.has(g)),
+    ...Array.from(groupMap.keys()).filter((g) => !savedGroupOrder.includes(g)),
+  ];
+
+  const globalOrder = listOrders[listId!] ?? [];
+
   function handleReorder(reordered: Task[]) {
     setListOrder(listId!, reordered.map((t) => t.id));
+  }
+
+  function handleGroupReorder(newGlobalOrder: string[]) {
+    setListOrder(listId!, newGlobalOrder);
   }
 
   async function handleToggle(task: typeof tasks[0]) {
@@ -165,6 +472,45 @@ export function ListView() {
     } else {
       openDetail({ task });
     }
+  }
+
+  async function handleRenameGroup(oldName: string, newName: string) {
+    await renameGroup(listId!, oldName, newName);
+    const current = listGroupOrders[listId!] ?? [];
+    setListGroupOrder(listId!, current.map((g) => (g === oldName ? newName : g)));
+  }
+
+  async function handleDeleteGroup(name: string) {
+    await deleteGroup(listId!, name);
+    const current = listGroupOrders[listId!] ?? [];
+    setListGroupOrder(listId!, current.filter((g) => g !== name));
+  }
+
+  // Ungrouped drop zone handlers
+  function handleUngroupedDragOver(e: React.DragEvent) {
+    if (!draggingTaskId) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setUngroupedDragOver(true);
+  }
+
+  function handleUngroupedDragLeave(e: React.DragEvent) {
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setUngroupedDragOver(false);
+    }
+  }
+
+  async function handleUngroupedDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setUngroupedDragOver(false);
+    const taskId = e.dataTransfer.getData('text/plain');
+    if (taskId) await moveTaskToGroup(taskId, listId!, null);
+  }
+
+  function handleTaskDragStart(e: React.DragEvent, taskId: string) {
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', taskId);
+    setDraggingTaskId(taskId);
   }
 
   return (
@@ -251,24 +597,56 @@ export function ListView() {
       </motion.form>
       </motion.div>
 
-      <Reorder.Group as="div" axis="y" values={orderedActive} onReorder={handleReorder}
-        variants={taskListVariants} initial="hidden" animate="show"
+      {/* Ungrouped tasks — also a drop zone to remove group assignment */}
+      <div
+        className={`ungrouped-drop-zone${ungroupedDragOver ? ' ungrouped-drop-zone--active' : ''}`}
+        onDragOver={handleUngroupedDragOver}
+        onDragLeave={handleUngroupedDragLeave}
+        onDrop={handleUngroupedDrop}
       >
-        <AnimatePresence>
-          {orderedActive.map((task) => (
-            <TaskRow
-              key={task.id}
-              task={task}
-              editMode={taskEditMode}
-              today={today}
-              onToggle={() => handleToggle(task)}
-              onSelect={() => handleSelectTask(task)}
-              onDelete={() => removeTask(task.id, listId!)}
-              isSelected={detail?.task.id === task.id}
-            />
-          ))}
-        </AnimatePresence>
-      </Reorder.Group>
+        <Reorder.Group as="div" axis="y" values={ungroupedTasks} onReorder={handleReorder}
+          variants={taskListVariants} initial="hidden" animate="show"
+        >
+          <AnimatePresence>
+            {ungroupedTasks.map((task) => (
+              <TaskRow
+                key={task.id}
+                task={task}
+                editMode={taskEditMode}
+                today={today}
+                dragging={task.id === draggingTaskId}
+                onDragStart={(e) => handleTaskDragStart(e, task.id)}
+                onDragEnd={() => setDraggingTaskId(null)}
+                onToggle={() => handleToggle(task)}
+                onSelect={() => handleSelectTask(task)}
+                onDelete={() => removeTask(task.id, listId!)}
+                isSelected={detail?.task.id === task.id}
+              />
+            ))}
+          </AnimatePresence>
+        </Reorder.Group>
+      </div>
+
+      {/* Group sections */}
+      {allGroupNames.map((groupName) => (
+        <GroupSection
+          key={groupName}
+          groupName={groupName}
+          tasks={groupMap.get(groupName) ?? []}
+          editMode={taskEditMode}
+          today={today}
+          listId={listId!}
+          globalOrder={globalOrder}
+          draggingTaskId={draggingTaskId}
+          onReorder={handleGroupReorder}
+          onToggle={handleToggle}
+          onSelect={handleSelectTask}
+          onDelete={(task) => removeTask(task.id, listId!)}
+          onRename={handleRenameGroup}
+          onDeleteGroup={handleDeleteGroup}
+          selectedTaskId={detail?.task.id}
+        />
+      ))}
 
       {!taskEditMode && (
         <section>

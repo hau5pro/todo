@@ -35,6 +35,7 @@ export interface Task {
   recurrence_interval: number | null;
   recurrence_unit: RecurrenceUnit | null;
   rrule: string | null;                // task-level recurrence, e.g. 'FREQ=WEEKLY;INTERVAL=1;BYDAY=MO'
+  group: string | null;                // optional group/section name within the list
   updated_at: string;
   deleted_at: string | null;
   pending_sync: boolean;

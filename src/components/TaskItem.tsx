@@ -10,7 +10,7 @@ interface Props {
   completed: boolean;
   dueDate?: string | null;
   today: string;
-  onToggle: () => void;
+  onToggle?: () => void;
   onSelect?: () => void;
   isSelected?: boolean;
 }
@@ -30,6 +30,7 @@ export function TaskItem({ title, completed, dueDate, today, onToggle, onSelect,
   const [popping, setPopping] = useState(false);
 
   function handleToggle() {
+    if (!onToggle) return;
     if (!completed) {
       if (soundEnabled) playComplete(soundStyle);
       setFlashing(true);
@@ -48,6 +49,7 @@ export function TaskItem({ title, completed, dueDate, today, onToggle, onSelect,
         isSelected ? 'task-item--selected' : '',
         onSelect ? 'task-item--selectable' : '',
         flashing ? 'task-item--flash' : '',
+        !onToggle ? 'task-item--no-toggle' : '',
       ].filter(Boolean).join(' ')}
       tabIndex={0}
       data-nav-row

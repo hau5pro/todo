@@ -35,6 +35,7 @@ export interface Settings {
   listsOpen: boolean;
   folderCollapsed: Record<string, boolean>;
   folderOrders: Record<string, string[]>;
+  listGroupOrders: Record<string, string[]>;  // ordered group names per list id
 }
 
 interface SettingsContextValue extends Settings {
@@ -52,6 +53,7 @@ interface SettingsContextValue extends Settings {
   setListsOpen: (v: boolean) => void;
   setFolderCollapsed: (folderId: string, collapsed: boolean) => void;
   setFolderOrder: (folderId: string, ids: string[]) => void;
+  setListGroupOrder: (listId: string, groups: string[]) => void;
 }
 
 const STORAGE_KEY = 'todo_settings';
@@ -73,6 +75,7 @@ const DEFAULTS: Settings = {
   listsOpen: true,
   folderCollapsed: {},
   folderOrders: {},
+  listGroupOrders: {},
 };
 
 function loadSettings(): Settings {
@@ -280,6 +283,13 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     setFolderOrder: (folderId, ids) =>
       setSettings((prev) => {
         const next = { ...prev, folderOrders: { ...prev.folderOrders, [folderId]: ids } };
+        saveSettings(next);
+        scheduleCloudPush(next);
+        return next;
+      }),
+    setListGroupOrder: (listId, groups) =>
+      setSettings((prev) => {
+        const next = { ...prev, listGroupOrders: { ...prev.listGroupOrders, [listId]: groups } };
         saveSettings(next);
         scheduleCloudPush(next);
         return next;

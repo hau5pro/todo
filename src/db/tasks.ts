@@ -39,7 +39,7 @@ function nextOccurrenceFromRRule(currentDueDate: string, rruleStr: string): stri
   ].join('-');
 }
 
-type CreateTaskOpts = Partial<Pick<Task, 'due_date' | 'recurrence_interval' | 'recurrence_unit' | 'rrule' | 'completed'>>;
+type CreateTaskOpts = Partial<Pick<Task, 'due_date' | 'recurrence_interval' | 'recurrence_unit' | 'rrule' | 'completed' | 'group'>>;
 
 export async function createTask(listId: string, title: string, opts: CreateTaskOpts = {}): Promise<Task> {
   const task: Task = {
@@ -51,6 +51,7 @@ export async function createTask(listId: string, title: string, opts: CreateTask
     recurrence_interval: opts.recurrence_interval ?? null,
     recurrence_unit: opts.recurrence_unit ?? null,
     rrule: opts.rrule ?? null,
+    group: opts.group ?? null,
     updated_at: new Date().toISOString(),
     deleted_at: null,
     pending_sync: true,
@@ -155,7 +156,23 @@ export async function advanceRecurringTask(id: string): Promise<Task> {
   return updated;
 }
 
-export async function updateTask(id: string, changes: Partial<Pick<Task, 'title' | 'due_date' | 'recurrence_interval' | 'recurrence_unit' | 'rrule'>>): Promise<Task> {
+/** Bulk-update group field for all tasks in a list with a matching group value. */
+export async function bulkUpdateTaskGroup(listId: string, oldGroup: string | null, newGroup: string | null): Promise<Task[]> {
+  const db = await getDB();
+  const all = await req<Task[]>(
+    db.transaction('tasks').objectStore('tasks').index('list_id').getAll(listId)
+  );
+  const toUpdate = all.filter((t) => t.group === oldGroup && t.deleted_at === null);
+  if (toUpdate.length === 0) return [];
+  const now = new Date().toISOString();
+  const tx = db.transaction('tasks', 'readwrite');
+  const store = tx.objectStore('tasks');
+  const updated = toUpdate.map((t) => ({ ...t, group: newGroup, updated_at: now, pending_sync: true }));
+  await Promise.all(updated.map((t) => req(store.put(t))));
+  return updated;
+}
+
+export async function updateTask(id: string, changes: Partial<Pick<Task, 'title' | 'due_date' | 'recurrence_interval' | 'recurrence_unit' | 'rrule' | 'group'>>): Promise<Task> {
   const db = await getDB();
   const tx = db.transaction('tasks', 'readwrite');
   const store = tx.objectStore('tasks');

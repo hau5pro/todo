@@ -15,6 +15,7 @@ import {
   getTasksByList,
   createTask as dbCreateTask,
   updateTask as dbUpdateTask,
+  bulkUpdateTaskGroup as dbBulkUpdateGroup,
   softDeleteTask as dbSoftDelete,
   setTaskCompleted as dbSetCompleted,
   advanceCyclicalTask as dbAdvanceCyclical,
@@ -98,9 +99,12 @@ interface AppStore {
   deleteFolder: (id: string) => Promise<{ movedListIds: string[] }>;
 
   // Task mutations
-  addTask: (listId: string, title: string) => Promise<Task>;
+  addTask: (listId: string, title: string, group?: string | null) => Promise<Task>;
   renameTask: (id: string, listId: string, title: string) => Promise<Task>;
   updateTaskFields: (id: string, listId: string, fields: Partial<Pick<Task, 'due_date' | 'rrule'>>) => Promise<Task>;
+  moveTaskToGroup: (id: string, listId: string, group: string | null) => Promise<Task>;
+  renameGroup: (listId: string, oldName: string, newName: string) => Promise<void>;
+  deleteGroup: (listId: string, name: string) => Promise<void>;
   completeTask: (id: string, listId: string, completed: boolean) => Promise<void>;
   advanceCyclicalTask: (id: string, listId: string) => Promise<void>;
   removeTask: (id: string, listId: string) => Promise<void>;
@@ -219,6 +223,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
           recurrence_interval: t.recurrence_interval ?? undefined,
           recurrence_unit: t.recurrence_unit ?? undefined,
           rrule: t.rrule ?? undefined,
+          group: t.group ?? undefined,
         })
       )
     );
@@ -258,8 +263,8 @@ export const useAppStore = create<AppStore>((set, get) => ({
 
   // ── Task mutations ─────────────────────────────────────────────────────────
 
-  addTask: async (listId, title) => {
-    const task = await dbCreateTask(listId, title);
+  addTask: async (listId, title, group) => {
+    const task = await dbCreateTask(listId, title, { group: group ?? null });
     set((s) => ({
       tasksByList: {
         ...s.tasksByList,
@@ -267,6 +272,38 @@ export const useAppStore = create<AppStore>((set, get) => ({
       },
     }));
     return task;
+  },
+
+  moveTaskToGroup: async (id, listId, group) => {
+    const updated = await dbUpdateTask(id, { group });
+    set((s) => updateTaskInSlices(s, listId, (t) => (t.id === id ? updated : t)));
+    return updated;
+  },
+
+  renameGroup: async (listId, oldName, newName) => {
+    const updated = await dbBulkUpdateGroup(listId, oldName, newName);
+    set((s) => ({
+      tasksByList: {
+        ...s.tasksByList,
+        [listId]: (s.tasksByList[listId] ?? []).map((t) => {
+          const u = updated.find((ut) => ut.id === t.id);
+          return u ?? t;
+        }),
+      },
+    }));
+  },
+
+  deleteGroup: async (listId, name) => {
+    const updated = await dbBulkUpdateGroup(listId, name, null);
+    set((s) => ({
+      tasksByList: {
+        ...s.tasksByList,
+        [listId]: (s.tasksByList[listId] ?? []).map((t) => {
+          const u = updated.find((ut) => ut.id === t.id);
+          return u ?? t;
+        }),
+      },
+    }));
   },
 
   renameTask: async (id, listId, title) => {

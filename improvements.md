@@ -3,10 +3,10 @@ session counter: 4 + 5x lol
 
 - address accessability (final sweep)
 
-- feat: ability to have groups or tags in lists for vaca packing. e.g group is toiletries: toothbrush, paste, etc.
-
 - improv: improve light mode more
 - improv: improve recurrence UX
+- improv: ability to fast click many items to completion. be very snappy. lose anims.
+- improv: drag icon in settings is the old one.
 
 - bug: tasks if not opened and i complete it my day, those tasks dont show in completed tasks until refresh
 - bug: drag folder highlights visible when not in edit mode.
