@@ -18,7 +18,7 @@
 - [x] **`req()`** — identical 6-line IDB promise wrapper copied into `db/tasks.ts`, `db/sync.ts`, `db/habits.ts`, `db/lists.ts`, `db/folders.ts`, `hooks/useSync.ts` — move to `db/client.ts` and import
 - [x] **`applyOrder`** — defined separately in `ListView.tsx`, `DailyView.tsx`, and inline in `MyDayView.tsx` with diverging logic — extract to shared util
 - [ ] **Streak loading** — `useHabits.ts` and `MyDayView.tsx` both independently fetch completions + calculate streaks for each habit — consolidate
-- [ ] **`getTodayString()`** — `new Date().toISOString().split('T')[0]` repeated in ~6 places — extract to a shared util
+- [x] **`getTodayString()`** — `new Date().toISOString().split('T')[0]` repeated in ~6 places — extract to a shared util
 
 ## Simplification
 

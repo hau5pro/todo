@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getMyDayTasks } from '../db/tasks';
 import { getLists } from '../db/lists';
+import { getTodayString } from '../utils/date';
 import { getTasksByList } from '../db/tasks';
 import { getTodayCompletions } from '../db/habits';
 import type { Task, List } from '../types';
@@ -22,7 +23,7 @@ export function useMyDay(): MyDayData & { reload: () => void } {
 
   const load = useCallback(async () => {
     try {
-      const todayDate = new Date().toISOString().split('T')[0];
+      const todayDate = getTodayString();
       const [{ overdue, today }, lists, todayCompletions] = await Promise.all([
         getMyDayTasks(todayDate),
         getLists(),

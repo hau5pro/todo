@@ -9,6 +9,7 @@ import { toggleHabitCompletion, getCompletionsForTask, calculateStreak } from '.
 import { ICON_SIZE } from '../config/icons';
 import { ease } from '../utils/easing';
 import { applyOrder } from '../utils/order';
+import { getTodayString } from '../utils/date';
 
 const itemVariants = {
   hidden: { opacity: 0, y: 6 },
@@ -31,7 +32,7 @@ function sortByDueDate<T extends { due_date?: string | null }>(tasks: T[]): T[] 
 }
 
 export function MyDayView() {
-  const today = useMemo(() => new Date().toISOString().split('T')[0], []);
+  const today = useMemo(() => getTodayString(), []);
   const todayLabel = useMemo(() => new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }), []);
   const { myDayOverdue, myDayToday, myDayHabits, myDayLoaded, loadMyDay, completeTask, advanceCyclicalTask } = useAppStore();
   const { listOrders } = useSettings();

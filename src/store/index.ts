@@ -23,6 +23,7 @@ import {
   getMyDayTasks,
 } from '../db/tasks';
 import { getTodayCompletions } from '../db/habits';
+import { getTodayString } from '../utils/date';
 import type { List, ListFolder, Task, ListType } from '../types';
 
 export interface HabitWithCompletion {
@@ -139,7 +140,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
   },
 
   loadMyDay: async () => {
-    const todayDate = new Date().toISOString().split('T')[0];
+    const todayDate = getTodayString();
 
     // Reuse already-loaded lists or fetch them
     let { lists } = get();

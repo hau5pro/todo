@@ -5,6 +5,7 @@ import { AnimatePresence, motion, Reorder, useDragControls } from 'framer-motion
 import { ease } from '../utils/easing';
 import { focusLater } from '../utils/dom';
 import { applyOrder } from '../utils/order';
+import { getTodayString } from '../utils/date';
 import { useAppStore } from '../store';
 import { useTaskDetail } from '../contexts/TaskDetailContext';
 import { useSettings } from '../contexts/SettingsContext';
@@ -357,7 +358,7 @@ function GroupSection({
 export function ListView() {
   const { listId } = useParams<{ listId: string }>();
   const navigate = useNavigate();
-  const today = useMemo(() => new Date().toISOString().split('T')[0], []);
+  const today = useMemo(() => getTodayString(), []);
 
   const list = useAppStore((s) => s.lists.find((l) => l.id === listId));
   const tasks = useAppStore((s) => s.tasksByList[listId!]);

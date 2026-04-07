@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { getTasksByList } from '../db/tasks';
 import { getCompletionsForTask, getTodayCompletions, calculateStreak } from '../db/habits';
+import { getTodayString } from '../utils/date';
 import type { Task } from '../types';
 
 export interface HabitRow {
@@ -12,7 +13,7 @@ export interface HabitRow {
 export function useHabits(listId: string) {
   const [rows, setRows] = useState<HabitRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const today = useMemo(() => new Date().toISOString().split('T')[0], []);
+  const today = useMemo(() => getTodayString(), []);
 
   const load = useCallback(async () => {
     try {
