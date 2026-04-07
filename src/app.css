@@ -399,11 +399,11 @@ button.nav-section-label--button:hover { color: var(--fg); }
   background: none;
   border: none;
   padding: 0;
-  color: var(--fg-muted);
+  color: var(--danger);
   cursor: pointer;
   overflow: hidden;
 }
-.nav-item-delete-btn:hover { color: var(--danger); }
+.nav-item-delete-btn:hover { color: var(--danger); filter: brightness(1.15); }
 
 .nav-inline-input {
   flex: 1;
@@ -808,11 +808,11 @@ button.nav-section-label--button:hover { color: var(--fg); }
   background: none;
   border: none;
   padding: 4px;
-  color: var(--fg-muted);
+  color: var(--danger);
   cursor: pointer;
   flex-shrink: 0;
 }
-.task-edit-delete:hover { color: var(--danger); }
+.task-edit-delete:hover { color: var(--danger); filter: brightness(1.15); }
 
 /* ── Task items ──────────────────────────────────────────── */
 .task-item {
