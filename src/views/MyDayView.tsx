@@ -75,7 +75,7 @@ export function MyDayView() {
       const map = new Map(habits.map(h => [h.task.id, h]));
       const ordered = order.flatMap(id => map.has(id) ? [map.get(id)!] : []);
       const rest = habits.filter(h => !order.includes(h.task.id));
-      result.push(...rest, ...ordered);
+      result.push(...ordered, ...rest);
     }
     return result;
   }, [myDayHabits, listOrders]);

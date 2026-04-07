@@ -5,7 +5,7 @@
 - [x] **`useSync.ts:62`** — visibility handler syncs on *hide* instead of *show* (`if (document.hidden)` should be `if (!document.hidden)`)
 - [x] **`sync.ts`** — folders never pushed to or pulled from Supabase (`pushPending` + `pullFromSupabase` both skip the `folders` store)
 - [x] **`sync.ts:138`** — `deleteAllCloudData` missing `'folders'` from its tables array
-- [ ] **`MyDayView.tsx:77`** — habit ordering puts `rest` before `ordered`, opposite of `DailyView` — habits show in wrong order in My Day
+- [x] **`MyDayView.tsx:77`** — habit ordering puts `rest` before `ordered`, opposite of `DailyView` — habits show in wrong order in My Day
 - [ ] **Habit tasks — no due date or recurrence** — `TaskDetailPanel` should hide due date and recurrence fields when the task belongs to a `daily` list (habits are implicitly daily; setting these causes double display in My Day); groups should remain available; also fix the misleading comment in `getMyDayTasks` (`db/tasks.ts:191`)
 - [ ] **`db/tasks.ts:108`** — `restoreTask` exported but never imported or used anywhere — dead code
 
