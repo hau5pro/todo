@@ -115,16 +115,18 @@ export function DailyView() {
       <div className="view-title-row">
         {list && getListIcon(list, 20) && <span className="view-title-icon">{getListIcon(list, 20)}</span>}
         <h1 className="view-title">{list?.name ?? 'Habits'}</h1>
-        <button
-          className="view-title-action-btn"
-          onClick={() => setHabitEditMode((m) => !m)}
-          title={habitEditMode ? 'Done editing' : 'Edit habits'}
-          style={habitEditMode ? { color: 'var(--success)' } : undefined}
-        >
-          {habitEditMode
-            ? <CheckCircle size={ICON_SIZE} weight="fill" />
-            : <PencilSimple size={ICON_SIZE} weight="fill" />}
-        </button>
+        <span className="view-title-actions">
+          <button
+            className="view-title-action-btn"
+            onClick={() => setHabitEditMode((m) => !m)}
+            title={habitEditMode ? 'Done editing' : 'Edit habits'}
+            style={habitEditMode ? { color: 'var(--success)' } : undefined}
+          >
+            {habitEditMode
+              ? <CheckCircle size={ICON_SIZE} weight="fill" />
+              : <PencilSimple size={ICON_SIZE} weight="fill" />}
+          </button>
+        </span>
       </div>
       <p className="view-subtitle">{list ? LIST_TYPE_LABELS[list.type] : 'daily'}</p>
       <form onSubmit={handleAdd}>
