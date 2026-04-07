@@ -24,10 +24,6 @@ export function useSync() {
   const [syncError, setSyncError] = useState<Error | null>(null);
   const syncingRef = useRef(false);
 
-  const refreshPending = useCallback(async () => {
-    setPendingCount(await countPending());
-  }, []);
-
   const sync = useCallback(async () => {
     if (syncingRef.current) return;
     syncingRef.current = true;
@@ -39,17 +35,17 @@ export function useSync() {
       const db = await getDB();
       await pushPending(db, supabase, user.id);
       await pullFromSupabase(db, supabase);
-      await refreshPending();
+      setPendingCount(0); // pushPending cleared all pending flags
     } catch (e) {
       setSyncError(e instanceof Error ? e : new Error(String(e)));
     } finally {
       syncingRef.current = false;
       setIsSyncing(false);
     }
-  }, [refreshPending]);
+  }, []);
 
   useEffect(() => {
-    // sync() calls refreshPending() internally on success
+    countPending().then(setPendingCount);
     sync();
     const onFocus = () => sync();
     const onVisibility = () => { if (!document.hidden) sync(); };
@@ -61,5 +57,5 @@ export function useSync() {
     };
   }, [sync]);
 
-  return { pendingCount, isSyncing, sync, refreshPending, syncError };
+  return { pendingCount, isSyncing, sync, syncError };
 }
