@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Sun, CalendarCheck, Clock } from '@phosphor-icons/react';
 import { motion } from 'framer-motion';
 import { useAppStore } from '../store';
 import { useSettings } from '../contexts/SettingsContext';
 import { TaskItem } from '../components/TaskItem';
 import { HabitItem } from '../components/HabitItem';
-import { toggleHabitCompletion, getCompletionsForTask, calculateStreak } from '../db/habits';
+import { toggleHabitCompletion } from '../db/habits';
 import { ICON_SIZE } from '../config/icons';
 import { ease } from '../utils/easing';
 import { applyOrder } from '../utils/order';
@@ -36,19 +36,8 @@ export function MyDayView() {
   const todayLabel = useMemo(() => new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }), []);
   const { myDayOverdue, myDayToday, myDayHabits, myDayLoaded, loadMyDay, completeTask, advanceCyclicalTask } = useAppStore();
   const { listOrders } = useSettings();
-  const [streaks, setStreaks] = useState<Map<string, number>>(new Map());
 
   useEffect(() => { loadMyDay(); }, []);
-
-  useEffect(() => {
-    if (myDayHabits.length === 0) return;
-    Promise.all(
-      myDayHabits.map(async ({ task }) => {
-        const completions = await getCompletionsForTask(task.id);
-        return [task.id, calculateStreak(completions, task.id, today)] as const;
-      })
-    ).then((entries) => setStreaks(new Map(entries)));
-  }, [myDayHabits, today]);
 
   async function handleTaskToggle(task: typeof myDayOverdue[0]) {
     if (task.recurrence_interval) {
@@ -96,12 +85,12 @@ export function MyDayView() {
         {orderedHabits.length > 0 && (
           <motion.section variants={sectionVariants}>
             <div className="section-heading"><CalendarCheck size={ICON_SIZE} weight="fill" />Habits</div>
-            {orderedHabits.map(({ task, completedToday }) => (
+            {orderedHabits.map(({ task, completedToday, streak }) => (
               <HabitItem
                 key={task.id}
                 title={task.title}
                 completedToday={completedToday}
-                streak={streaks.get(task.id) ?? 0}
+                streak={streak}
                 onToggle={() => handleHabitToggle(task.id)}
               />
             ))}

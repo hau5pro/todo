@@ -3,12 +3,13 @@ import { getMyDayTasks } from '../db/tasks';
 import { getLists } from '../db/lists';
 import { getTodayString } from '../utils/date';
 import { getTasksByList } from '../db/tasks';
-import { getTodayCompletions } from '../db/habits';
+import { getTodayCompletions, getCompletionsForTask, calculateStreak } from '../db/habits';
 import type { Task, List } from '../types';
 
 export interface HabitWithCompletion {
   task: Task;
   completedToday: boolean;
+  streak: number;
 }
 
 export interface MyDayData {
@@ -37,12 +38,18 @@ export function useMyDay(): MyDayData & { reload: () => void } {
 
       const completedIds = new Set(todayCompletions.map((c) => c.task_id));
 
-      setData({
-        overdue,
-        today,
-        habits: habitTasks.map((task) => ({ task, completedToday: completedIds.has(task.id) })),
-        isLoading: false,
-      });
+      const habits = await Promise.all(
+        habitTasks.map(async (task) => {
+          const completions = await getCompletionsForTask(task.id);
+          return {
+            task,
+            completedToday: completedIds.has(task.id),
+            streak: calculateStreak(completions, task.id, todayDate),
+          };
+        })
+      );
+
+      setData({ overdue, today, habits, isLoading: false });
     } catch (err) {
       console.error('useMyDay load failed', err);
       setData((prev) => ({ ...prev, isLoading: false }));

@@ -22,13 +22,14 @@ import {
   advanceRecurringTask as dbAdvanceRecurring,
   getMyDayTasks,
 } from '../db/tasks';
-import { getTodayCompletions } from '../db/habits';
+import { getTodayCompletions, getCompletionsForTask, calculateStreak } from '../db/habits';
 import { getTodayString } from '../utils/date';
 import type { List, ListFolder, Task, ListType } from '../types';
 
 export interface HabitWithCompletion {
   task: Task;
   completedToday: boolean;
+  streak: number;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -161,15 +162,18 @@ export const useAppStore = create<AppStore>((set, get) => ({
 
     const completedIds = new Set(todayCompletions.map((c) => c.task_id));
 
-    set({
-      myDayOverdue: overdue,
-      myDayToday: today,
-      myDayHabits: habitTasks.map((task) => ({
-        task,
-        completedToday: completedIds.has(task.id),
-      })),
-      myDayLoaded: true,
-    });
+    const myDayHabits = await Promise.all(
+      habitTasks.map(async (task) => {
+        const completions = await getCompletionsForTask(task.id);
+        return {
+          task,
+          completedToday: completedIds.has(task.id),
+          streak: calculateStreak(completions, task.id, todayDate),
+        };
+      })
+    );
+
+    set({ myDayOverdue: overdue, myDayToday: today, myDayHabits, myDayLoaded: true });
   },
 
   // ── List mutations ─────────────────────────────────────────────────────────
