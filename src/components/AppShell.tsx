@@ -33,6 +33,7 @@ export function AppShell() {
   const { pendingCount, isSyncing, syncError: _syncError } = useSync();
   const loadLists = useAppStore((s) => s.loadLists);
   const loadFolders = useAppStore((s) => s.loadFolders);
+  const lists = useAppStore((s) => s.lists);
   const headerDate = useMemo(() =>
     new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).toUpperCase()
   , []);
@@ -41,6 +42,20 @@ export function AppShell() {
     loadLists();
     loadFolders();
   }, []);
+
+  useEffect(() => {
+    let viewName = 'TO DO';
+    if (pathname === '/my-day') {
+      viewName = 'TO DO | My Day';
+    } else {
+      const match = pathname.match(/^\/list\/(.+)$/);
+      if (match) {
+        const list = lists.find((l) => l.id === match[1]);
+        if (list) viewName = `TO DO | ${list.name}`;
+      }
+    }
+    document.title = viewName;
+  }, [pathname, lists]);
 
   return (
     <TaskDetailProvider>
