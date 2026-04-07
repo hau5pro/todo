@@ -4,7 +4,7 @@ import type { Settings } from '../contexts/SettingsContext';
 export async function fetchCloudSettings(userId: string): Promise<Partial<Settings> | null> {
   const { data, error } = await supabase
     .from('user_settings')
-    .select('accent, hidden_list_ids, show_my_day, setup_done')
+    .select('accent, hidden_list_ids, show_my_day, setup_done, pinned_order')
     .eq('user_id', userId)
     .single();
   if (error || !data) return null;
@@ -13,6 +13,7 @@ export async function fetchCloudSettings(userId: string): Promise<Partial<Settin
     hiddenListIds: data.hidden_list_ids,
     showMyDay:     data.show_my_day,
     setupDone:     data.setup_done,
+    pinnedOrder:   data.pinned_order ?? ['my-day'],
   };
 }
 
@@ -23,6 +24,7 @@ export async function pushCloudSettings(userId: string, s: Settings): Promise<vo
     hidden_list_ids: s.hiddenListIds,
     show_my_day:     s.showMyDay,
     setup_done:      s.setupDone,
+    pinned_order:    s.pinnedOrder,
     updated_at:      new Date().toISOString(),
   }, { onConflict: 'user_id' });
 }

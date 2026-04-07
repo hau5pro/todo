@@ -82,6 +82,9 @@ interface AppStore {
   myDayHabits: HabitWithCompletion[];
   myDayLoaded: boolean;
 
+  // Reset (call when DB namespace switches)
+  reset: () => void;
+
   // Loaders
   loadLists: () => Promise<void>;
   loadFolders: () => Promise<void>;
@@ -123,6 +126,15 @@ export const useAppStore = create<AppStore>((set, get) => ({
   myDayToday: [],
   myDayHabits: [],
   myDayLoaded: false,
+
+  // ── Reset ──────────────────────────────────────────────────────────────────
+
+  reset: () => set({
+    lists: [], listsLoaded: false,
+    folders: [], foldersLoaded: false,
+    tasksByList: {},
+    myDayOverdue: [], myDayToday: [], myDayHabits: [], myDayLoaded: false,
+  }),
 
   // ── Loaders ────────────────────────────────────────────────────────────────
 

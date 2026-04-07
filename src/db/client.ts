@@ -5,20 +5,30 @@ export function req<T>(r: IDBRequest<T>): Promise<T> {
   });
 }
 
-const DB_NAME = 'todo-app';
 const DB_VERSION = 2;
 
+let dbName = 'todo-app-local';
 let dbPromise: Promise<IDBDatabase> | null = null;
+
+/** Set the active DB namespace. Returns true if the namespace changed. */
+export function initDB(key: 'local' | string): boolean {
+  const name = key === 'local' ? 'todo-app-local' : `todo-app-${key}`;
+  if (name === dbName) return false;
+  dbName = name;
+  dbPromise = null;
+  return true;
+}
 
 export function getDB(): Promise<IDBDatabase> {
   if (!dbPromise) {
-    dbPromise = openDB();
+    dbPromise = openDB(dbName);
   }
   return dbPromise;
 }
 
 /** Call in tests to reset the singleton between test runs. */
 export function _resetForTesting(): void {
+  dbName = 'todo-app-local';
   dbPromise = null;
 }
 
@@ -37,9 +47,9 @@ export function clearAllLocalData(): Promise<void> {
   );
 }
 
-function openDB(): Promise<IDBDatabase> {
+function openDB(name: string): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    const request = indexedDB.open(name, DB_VERSION);
 
     request.onupgradeneeded = (event) => {
       const db = (event.target as IDBOpenDBRequest).result;

@@ -102,7 +102,9 @@ export function SettingsView() {
           <CircleUser size={16} />
           Account
         </div>
-        {email && <p className="settings-email">{email}</p>}
+        {localOnly
+          ? <p className="settings-email">Local account — data stored on this device only</p>
+          : email && <p className="settings-email">{email}</p>}
         {!localOnly && (
           <SettingsRow
             label="Cloud sync"

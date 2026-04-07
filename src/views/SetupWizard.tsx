@@ -5,6 +5,7 @@ import { Check, Palette, AlignJustify, Sun, List, CalendarCheck, ShoppingCart, S
 import { ICON_SIZE } from '../config/constants';
 import { useSettings } from '../contexts/SettingsContext';
 import { createList } from '../db/lists';
+import { useAppStore } from '../store';
 import { ColorSwatchPicker } from '../components/ColorSwatchPicker';
 
 const LIST_OPTIONS: { key: string; label: string; icon: React.ReactNode }[] = [
@@ -36,6 +37,7 @@ const stepVariants = {
 
 export function SetupWizard() {
   const { accent, setAccent, theme, setTheme, markSetupDone, toggleListVisibility, setPinnedOrder, setSyncEnabled, localOnly, setLocalOnly } = useSettings();
+  const { loadLists, loadFolders, loadMyDay } = useAppStore();
   const dir = useRef(1);
 
   function goBack() {
@@ -68,6 +70,7 @@ export function SetupWizard() {
     if (lists['Chores'])    createdIds.push((await createList('Chores', 'general')).id);
     setPinnedOrder(['my-day', ...createdIds]);
     if (!localOnly) setSyncEnabled(syncChoice);
+    await Promise.all([loadLists(), loadFolders(), loadMyDay()]);
     markSetupDone();
   }
 
@@ -157,7 +160,7 @@ export function SetupWizard() {
 
         <div className="wizard-step__controls">
           {step === 0 && (
-            <button className="btn-ghost wizard-skip" onClick={markSetupDone}>Skip setup</button>
+            <button className="btn-ghost wizard-skip" onClick={finish} disabled={saving}>Skip setup</button>
           )}
           <div className="wizard-actions">
             {step === 0 ? (

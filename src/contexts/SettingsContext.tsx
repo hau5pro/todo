@@ -219,13 +219,25 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       userRef.current = user;
       if (user) {
         const cloud = await fetchCloudSettings(user.id).catch(() => null);
-        if (cloud) {
-          setSettings((prev) => {
-            const next = { ...prev, ...cloud };
-            saveSettings(next);
-            return next;
-          });
-        }
+        setSettings((prev) => {
+          const next = cloud
+            ? { ...prev, ...cloud }
+            : {
+                // No cloud settings — fresh user on this device, reset user-specific data
+                ...prev,
+                setupDone: false,
+                pinnedOrder: ['my-day'],
+                hiddenListIds: [],
+                customOrder: [],
+                myDayOrder: [],
+                listOrders: {},
+                folderOrders: {},
+                folderCollapsed: {},
+                listGroupOrders: {},
+              };
+          saveSettings(next);
+          return next;
+        });
       }
     });
     return unsub;
