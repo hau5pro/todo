@@ -90,6 +90,13 @@ body {
   overflow-x: hidden;
 }
 
+/* ── Scrollbar ───────────────────────────────────────────── */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--fg-muted); border-radius: 4px; opacity: 0.5; }
+::-webkit-scrollbar-thumb:hover { background: var(--fg); opacity: 0.7; }
+* { scrollbar-width: thin; scrollbar-color: var(--fg-muted) transparent; }
+
 /* ── Shell ───────────────────────────────────────────────── */
 .app-shell { display: flex; flex-direction: column; height: 100dvh; }
 
