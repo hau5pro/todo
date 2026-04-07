@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { PencilSimple, Trash, Check, X, CaretDown, CaretRight, CopySimple, List as ListIcon, TextT, CheckCircle } from '@phosphor-icons/react';
+import { PencilSimple, Trash, CaretDown, CaretRight, CopySimple, List as ListIcon, TextT, CheckCircle } from '@phosphor-icons/react';
 import { AnimatePresence, motion, Reorder, useDragControls } from 'framer-motion';
 import { ease } from '../utils/easing';
 import { focusLater } from '../utils/dom';
@@ -183,8 +183,7 @@ export function ListView() {
                 if (e.key === 'Escape') setEditingListName(false);
               }}
             />
-            <button className="view-title-action-btn" onClick={commitEditListName} title="Save"><Check size={ICON_SIZE} weight="fill" /></button>
-            <button className="view-title-action-btn" onClick={() => setEditingListName(false)} title="Cancel"><X size={ICON_SIZE} weight="fill" /></button>
+            <button className="view-title-action-btn" onClick={commitEditListName} title="Save"><CheckCircle size={ICON_SIZE} weight="fill" /></button>
           </>
         ) : (
           <>
@@ -208,23 +207,23 @@ export function ListView() {
               </button>
             )}
             <h1 className="view-title">{list.name}</h1>
-            <button
-              className="view-title-action-btn"
-              onClick={() => setTaskEditMode((m) => !m)}
-              title={taskEditMode ? 'Done editing' : 'Edit tasks'}
-              style={taskEditMode ? { color: 'var(--success)' } : undefined}
-            >
-              {taskEditMode
-                ? <CheckCircle size={ICON_SIZE} weight="fill" />
-                : <PencilSimple size={ICON_SIZE} weight="fill" />}
-            </button>
-            {!isPinned && (
-              <span className="view-title-actions">
+            <span className="view-title-actions">
+              <button
+                className="view-title-action-btn"
+                onClick={() => setTaskEditMode((m) => !m)}
+                title={taskEditMode ? 'Done editing' : 'Edit tasks'}
+                style={taskEditMode ? { color: 'var(--success)' } : undefined}
+              >
+                {taskEditMode
+                  ? <CheckCircle size={ICON_SIZE} weight="fill" />
+                  : <PencilSimple size={ICON_SIZE} weight="fill" />}
+              </button>
+              {!isPinned && (<>
                 <button className="view-title-action-btn" onClick={startEditListName} title="Rename list"><TextT size={ICON_SIZE} weight="fill" /></button>
                 <button className="view-title-action-btn" onClick={handleDuplicate} title="Duplicate list"><CopySimple size={ICON_SIZE} weight="fill" /></button>
                 <button className="view-title-action-btn view-title-action-btn--danger" onClick={() => setConfirmDeleteList(true)} title="Delete list"><Trash size={ICON_SIZE} weight="fill" /></button>
-              </span>
-            )}
+              </>)}
+            </span>
             <AnimatePresence>
               {iconPickerAnchor && (
                 <IconPicker

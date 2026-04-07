@@ -1108,7 +1108,10 @@ button.nav-section-label--button:hover { color: var(--fg); }
 .view-title-actions {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 1px;
+  background: var(--hover);
+  border-radius: 6px;
+  padding: 2px;
 }
 
 .view-title-action-btn {
