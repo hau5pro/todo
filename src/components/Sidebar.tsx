@@ -664,22 +664,24 @@ export function Sidebar() {
           >
             {/* Top toolbar: edit + collapse */}
             <div className="sidebar-toolbar">
-              <button
-                className="sidebar-collapse-btn"
-                onClick={() => setEditMode((e) => !e)}
-                title={editMode ? 'Done reordering' : 'Reorder lists'}
-              >
-                {editMode
-                  ? <CheckCircle size={ICON_SIZE} weight="fill" style={{ color: 'var(--success)' }} />
-                  : <PencilSimple size={ICON_SIZE} weight="fill" />}
-              </button>
-              <button
-                className="sidebar-collapse-btn sidebar-collapse-btn--toggle"
-                onClick={() => setSidebarCollapsed(true)}
-                title="Collapse sidebar"
-              >
-                <SidebarSimple size={ICON_SIZE} weight="fill" />
-              </button>
+              <span className="view-title-actions">
+                <button
+                  className="sidebar-collapse-btn"
+                  onClick={() => setEditMode((e) => !e)}
+                  title={editMode ? 'Done reordering' : 'Reorder lists'}
+                >
+                  {editMode
+                    ? <CheckCircle size={ICON_SIZE} weight="fill" style={{ color: 'var(--success)' }} />
+                    : <PencilSimple size={ICON_SIZE} weight="fill" />}
+                </button>
+                <button
+                  className="sidebar-collapse-btn sidebar-collapse-btn--toggle"
+                  onClick={() => setSidebarCollapsed(true)}
+                  title="Collapse sidebar"
+                >
+                  <SidebarSimple size={ICON_SIZE} weight="fill" />
+                </button>
+              </span>
             </div>
 
             {/* Pinned section */}
@@ -717,14 +719,16 @@ export function Sidebar() {
                   : <CaretRight size={10} weight="bold" />}
                 Lists
               </button>
-              <button
-                ref={addMenuBtnRef}
-                className="nav-add-btn"
-                onClick={openAddMenu}
-                title="New list or folder"
-              >
-                <Plus size={ICON_SIZE} weight="bold" />
-              </button>
+              <span className="view-title-actions">
+                <button
+                  ref={addMenuBtnRef}
+                  className="nav-add-btn"
+                  onClick={openAddMenu}
+                  title="New list or folder"
+                >
+                  <Plus size={ICON_SIZE} weight="bold" />
+                </button>
+              </span>
               {showAddMenu && addMenuPos && createPortal(
                 <>
                   <div className="folder-picker-backdrop" onClick={() => setShowAddMenu(false)} />

@@ -199,7 +199,7 @@ body {
   transition: color 0.15s, background 0.15s;
   flex-shrink: 0;
 }
-.sidebar-collapse-btn:hover { color: var(--fg); background: var(--hover); }
+.sidebar-collapse-btn:hover { color: var(--fg); }
 .sidebar-collapse-btn--toggle { background: var(--accent-dim); color: var(--accent); filter: brightness(1.1); }
 .sidebar-collapse-btn--toggle:hover { background: var(--accent-dim); color: var(--accent); filter: brightness(0.92); }
 .sidebar-collapse-btn--dark { background: rgba(0,0,0,0.15); color: var(--accent); filter: none; border: none; }
@@ -325,7 +325,7 @@ button.nav-section-label--button:hover { color: var(--fg); }
   line-height: 1;
   touch-action: manipulation;
 }
-.nav-add-btn:hover { color: var(--fg); }
+.nav-add-btn:hover { color: var(--fg); background: none; }
 
 .nav-label-actions {
   display: flex;
@@ -385,12 +385,13 @@ button.nav-section-label--button:hover { color: var(--fg); }
 .nav-drag-icon {
   display: flex;
   align-items: center;
-  padding: 8px 4px 8px 6px;
+  padding: 4px;
   color: var(--fg-muted);
-  opacity: 0.5;
   flex-shrink: 0;
   cursor: grab;
   touch-action: none;
+  background: var(--hover);
+  border-radius: 6px;
 }
 
 .nav-item-row--editing {
@@ -403,9 +404,10 @@ button.nav-section-label--button:hover { color: var(--fg); }
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  background: none;
+  background: var(--hover);
   border: none;
-  padding: 0;
+  border-radius: 6px;
+  padding: 4px;
   color: var(--danger);
   cursor: pointer;
   overflow: hidden;
@@ -803,17 +805,20 @@ button.nav-section-label--button:hover { color: var(--fg); }
   display: flex;
   align-items: center;
   color: var(--fg-muted);
-  opacity: 0.5;
   cursor: grab;
   touch-action: none;
   flex-shrink: 0;
+  background: var(--hover);
+  border-radius: 6px;
+  padding: 2px;
 }
 .task-edit-drag:active { cursor: grabbing; }
 .task-edit-delete {
   display: flex;
   align-items: center;
-  background: none;
+  background: var(--hover);
   border: none;
+  border-radius: 6px;
   padding: 4px;
   color: var(--danger);
   cursor: pointer;
