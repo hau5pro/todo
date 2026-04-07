@@ -6,11 +6,16 @@ on:
   pull_request:
     branches: [master]
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
     container: node:22-alpine
     steps:
+      - name: Install tar
+        run: apk add --no-cache tar
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
