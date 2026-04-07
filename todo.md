@@ -8,7 +8,6 @@
 
 ## Improvements
 
-- [ ] **Recurrence UX** — improve recurrence picker/flow
 - [ ] **Group field in task detail** — dropdown doesn't match any existing group names; replace with autocomplete from active groups in the list
 - [ ] **Add item in group** — "Add item" button inside a group should behave consistently with the main "Add task" input at the top of the list
 

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import dayjs from 'dayjs';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Trash, CalendarBlank, FolderSimple, X } from '@phosphor-icons/react';
 import { useTaskDetail } from '../contexts/TaskDetailContext';
 import { useAppStore } from '../store';
@@ -43,6 +43,7 @@ export function TaskDetailPanel() {
 
   const inputRef = useRef<HTMLInputElement>(null);
   const groupInputRef = useRef<HTMLInputElement>(null);
+  const calRef = useRef<HTMLDivElement>(null);
   const taskSnapshot = useRef<Task | undefined>(detail?.task);
   if (detail?.task) taskSnapshot.current = detail.task;
   const task = taskSnapshot.current;
@@ -56,6 +57,17 @@ export function TaskDetailPanel() {
       focusLater(inputRef);
     }
   }, [detail?.task.id]);
+
+  useEffect(() => {
+    if (!calOpen) return;
+    function handleClick(e: MouseEvent) {
+      if (calRef.current && !calRef.current.contains(e.target as Node)) {
+        setCalOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [calOpen]);
 
   // Existing groups for this list (for datalist suggestions)
   const existingGroups = useMemo(() => {
@@ -145,8 +157,50 @@ export function TaskDetailPanel() {
           }}
         />
 
-        {/* Group */}
+        {/* Schedule: due date + recurrence — hidden for habit tasks */}
+        {!isHabitTask && (
+          <div className="task-detail-section">
+            <span className="task-detail-section__heading">Schedule</span>
+            <div className="task-detail-section__fields">
+              <div ref={calRef}>
+                <button
+                  type="button"
+                  className={`task-detail-field-btn${dueDate ? ' task-detail-field-btn--set' : ''}`}
+                  onClick={() => setCalOpen((o) => !o)}
+                  title={dueDate ? 'Change due date' : 'Set a due date'}
+                >
+                  <CalendarBlank size={14} weight="fill" />
+                  <span>{dueDate ? formatDueDate(dueDate) : 'Add due date'}</span>
+                </button>
+
+                <AnimatePresence>
+                  {calOpen && (
+                    <motion.div
+                      className="task-detail-calendar"
+                      initial={{ opacity: 0, y: -6, scale: 0.97 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -4, scale: 0.98 }}
+                      transition={{ duration: 0.18, ease: ease.out }}
+                    >
+                      <CalendarPicker value={dueDate} onChange={handleDueDateChange} />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              <RecurrencePicker
+                value={rrule}
+                dueDate={dueDate}
+                onChange={handleRRuleChange}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Organize: group */}
         <div className="task-detail-section">
+          <span className="task-detail-section__heading">Organize</span>
+          <div className="task-detail-section__fields">
           {editingGroup ? (
             <div className="task-detail-group-edit">
               <FolderSimple size={14} weight="fill" style={{ color: 'var(--fg-muted)', flexShrink: 0 }} />
@@ -188,43 +242,14 @@ export function TaskDetailPanel() {
               type="button"
               className={`task-detail-field-btn${currentGroup ? ' task-detail-field-btn--set' : ''}`}
               onClick={() => { setEditingGroup(true); focusLater(groupInputRef); }}
+              title={currentGroup ? 'Change group' : 'Assign to a group'}
             >
               <FolderSimple size={14} weight="fill" />
               <span>{currentGroup ?? 'Add to group'}</span>
             </button>
           )}
+          </div>
         </div>
-
-        {/* Due date — hidden for habit tasks (daily lists are implicitly recurring) */}
-        {!isHabitTask && (
-          <div className="task-detail-section">
-            <button
-              type="button"
-              className={`task-detail-field-btn${dueDate ? ' task-detail-field-btn--set' : ''}`}
-              onClick={() => setCalOpen((o) => !o)}
-            >
-              <CalendarBlank size={14} weight="fill" />
-              <span>{dueDate ? formatDueDate(dueDate) : 'Add due date'}</span>
-            </button>
-
-            {calOpen && (
-              <div className="task-detail-calendar">
-                <CalendarPicker value={dueDate} onChange={handleDueDateChange} />
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Recurrence — hidden for habit tasks */}
-        {!isHabitTask && (
-          <div className="task-detail-section">
-            <RecurrencePicker
-              value={rrule}
-              dueDate={dueDate}
-              onChange={handleRRuleChange}
-            />
-          </div>
-        )}
       </div>
 
       <div className="task-detail-panel__footer">

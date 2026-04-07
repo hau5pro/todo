@@ -120,7 +120,8 @@ export function RecurrencePicker({ value, dueDate, onChange }: Props) {
   }
 
   return (
-    <div className={`rrule-picker${disabled ? ' rrule-picker--disabled' : ''}`}>
+    <div title={disabled ? 'Add a due date to enable recurrence' : undefined}>
+    <div className={`rrule-picker${disabled ? ' rrule-picker--disabled' : ''}${enabled ? ' rrule-picker--on' : ''}`}>
       <div className="rrule-toggle-row">
         <span className="rrule-label">Repeat</span>
         <button
@@ -129,6 +130,7 @@ export function RecurrencePicker({ value, dueDate, onChange }: Props) {
           onClick={() => enabled ? onChange(null) : onChange(build(s))}
           disabled={disabled}
           aria-label={enabled ? 'Disable recurrence' : 'Enable recurrence'}
+          title={enabled ? 'Turn off recurrence' : 'Enable recurrence'}
         >
           <span className="rrule-toggle__thumb" />
         </button>
@@ -140,13 +142,27 @@ export function RecurrencePicker({ value, dueDate, onChange }: Props) {
           {/* Interval */}
           <div className="rrule-interval-row">
             <span className="rrule-muted">Every</span>
-            <input
-              type="number"
-              className="rrule-interval-input"
-              value={s.interval}
-              min={1}
-              onChange={(e) => update({ interval: Math.max(1, parseInt(e.target.value) || 1) })}
-            />
+            <div className="rrule-stepper">
+              <button
+                type="button"
+                className="rrule-stepper__btn"
+                onClick={() => update({ interval: Math.max(1, s.interval - 1) })}
+                aria-label="Decrease interval"
+              >−</button>
+              <input
+                type="number"
+                className="rrule-interval-input"
+                value={s.interval}
+                min={1}
+                onChange={(e) => update({ interval: Math.max(1, parseInt(e.target.value) || 1) })}
+              />
+              <button
+                type="button"
+                className="rrule-stepper__btn"
+                onClick={() => update({ interval: s.interval + 1 })}
+                aria-label="Increase interval"
+              >+</button>
+            </div>
           </div>
 
           {/* Frequency pills */}
@@ -252,6 +268,7 @@ export function RecurrencePicker({ value, dueDate, onChange }: Props) {
 
         </div>
       )}
+    </div>
     </div>
   );
 }

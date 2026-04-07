@@ -18,6 +18,7 @@
   --success:     #16a34a;
   --info:        #0891b2;
   --mono:        'DM Mono', 'Courier New', monospace;
+  --detail-field-size: 0.85rem;
 }
 
 /* Dark vars — applied by system preference (when no override) or explicit [data-theme="dark"] */
@@ -1890,7 +1891,7 @@ button.nav-section-label--button:hover { color: var(--fg); }
   right: 0;
   top: 0;
   bottom: 0;
-  width: 300px;
+  width: 335px;
   border-left: 1px solid var(--border);
   display: flex;
   flex-direction: column;
@@ -2345,17 +2346,33 @@ button.nav-section-label--button:hover { color: var(--fg); }
   border-top: 1px solid var(--divider);
 }
 
+.task-detail-section__heading {
+  display: block;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--fg-muted);
+  margin-bottom: 8px;
+}
+
+.task-detail-section__fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 .task-detail-field-btn {
   display: flex;
   align-items: center;
   gap: 6px;
+  width: 100%;
   background: none;
   border: 1px solid var(--border);
   border-radius: 6px;
   color: var(--fg-muted);
-  font-size: 0.8rem;
+  font-size: var(--detail-field-size);
   font-family: inherit;
-  padding: 5px 10px;
+  padding: 8px 12px;
   cursor: pointer;
   transition: color 0.15s, border-color 0.15s, background 0.15s;
 }
@@ -2369,7 +2386,7 @@ button.nav-section-label--button:hover { color: var(--fg); }
 .task-detail-field-btn--set {
   color: var(--accent);
   border-color: var(--accent);
-  background: var(--accent-dim);
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
 }
 
 .task-detail-group-edit {
@@ -2571,10 +2588,14 @@ button.nav-section-label--button:hover { color: var(--fg); }
 
 .rrule-picker {
   flex: 1;
-  font-size: 0.8rem;
+  font-size: var(--detail-field-size);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
 }
 
 .rrule-picker--disabled { opacity: 0.35; pointer-events: none; }
+.rrule-picker--on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 6%, transparent); }
 
 .rrule-toggle-row {
   display: flex;
@@ -2582,7 +2603,8 @@ button.nav-section-label--button:hover { color: var(--fg); }
   justify-content: space-between;
 }
 
-.rrule-label { color: var(--fg-muted); }
+.rrule-label { color: var(--fg); font-size: var(--detail-field-size); }
+.rrule-picker--on .rrule-label { color: var(--accent); }
 .rrule-muted  { color: var(--fg-muted); flex-shrink: 0; }
 
 .rrule-toggle {
@@ -2613,46 +2635,73 @@ button.nav-section-label--button:hover { color: var(--fg); }
 .rrule-toggle--on .rrule-toggle__thumb { transform: translateX(14px); }
 
 .rrule-controls {
-  margin-top: 10px;
+  margin-top: 14px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 14px;
 }
 
 .rrule-interval-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: space-between;
 }
 
-.rrule-interval-input {
-  width: 48px;
-  padding: 5px 6px;
-  background: var(--surface);
+.rrule-stepper {
+  display: flex;
+  align-items: stretch;
   border: 1px solid var(--border);
   border-radius: 6px;
-  color: var(--fg);
-  font-size: 0.85rem;
-  font-family: inherit;
-  text-align: center;
-  outline: none;
+  overflow: hidden;
+  background: var(--surface);
   transition: border-color 0.15s;
 }
 
-.rrule-interval-input:focus { border-color: var(--accent); }
+.rrule-stepper:focus-within { border-color: var(--accent); }
+
+.rrule-stepper__btn {
+  padding: 6px 10px;
+  background: none;
+  border: none;
+  color: var(--fg-muted);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.12s, background 0.12s;
+}
+
+.rrule-stepper__btn:hover { color: var(--fg); background: var(--hover); }
+
+.rrule-interval-input {
+  width: 40px;
+  padding: 7px 4px;
+  background: none;
+  border: none;
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  color: var(--fg);
+  font-size: 0.9rem;
+  font-family: inherit;
+  text-align: center;
+  outline: none;
+}
+
+/* hide browser spinners */
+.rrule-interval-input::-webkit-outer-spin-button,
+.rrule-interval-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.rrule-interval-input[type=number] { -moz-appearance: textfield; }
 
 /* Shared pill style */
 .rrule-pill {
-  padding: 5px 10px;
+  padding: 6px 10px;
   background: none;
   border: 1px solid var(--border);
   border-radius: 6px;
   color: var(--fg-muted);
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   font-family: inherit;
   cursor: pointer;
   transition: color 0.12s, border-color 0.12s, background 0.12s;
-  white-space: nowrap;
 }
 
 .rrule-pill:hover { color: var(--fg); border-color: var(--fg-muted); }
@@ -2665,8 +2714,31 @@ button.nav-section-label--button:hover { color: var(--fg); }
 
 .rrule-freq-pills {
   display: flex;
-  gap: 4px;
-  flex-wrap: wrap;
+  min-width: 0;
+  gap: 3px;
+  background: var(--hover);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 3px;
+}
+
+.rrule-freq-pills .rrule-pill {
+  flex: 1;
+  text-align: center;
+  padding: 7px 4px;
+  border: none;
+  border-radius: 5px;
+}
+
+.rrule-freq-pills .rrule-pill:hover {
+  border-color: transparent;
+  background: var(--surface);
+}
+
+.rrule-freq-pills .rrule-pill--on {
+  background: var(--surface);
+  border-color: transparent;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
 }
 
 /* Day-of-week chips (compact, mono) */
@@ -2677,14 +2749,19 @@ button.nav-section-label--button:hover { color: var(--fg); }
 
 .rrule-chip {
   flex: 1;
-  padding: 5px 2px;
+  aspect-ratio: 1;
+  min-width: 0;
+  padding: 0;
   background: none;
   border: 1px solid var(--border);
-  border-radius: 5px;
+  border-radius: 50%;
   color: var(--fg-muted);
-  font-size: 0.68rem;
+  font-size: 0.66rem;
   font-family: var(--mono);
   text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   transition: color 0.12s, border-color 0.12s, background 0.12s;
 }
@@ -2701,41 +2778,45 @@ button.nav-section-label--button:hover { color: var(--fg); }
 .rrule-monthly {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 14px;
 }
 
 .rrule-mode-tabs {
   display: flex;
-  gap: 4px;
+  gap: 3px;
+  background: var(--hover);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 3px;
 }
 
 .rrule-mode-tab {
   flex: 1;
-  padding: 5px 8px;
+  padding: 7px 8px;
   background: none;
-  border: 1px solid var(--border);
-  border-radius: 6px;
+  border: none;
+  border-radius: 5px;
   color: var(--fg-muted);
   font-size: 0.72rem;
   font-family: inherit;
   cursor: pointer;
   text-align: center;
-  transition: color 0.12s, border-color 0.12s, background 0.12s;
+  transition: color 0.12s, background 0.12s, box-shadow 0.12s;
 }
 
-.rrule-mode-tab:hover { color: var(--fg); border-color: var(--fg-muted); }
+.rrule-mode-tab:hover { color: var(--fg); background: var(--surface); }
 
 .rrule-mode-tab--on {
   color: var(--accent);
-  border-color: var(--accent);
-  background: var(--accent-dim);
+  background: var(--surface);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
 }
 
 /* Day-of-month number grid */
 .rrule-dom-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 3px;
+  gap: 4px;
 }
 
 .rrule-dom-btn {
@@ -2779,11 +2860,17 @@ button.nav-section-label--button:hover { color: var(--fg); }
 .rrule-nth-section {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .rrule-nth-pills {
   display: flex;
   gap: 4px;
-  flex-wrap: wrap;
+}
+
+.rrule-nth-pills .rrule-pill {
+  flex: 1;
+  text-align: center;
+  padding-left: 4px;
+  padding-right: 4px;
 }
