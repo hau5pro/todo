@@ -66,6 +66,7 @@ function TaskRow({
       variants={taskItemVariants}
       className="task-row"
       style={{ cursor: editMode ? 'grab' : 'default', opacity: dragging ? 0.4 : 1 }}
+      transition={{ layout: { duration: 0.08, ease: 'easeOut' } }}
     >
       <span style={{ width: editMode ? 26 : 0, opacity: editMode ? 1 : 0, overflow: 'hidden', flexShrink: 0, display: 'flex', transition: 'width 0.15s, opacity 0.15s' }}>
         <span className="task-edit-drag" onPointerDown={(e) => dragControls.start(e)}>

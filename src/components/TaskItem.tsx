@@ -35,8 +35,8 @@ export function TaskItem({ title, completed, dueDate, today, onToggle, onSelect,
       if (soundEnabled) playComplete(soundStyle);
       setFlashing(true);
       setPopping(true);
-      setTimeout(() => { setFlashing(false); setPopping(false); }, 400);
-      setTimeout(onToggle, 120);
+      setTimeout(() => { setFlashing(false); setPopping(false); }, 250);
+      onToggle();
     } else {
       onToggle();
     }

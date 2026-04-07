@@ -130,7 +130,12 @@ function getDataUri(style: SoundStyle): string {
   return _cache[style]!;
 }
 
+let _lastPlay = 0;
+
 export function playComplete(style: SoundStyle = 'pop'): void {
+  const now = Date.now();
+  if (now - _lastPlay < 150) return;
+  _lastPlay = now;
   try {
     const audio = new Audio(getDataUri(style));
     audio.play().catch((err) => console.error('[sound]', err));

@@ -34,7 +34,7 @@ export function AnimatedCheckbox({ checked, onChange, popping = false, variant, 
         {popping && doubleRing && (
           <circle cx="8" cy="8" r="7" className="animated-checkbox__ring animated-checkbox__ring--delayed" />
         )}
-        {popping && (
+        {popping && isHabit && (
           <circle cx="8" cy="8" r="7" className="animated-checkbox__ring" />
         )}
         <circle cx="8" cy="8" r="7" className="animated-checkbox__circle" />
@@ -62,7 +62,7 @@ export function AnimatedCheckbox({ checked, onChange, popping = false, variant, 
         )}
       </svg>
 
-      {popping && angles.map((angle, i) => {
+      {popping && isHabit && angles.map((angle, i) => {
         const rad = (angle * Math.PI) / 180;
         const dist = 22 + (i % 2) * 8;
         return (
