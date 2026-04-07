@@ -8,6 +8,7 @@ import { HabitItem } from '../components/HabitItem';
 import { toggleHabitCompletion, getCompletionsForTask, calculateStreak } from '../db/habits';
 import { ICON_SIZE } from '../config/icons';
 import { ease } from '../utils/easing';
+import { applyOrder } from '../utils/order';
 
 const itemVariants = {
   hidden: { opacity: 0, y: 6 },
@@ -70,12 +71,7 @@ export function MyDayView() {
     }
     const result: typeof myDayHabits = [];
     for (const [listId, habits] of byList) {
-      const order = listOrders[listId] ?? [];
-      if (!order.length) { result.push(...habits); continue; }
-      const map = new Map(habits.map(h => [h.task.id, h]));
-      const ordered = order.flatMap(id => map.has(id) ? [map.get(id)!] : []);
-      const rest = habits.filter(h => !order.includes(h.task.id));
-      result.push(...ordered, ...rest);
+      result.push(...applyOrder(habits, listOrders[listId] ?? [], (h) => h.task.id));
     }
     return result;
   }, [myDayHabits, listOrders]);

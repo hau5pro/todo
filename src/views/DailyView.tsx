@@ -20,14 +20,7 @@ import { LIST_TYPE_LABELS } from '../types';
 import { getListIcon } from '../config/listIcons';
 import { ICON_SIZE } from '../config/icons';
 import type { HabitRow } from '../hooks/useHabits';
-
-function applyOrder<T extends { task: { id: string } }>(rows: T[], order: string[]): T[] {
-  if (order.length === 0) return rows;
-  const map = new Map(rows.map((r) => [r.task.id, r]));
-  const ordered = order.flatMap((id) => (map.has(id) ? [map.get(id)!] : []));
-  const rest = rows.filter((r) => !order.includes(r.task.id));
-  return [...ordered, ...rest];
-}
+import { applyOrder } from '../utils/order';
 
 function HabitRow({ row, editMode, onToggle, onSelect, onDelete, isSelected }: {
   row: HabitRow; editMode: boolean;
@@ -90,7 +83,7 @@ export function DailyView() {
 
   if (isLoading) return null;
 
-  const orderedRows = applyOrder(rows, listOrders[listId!] ?? []);
+  const orderedRows = applyOrder(rows, listOrders[listId!] ?? [], (r) => r.task.id);
 
   function handleReorder(reordered: typeof rows) {
     setListOrder(listId!, reordered.map((r) => r.task.id));

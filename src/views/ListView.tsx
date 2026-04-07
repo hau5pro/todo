@@ -4,6 +4,7 @@ import { PencilSimple, Trash, CaretDown, CaretRight, CopySimple, List as ListIco
 import { AnimatePresence, motion, Reorder, useDragControls } from 'framer-motion';
 import { ease } from '../utils/easing';
 import { focusLater } from '../utils/dom';
+import { applyOrder } from '../utils/order';
 import { useAppStore } from '../store';
 import { useTaskDetail } from '../contexts/TaskDetailContext';
 import { useSettings } from '../contexts/SettingsContext';
@@ -30,13 +31,6 @@ const taskItemVariants = {
   exit:   { opacity: 0, transition: { duration: 0.15, ease: 'easeIn' as const } },
 };
 
-function applyOrder(tasks: Task[], order: string[]): Task[] {
-  if (order.length === 0) return tasks;
-  const map = new Map(tasks.map((t) => [t.id, t]));
-  const ordered = order.flatMap((id) => (map.has(id) ? [map.get(id)!] : []));
-  const rest = tasks.filter((t) => !order.includes(t.id));
-  return [...rest, ...ordered];
-}
 
 function reorderGroupInGlobal(globalOrder: string[], newGroupOrder: string[]): string[] {
   const groupSet = new Set(newGroupOrder);
@@ -411,7 +405,7 @@ export function ListView() {
   const isPinned = pinnedOrder.includes(listId!);
   const activeTasks = tasks.filter((t) => !t.completed && t.deleted_at === null).reverse();
   const completedTasks = tasks.filter((t) => t.completed && t.deleted_at === null);
-  const orderedActive = applyOrder(activeTasks, listOrders[listId!] ?? []);
+  const orderedActive = applyOrder(activeTasks, listOrders[listId!] ?? [], (t) => t.id);
 
   const ungroupedTasks = orderedActive.filter((t) => !t.group);
   const groupMap = new Map<string, Task[]>();
