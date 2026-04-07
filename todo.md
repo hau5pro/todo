@@ -11,7 +11,7 @@
 
 ## Security
 
-- [ ] **`.env.local`** — rename `VITE_SUPABASE_DB_PW` → `SUPABASE_DB_PW` and `VITE_GOOGLE_CLIENT_SECRET` → `GOOGLE_CLIENT_SECRET` (drop the `VITE_` prefix so Vite can never accidentally bundle them)
+- [x] **`.env.local`** — rename `VITE_SUPABASE_DB_PW` → `SUPABASE_DB_PW` and `VITE_GOOGLE_CLIENT_SECRET` → `GOOGLE_CLIENT_SECRET` (drop the `VITE_` prefix so Vite can never accidentally bundle them)
 
 ## Reuse
 
