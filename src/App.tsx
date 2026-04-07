@@ -1,19 +1,20 @@
-import { useMemo } from 'react';
+import { useMemo, lazy, Suspense } from 'react';
 import { createBrowserRouter, RouterProvider, Navigate, Outlet } from 'react-router-dom';
 import { SettingsProvider, useSettings } from './contexts/SettingsContext';
 import { AuthGate } from './components/AuthGate';
 import { AppShell } from './components/AppShell';
-import { LoginView } from './views/LoginView';
 import { MyDayView } from './views/MyDayView';
 import { ListRouter } from './views/ListRouter';
-import { SettingsView } from './views/SettingsView';
-import { DocsView } from './views/DocsView';
-import { FolderView } from './views/FolderView';
-import { SetupWizard } from './views/SetupWizard';
+
+const LoginView = lazy(() => import('./views/LoginView').then(m => ({ default: m.LoginView })));
+const SettingsView = lazy(() => import('./views/SettingsView').then(m => ({ default: m.SettingsView })));
+const DocsView = lazy(() => import('./views/DocsView').then(m => ({ default: m.DocsView })));
+const FolderView = lazy(() => import('./views/FolderView').then(m => ({ default: m.FolderView })));
+const SetupWizard = lazy(() => import('./views/SetupWizard').then(m => ({ default: m.SetupWizard })));
 
 function AuthenticatedLayout() {
   const { setupDone } = useSettings();
-  if (!setupDone) return <SetupWizard />;
+  if (!setupDone) return <Suspense><SetupWizard /></Suspense>;
   return <AppShell />;
 }
 
@@ -26,16 +27,16 @@ function RouterTree() {
         </AuthGate>
       ),
       children: [
-        { path: '/login', element: <LoginView /> },
+        { path: '/login', element: <Suspense><LoginView /></Suspense> },
         {
           element: <AuthenticatedLayout />,
           children: [
             { index: true, element: <Navigate to="/my-day" replace /> },
             { path: '/my-day', element: <MyDayView /> },
             { path: '/list/:listId', element: <ListRouter /> },
-            { path: '/folder/:folderId', element: <FolderView /> },
-            { path: '/settings', element: <SettingsView /> },
-            { path: '/docs', element: <DocsView /> },
+            { path: '/folder/:folderId', element: <Suspense><FolderView /></Suspense> },
+            { path: '/settings', element: <Suspense><SettingsView /></Suspense> },
+            { path: '/docs', element: <Suspense><DocsView /></Suspense> },
           ],
         },
       ],

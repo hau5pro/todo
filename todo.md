@@ -4,8 +4,6 @@
 
 ## Bugs
 
-- [ ] double check syncing is working as i think it should, dont really see cloud syncing that often. Shouldnt it happen whenever the user takes any data driven action?
-
 ## Improvements
 
 - [ ] **Build/perf** — configure `rollupOptions.output.manualChunks` to split vendor chunks (react, framer-motion, phosphor icons, supabase); audit bundle size, lazy-load heavy views, check LCP/TTI with Lighthouse
