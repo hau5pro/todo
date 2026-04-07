@@ -32,8 +32,10 @@ export function AuthGate({ children }: Props) {
 
   useEffect(() => {
     if (user === 'loading') return;
-    if (!user && location.pathname !== '/login') navigate('/login');
-    if (user && location.pathname === '/login') navigate('/my-day');
+    if (!user && location.pathname !== '/login') navigate('/login', { viewTransition: true });
+    if (user && location.pathname === '/login') {
+      navigate('/my-day');
+    }
   }, [user, location.pathname, navigate]);
 
   if (user === 'loading') return null;
