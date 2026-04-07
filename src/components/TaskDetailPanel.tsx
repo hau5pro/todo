@@ -32,6 +32,9 @@ export function TaskDetailPanel() {
     s.tasksByList[detail?.task.list_id ?? ''] ?? EMPTY_TASKS
   );
   const { listGroupOrders, setListGroupOrder } = useSettings();
+  const isHabitTask = useAppStore((s) =>
+    s.lists.find((l) => l.id === detail?.task.list_id)?.type === 'daily'
+  );
 
   const [editTitle, setEditTitle] = useState('');
   const [calOpen, setCalOpen] = useState(false);
@@ -191,32 +194,36 @@ export function TaskDetailPanel() {
           )}
         </div>
 
-        {/* Due date */}
-        <div className="task-detail-section">
-          <button
-            type="button"
-            className={`task-detail-field-btn${dueDate ? ' task-detail-field-btn--set' : ''}`}
-            onClick={() => setCalOpen((o) => !o)}
-          >
-            <CalendarBlank size={14} weight="fill" />
-            <span>{dueDate ? formatDueDate(dueDate) : 'Add due date'}</span>
-          </button>
+        {/* Due date — hidden for habit tasks (daily lists are implicitly recurring) */}
+        {!isHabitTask && (
+          <div className="task-detail-section">
+            <button
+              type="button"
+              className={`task-detail-field-btn${dueDate ? ' task-detail-field-btn--set' : ''}`}
+              onClick={() => setCalOpen((o) => !o)}
+            >
+              <CalendarBlank size={14} weight="fill" />
+              <span>{dueDate ? formatDueDate(dueDate) : 'Add due date'}</span>
+            </button>
 
-          {calOpen && (
-            <div className="task-detail-calendar">
-              <CalendarPicker value={dueDate} onChange={handleDueDateChange} />
-            </div>
-          )}
-        </div>
+            {calOpen && (
+              <div className="task-detail-calendar">
+                <CalendarPicker value={dueDate} onChange={handleDueDateChange} />
+              </div>
+            )}
+          </div>
+        )}
 
-        {/* Recurrence */}
-        <div className="task-detail-section">
-          <RecurrencePicker
-            value={rrule}
-            dueDate={dueDate}
-            onChange={handleRRuleChange}
-          />
-        </div>
+        {/* Recurrence — hidden for habit tasks */}
+        {!isHabitTask && (
+          <div className="task-detail-section">
+            <RecurrencePicker
+              value={rrule}
+              dueDate={dueDate}
+              onChange={handleRRuleChange}
+            />
+          </div>
+        )}
       </div>
 
       <div className="task-detail-panel__footer">

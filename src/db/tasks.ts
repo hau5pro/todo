@@ -172,7 +172,7 @@ export async function updateTask(id: string, changes: Partial<Pick<Task, 'title'
   return updated;
 }
 
-/** Returns overdue and today tasks across all lists (excludes daily lists). */
+/** Returns overdue and today tasks across all lists. Habit tasks (daily lists) are excluded implicitly — they never have a due_date. */
 export async function getMyDayTasks(today: string): Promise<{ overdue: Task[]; today: Task[] }> {
   const db = await getDB();
   const all = await req<Task[]>(db.transaction('tasks').objectStore('tasks').getAll());
