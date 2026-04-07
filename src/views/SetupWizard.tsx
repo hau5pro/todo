@@ -31,8 +31,8 @@ const STEPS_LOCAL = [
 
 const stepVariants = {
   enter: (d: number) => ({ opacity: 0, x: d * 24 }),
-  center: { opacity: 1, x: 0, transition: { duration: 0.28, ease: 'easeOut' } },
-  exit: (d: number) => ({ opacity: 0, x: d * -24, transition: { duration: 0.18, ease: 'easeIn' } }),
+  center: { opacity: 1, x: 0, transition: { duration: 0.28, ease: 'easeOut' as const } },
+  exit: (d: number) => ({ opacity: 0, x: d * -24, transition: { duration: 0.18, ease: 'easeIn' as const } }),
 };
 
 export function SetupWizard() {

@@ -4,7 +4,7 @@
 
 ## Bugs
 
-- [ ] **`SetupWizard.tsx` TS error** — `Variants` type mismatch on animation variants object; `center` key's `transition.ease` is typed as `string` but must be `Easing | Easing[]`
+- [x] **`SetupWizard.tsx` TS error** — `Variants` type mismatch on animation variants object; `center` key's `transition.ease` is typed as `string` but must be `Easing | Easing[]`
 
 ## Improvements
 
