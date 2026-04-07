@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { PencilSimple, Trash, CaretDown, CaretRight, CopySimple, List as ListIcon, CheckCircle, Plus, DotsThree } from '@phosphor-icons/react';
+import { PencilSimple, Trash, CaretDown, CaretRight, CopySimple, List as ListIcon, CheckCircle, DotsThree } from '@phosphor-icons/react';
 import { AnimatePresence, motion, Reorder, useDragControls } from 'framer-motion';
 import { ease } from '../utils/easing';
 import { focusLater } from '../utils/dom';
@@ -11,7 +11,7 @@ import { useTaskDetail } from '../contexts/TaskDetailContext';
 import { useSettings } from '../contexts/SettingsContext';
 import { TaskItem } from '../components/TaskItem';
 import { IconPicker } from '../components/IconPicker';
-import { ICON_SIZE, COMPLETED_PAGE_SIZE } from '../config/constants';
+import { ICON_SIZE, COMPLETED_PAGE_SIZE, ADD_TASK_PLACEHOLDER } from '../config/constants';
 import { LIST_TYPE_LABELS } from '../types';
 import { getListIcon } from '../config/listIcons';
 import type { Task } from '../types';
@@ -131,17 +131,14 @@ function GroupSection({
   onTaskDragEnd: () => void;
   selectedTaskId: string | undefined;
 }) {
-  const { addTask, moveTaskToGroup } = useAppStore();
+  const { moveTaskToGroup } = useAppStore();
   const [collapsed, setCollapsed] = useState(false);
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState(groupName);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [addingTask, setAddingTask] = useState(false);
-  const [newTaskTitle, setNewTaskTitle] = useState('');
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
-  const addInputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -165,14 +162,6 @@ function GroupSection({
     const trimmed = nameValue.trim();
     if (trimmed && trimmed !== groupName) onRename(groupName, trimmed);
     setEditingName(false);
-  }
-
-  async function handleAddTask(e: React.FormEvent) {
-    e.preventDefault();
-    if (!newTaskTitle.trim()) { setAddingTask(false); return; }
-    await addTask(listId, newTaskTitle.trim(), groupName);
-    setNewTaskTitle('');
-    focusLater(addInputRef);
   }
 
   function handleGroupReorder(reordered: Task[]) {
@@ -232,7 +221,7 @@ function GroupSection({
             }}
           />
         ) : (
-          <span className="group-header-name" onDoubleClick={startEditName}>{groupName} <span className="group-header-count">({tasks.length})</span></span>
+          <span className="group-header-name" onClick={() => setCollapsed((p) => !p)}>{groupName} <span className="group-header-count">({tasks.length})</span></span>
         )}
 
         <div className="group-header-menu" ref={menuRef}>
@@ -270,6 +259,7 @@ function GroupSection({
       <AnimatePresence>
         {!collapsed && (
           <motion.div
+            className="group-section__body"
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
@@ -301,25 +291,6 @@ function GroupSection({
                 ))}
               </AnimatePresence>
             </Reorder.Group>
-
-            {addingTask ? (
-              <form onSubmit={handleAddTask} className="group-add-task-form">
-                <input
-                  ref={addInputRef}
-                  className="group-add-task-input"
-                  placeholder="Add item…"
-                  value={newTaskTitle}
-                  onChange={(e) => setNewTaskTitle(e.target.value)}
-                  onBlur={() => { if (!newTaskTitle.trim()) setAddingTask(false); }}
-                  autoFocus
-                  onKeyDown={(e) => { if (e.key === 'Escape') { setAddingTask(false); setNewTaskTitle(''); } }}
-                />
-              </form>
-            ) : (
-              <button className="group-add-task-btn" onClick={() => setAddingTask(true)}>
-                <Plus size={12} weight="bold" /> Add item
-              </button>
-            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -637,7 +608,7 @@ export function ListView() {
         >
           <input
             className="add-task-input"
-            placeholder="+ Add task"
+            placeholder={ADD_TASK_PLACEHOLDER}
             aria-label="Add task"
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}

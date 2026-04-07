@@ -40,6 +40,8 @@ export function TaskDetailPanel() {
   const [calOpen, setCalOpen] = useState(false);
   const [editingGroup, setEditingGroup] = useState(false);
   const [groupInput, setGroupInput] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [highlightIdx, setHighlightIdx] = useState(-1);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const groupInputRef = useRef<HTMLInputElement>(null);
@@ -54,6 +56,8 @@ export function TaskDetailPanel() {
       setGroupInput(detail.task.group ?? '');
       setCalOpen(false);
       setEditingGroup(false);
+      setShowSuggestions(false);
+      setHighlightIdx(-1);
       focusLater(inputRef);
     }
   }, [detail?.task.id]);
@@ -69,12 +73,18 @@ export function TaskDetailPanel() {
     return () => document.removeEventListener('mousedown', handleClick);
   }, [calOpen]);
 
-  // Existing groups for this list (for datalist suggestions)
+  // Existing groups for this list
   const existingGroups = useMemo(() => {
     return [...new Set(
       listTasks.filter((t) => t.group && !t.deleted_at).map((t) => t.group!)
     )];
   }, [listTasks]);
+
+  const filteredGroups = useMemo(() => {
+    const q = groupInput.trim().toLowerCase();
+    if (!q) return existingGroups;
+    return existingGroups.filter((g) => g.toLowerCase().includes(q));
+  }, [existingGroups, groupInput]);
 
   if (!task) return null;
 
@@ -102,9 +112,11 @@ export function TaskDetailPanel() {
     updateCtx(updated);
   }
 
-  async function commitGroup() {
+  async function commitGroup(overrideValue?: string) {
     if (!task) return;
-    const newGroup = groupInput.trim() || null;
+    const newGroup = (overrideValue !== undefined ? overrideValue : groupInput).trim() || null;
+    setShowSuggestions(false);
+    setHighlightIdx(-1);
     if (newGroup !== task.group) {
       const updated = await moveTaskToGroup(task.id, task.list_id, newGroup);
       updateCtx(updated);
@@ -202,40 +214,77 @@ export function TaskDetailPanel() {
           <span className="task-detail-section__heading">Organize</span>
           <div className="task-detail-section__fields">
           {editingGroup ? (
-            <div className="task-detail-group-edit">
-              <FolderSimple size={14} weight="fill" style={{ color: 'var(--fg-muted)', flexShrink: 0 }} />
-              <input
-                ref={groupInputRef}
-                list="group-suggestions"
-                className="task-detail-group-input"
-                value={groupInput}
-                onChange={(e) => setGroupInput(e.target.value)}
-                onBlur={commitGroup}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') e.currentTarget.blur();
-                  if (e.key === 'Escape') {
-                    setGroupInput(task.group ?? '');
-                    setEditingGroup(false);
-                  }
-                }}
-                placeholder="Group name…"
-                autoFocus
-              />
-              {currentGroup && (
-                <button
-                  className="task-detail-group-clear"
-                  onMouseDown={(e) => {
-                    e.preventDefault(); // prevent input blur before click
-                    setGroupInput('');
+            <div className="task-detail-group-wrap">
+              <div className="task-detail-group-edit">
+                <FolderSimple size={14} weight="fill" style={{ color: 'var(--fg-muted)', flexShrink: 0 }} />
+                <input
+                  ref={groupInputRef}
+                  className="task-detail-group-input"
+                  value={groupInput}
+                  onChange={(e) => {
+                    setGroupInput(e.target.value);
+                    setHighlightIdx(-1);
+                    setShowSuggestions(true);
                   }}
-                  title="Remove from group"
-                >
-                  <X size={12} weight="bold" />
-                </button>
+                  onFocus={() => setShowSuggestions(true)}
+                  onBlur={() => {
+                    setShowSuggestions(false);
+                    commitGroup();
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'ArrowDown') {
+                      e.preventDefault();
+                      setHighlightIdx((i) => Math.min(i + 1, filteredGroups.length - 1));
+                    } else if (e.key === 'ArrowUp') {
+                      e.preventDefault();
+                      setHighlightIdx((i) => Math.max(i - 1, -1));
+                    } else if (e.key === 'Enter') {
+                      e.preventDefault();
+                      if (highlightIdx >= 0 && filteredGroups[highlightIdx]) {
+                        setGroupInput(filteredGroups[highlightIdx]);
+                        commitGroup(filteredGroups[highlightIdx]);
+                      } else {
+                        e.currentTarget.blur();
+                      }
+                    } else if (e.key === 'Escape') {
+                      setGroupInput(task.group ?? '');
+                      setShowSuggestions(false);
+                      setEditingGroup(false);
+                    }
+                  }}
+                  placeholder="Group name…"
+                  autoFocus
+                />
+                {(currentGroup || groupInput) && (
+                  <button
+                    className="task-detail-group-clear"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      setGroupInput('');
+                    }}
+                    title="Remove from group"
+                  >
+                    <X size={12} weight="bold" />
+                  </button>
+                )}
+              </div>
+              {showSuggestions && filteredGroups.length > 0 && (
+                <ul className="task-detail-group-suggestions">
+                  {filteredGroups.map((g, i) => (
+                    <li
+                      key={g}
+                      className={`task-detail-group-suggestion${i === highlightIdx ? ' task-detail-group-suggestion--active' : ''}`}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        setGroupInput(g);
+                        commitGroup(g);
+                      }}
+                    >
+                      {g}
+                    </li>
+                  ))}
+                </ul>
               )}
-              <datalist id="group-suggestions">
-                {existingGroups.map((g) => <option key={g} value={g} />)}
-              </datalist>
             </div>
           ) : (
             <button

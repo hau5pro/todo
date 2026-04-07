@@ -4,12 +4,11 @@
 
 ## Bugs
 
-- [x] **`SetupWizard.tsx` TS error** — `Variants` type mismatch on animation variants object; `center` key's `transition.ease` is typed as `string` but must be `Easing | Easing[]`
+- [ ] double check syncing is working as i think it should, dont really see cloud syncing that often. Shouldnt it happen whenever the user takes any data driven action?
 
 ## Improvements
 
-- [ ] **Group field in task detail** — dropdown doesn't match any existing group names; replace with autocomplete from active groups in the list
-- [ ] **Add item in group** — "Add item" button inside a group should behave consistently with the main "Add task" input at the top of the list
+
 
 ## Tests
 
