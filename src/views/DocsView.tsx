@@ -1,5 +1,5 @@
-import { NavLink } from 'react-router-dom';
-import { ArrowLeft, Question, Keyboard } from '@phosphor-icons/react';
+import type { Icon } from '@phosphor-icons/react';
+import { Question, Keyboard, ListBullets, Sun, Repeat, ShoppingCart, Folder, WifiSlash, Cloud } from '@phosphor-icons/react';
 
 interface ShortcutRow {
   keys: string[];
@@ -41,34 +41,85 @@ const sections: Section[] = [
   },
 ];
 
-const gettingStarted = [
-  { heading: 'Offline first', body: 'Your data lives on this device. The app works without a connection — cloud sync is optional.' },
-  { heading: 'Lists', body: 'Create lists to organise your tasks. General lists are for one-off tasks, daily lists are for habits, and shopping lists group items by purchase.' },
-  { heading: 'My Day', body: 'A built-in view that pulls together overdue tasks and anything due today. Habits from daily lists appear here automatically each day.' },
-  { heading: 'Habits', body: 'Add tasks to a daily list. Each day they reset and show up in My Day — tap to complete, and your streak grows.' },
-  { heading: 'Cloud sync', body: 'Sign in to back up your data and access it across devices. You can enable or disable sync any time in Settings.' },
+interface FeatureItem {
+  icon: Icon;
+  heading: string;
+  body: string;
+}
+
+const features: FeatureItem[] = [
+  { icon: WifiSlash, heading: 'Offline first', body: 'Your data lives on this device. The app works without a connection.' },
+  { icon: Cloud, heading: 'Cloud sync', body: 'Sign in to back up your data and sync across devices. Enable or disable any time in Settings.' },
 ];
+
+interface ListSubSection {
+  icon: Icon;
+  heading: string;
+  body: string;
+}
+
+const listSubSections: ListSubSection[] = [
+  {
+    icon: Sun,
+    heading: 'My Day',
+    body: 'A pinned view that pulls in overdue tasks, anything due today, and habits from your daily lists.',
+  },
+  {
+    icon: ListBullets,
+    heading: 'General lists',
+    body: 'Standard task lists for one-off to-dos. Tasks stay until you delete them.',
+  },
+  {
+    icon: Repeat,
+    heading: 'Daily lists',
+    body: 'Habit lists that reset each day. Tasks appear in My Day automatically — complete them to grow your streak.',
+  },
+  {
+    icon: ShoppingCart,
+    heading: 'Shopping lists',
+    body: 'A persistent running list, never fully cleared. Good for groceries and anything you restock regularly.',
+  },
+  {
+    icon: Folder,
+    heading: 'Folders',
+    body: 'Group lists into collapsible folders in the sidebar to keep things organised.',
+  },
+];
+
+function ItemRow({ icon: ItemIcon, heading, body }: { icon: Icon; heading: string; body: string }) {
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
+        <ItemIcon size={13} weight="fill" style={{ color: 'var(--fg-muted)', flexShrink: 0 }} />
+        <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{heading}</span>
+      </div>
+      <p style={{ fontSize: '0.85rem', color: 'var(--fg-muted)', lineHeight: 1.5, paddingLeft: 'calc(13px + 0.4rem)' }}>{body}</p>
+    </div>
+  );
+}
 
 export function DocsView() {
   return (
     <div style={{ maxWidth: 480, margin: '0 auto' }}>
       <div className="view-title-row" style={{ marginBottom: '2rem' }}>
-        <NavLink to="/settings" className="docs-back-btn" title="Back to settings">
-          <ArrowLeft size={22} weight="bold" />
-        </NavLink>
-        <span className="view-title-icon"><Question size={20} weight="fill" /></span>
+        <span className="view-title-icon"><Question size={18} weight="fill" /></span>
         <h1 className="view-title">Help</h1>
       </div>
 
       <section className="settings-section">
-        <div className="settings-section-title">Getting started</div>
+        <div className="settings-section-title">Features</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '0.25rem' }}>
-          {gettingStarted.map(({ heading, body }) => (
-            <div key={heading}>
-              <p style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.2rem' }}>{heading}</p>
-              <p style={{ fontSize: '0.85rem', color: 'var(--fg-muted)', lineHeight: 1.5 }}>{body}</p>
-            </div>
-          ))}
+          {features.map((item) => <ItemRow key={item.heading} {...item} />)}
+        </div>
+      </section>
+
+      <section className="settings-section">
+        <div className="settings-section-title">
+          <ListBullets size={16} weight="fill" />
+          Lists
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '0.25rem' }}>
+          {listSubSections.map((item) => <ItemRow key={item.heading} {...item} />)}
         </div>
       </section>
 

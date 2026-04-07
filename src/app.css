@@ -1679,17 +1679,6 @@ button.nav-section-label--button:hover { color: var(--fg); }
 }
 
 /* ── Docs view ───────────────────────────────────────────── */
-.docs-back-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--fg-muted);
-  padding: 4px;
-  border-radius: 6px;
-  margin-right: 0.25rem;
-  transition: color 0.15s, background 0.15s;
-}
-.docs-back-btn:hover { color: var(--fg); background: var(--hover); }
 
 .docs-shortcut-list {
   display: flex;
