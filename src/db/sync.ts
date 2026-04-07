@@ -69,7 +69,7 @@ export async function pushPending(db: IDBDatabase, supabase: SupabaseClient, use
   if (pendingHabits.length > 0) {
     const { error } = await supabase
       .from('habit_completions')
-      .upsert(pendingHabits.map((h) => toRemote(h, userId)), { onConflict: 'id' });
+      .upsert(pendingHabits.map((h) => toRemote(h, userId)), { onConflict: 'id', ignoreDuplicates: true });
     if (error) {
       errors.push(`habit_completions: ${error.message}`);
     } else {
