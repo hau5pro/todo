@@ -233,9 +233,9 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     }, 1000);
   }
 
-  function update(patch: Partial<Settings>) {
+  function update(patchOrFn: Partial<Settings> | ((prev: Settings) => Settings)) {
     setSettings((prev) => {
-      const next = { ...prev, ...patch };
+      const next = typeof patchOrFn === 'function' ? patchOrFn(prev) : { ...prev, ...patchOrFn };
       saveSettings(next);
       scheduleCloudPush(next);
       return next;
@@ -246,54 +246,28 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     ...settings,
     setAccent: (accent) => update({ accent }),
     setTheme: (theme) => update({ theme }),
-    toggleListVisibility: (listId) => {
-      setSettings((prev) => {
-        const hiddenListIds = prev.hiddenListIds.includes(listId)
-          ? prev.hiddenListIds.filter((id) => id !== listId)
-          : [...prev.hiddenListIds, listId];
-        const showMyDay = !hiddenListIds.includes('my-day');
-        const next = { ...prev, hiddenListIds, showMyDay };
-        saveSettings(next);
-        scheduleCloudPush(next);
-        return next;
-      });
-    },
+    toggleListVisibility: (listId) => update((prev) => {
+      const hiddenListIds = prev.hiddenListIds.includes(listId)
+        ? prev.hiddenListIds.filter((id) => id !== listId)
+        : [...prev.hiddenListIds, listId];
+      return { ...prev, hiddenListIds, showMyDay: !hiddenListIds.includes('my-day') };
+    }),
     markSetupDone: () => update({ setupDone: true }),
     setPinnedOrder: (pinnedOrder) => update({ pinnedOrder }),
     setCustomOrder: (customOrder) => update({ customOrder }),
     setMyDayOrder: (myDayOrder) => update({ myDayOrder }),
     setListOrder: (listId, ids) =>
-      setSettings((prev) => {
-        const next = { ...prev, listOrders: { ...prev.listOrders, [listId]: ids } };
-        saveSettings(next);
-        scheduleCloudPush(next);
-        return next;
-      }),
+      update((prev) => ({ ...prev, listOrders: { ...prev.listOrders, [listId]: ids } })),
     setSoundEnabled: (soundEnabled) => update({ soundEnabled }),
     setSoundStyle: (soundStyle) => update({ soundStyle }),
     setSidebarCollapsed: (sidebarCollapsed) => update({ sidebarCollapsed }),
     setListsOpen: (listsOpen) => update({ listsOpen }),
     setFolderCollapsed: (folderId, collapsed) =>
-      setSettings((prev) => {
-        const next = { ...prev, folderCollapsed: { ...prev.folderCollapsed, [folderId]: collapsed } };
-        saveSettings(next);
-        scheduleCloudPush(next);
-        return next;
-      }),
+      update((prev) => ({ ...prev, folderCollapsed: { ...prev.folderCollapsed, [folderId]: collapsed } })),
     setFolderOrder: (folderId, ids) =>
-      setSettings((prev) => {
-        const next = { ...prev, folderOrders: { ...prev.folderOrders, [folderId]: ids } };
-        saveSettings(next);
-        scheduleCloudPush(next);
-        return next;
-      }),
+      update((prev) => ({ ...prev, folderOrders: { ...prev.folderOrders, [folderId]: ids } })),
     setListGroupOrder: (listId, groups) =>
-      setSettings((prev) => {
-        const next = { ...prev, listGroupOrders: { ...prev.listGroupOrders, [listId]: groups } };
-        saveSettings(next);
-        scheduleCloudPush(next);
-        return next;
-      }),
+      update((prev) => ({ ...prev, listGroupOrders: { ...prev.listGroupOrders, [listId]: groups } })),
   };
 
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;

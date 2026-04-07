@@ -22,7 +22,7 @@
 
 ## Simplification
 
-- [ ] **`SettingsContext` `update()`** — 5 setters bypass `update()` and call `setSettings` directly just to do a Record merge — make `update()` accept `(prev) => next` to eliminate the duplication
+- [x] **`SettingsContext` `update()`** — 5 setters bypass `update()` and call `setSettings` directly just to do a Record merge — make `update()` accept `(prev) => next` to eliminate the duplication
 - [ ] **`countPending` in `useSync.ts`** — fetches all records from all 3 stores just to count — reuse the already-filtered results from `pushPending` instead of a full re-scan
 
 ## Settings
