@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { signOut } from '../supabase/auth';
 import { Check, Palette, ListDashes, Sun, List, CalendarCheck, ShoppingCart, Sparkle, CloudArrowUp, Info } from '@phosphor-icons/react';
 import { ICON_SIZE } from '../config/icons';
@@ -28,9 +29,16 @@ const STEPS_LOCAL = [
   { icon: <ListDashes size={28} weight="fill" />, title: 'Your lists',       body: 'Choose which lists you want to start with.' },
 ];
 
+const stepVariants = {
+  enter: (d: number) => ({ opacity: 0, x: d * 24 }),
+  center: { opacity: 1, x: 0, transition: { duration: 0.28, ease: 'easeOut' } },
+  exit: (d: number) => ({ opacity: 0, x: d * -24, transition: { duration: 0.18, ease: 'easeIn' } }),
+};
+
 export function SetupWizard() {
   const { accent, setAccent, theme, setTheme, markSetupDone, toggleListVisibility, setPinnedOrder, setSyncEnabled, localOnly, setLocalOnly } = useSettings();
   const navigate = useNavigate();
+  const dir = useRef(1);
 
   async function goBack() {
     if (localOnly) setLocalOnly(false);
@@ -44,6 +52,11 @@ export function SetupWizard() {
   });
   const [syncChoice, setSyncChoice] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  function advance(next: number) {
+    dir.current = next > step ? 1 : -1;
+    setStep(next);
+  }
 
   function toggle(key: string) {
     setLists((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -66,72 +79,84 @@ export function SetupWizard() {
     <div className="wizard-screen">
       <div className="wizard-step">
         <div className="wizard-step__content">
-          <div className="wizard-step__header">
-            <div className="wizard-step__icon">{STEPS[step].icon}</div>
-            <h1 className="wizard-title">{STEPS[step].title}</h1>
-          </div>
-
-          {localOnly && step === 0 ? (
-            <div className="wizard-callout">
-              <Info size={18} weight="fill" className="wizard-callout__icon" />
-              <span>{STEPS[step].body}</span>
-            </div>
-          ) : STEPS[step].body ? (
-            <p className="wizard-body">{STEPS[step].body}</p>
-          ) : null}
-
-          {step === 1 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem', width: '100%' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', width: '100%' }}>
-                <span className="wizard-field-label">Accent</span>
-                <ColorSwatchPicker accent={accent} onSelect={setAccent} />
+          <AnimatePresence mode="wait" custom={dir.current}>
+            <motion.div
+              key={step}
+              custom={dir.current}
+              variants={stepVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem' }}
+            >
+              <div className="wizard-step__header">
+                <div className="wizard-step__icon">{STEPS[step].icon}</div>
+                <h1 className="wizard-title">{STEPS[step].title}</h1>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <span className="wizard-field-label">Mode</span>
-                <div className="theme-btn-group theme-btn-group--vertical">
-                  {(['system', 'light', 'dark'] as const).map((t) => (
+
+              {localOnly && step === 0 ? (
+                <div className="wizard-callout">
+                  <Info size={18} weight="fill" className="wizard-callout__icon" />
+                  <span>{STEPS[step].body}</span>
+                </div>
+              ) : STEPS[step].body ? (
+                <p className="wizard-body">{STEPS[step].body}</p>
+              ) : null}
+
+              {step === 1 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem', width: '100%' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', width: '100%' }}>
+                    <span className="wizard-field-label">Accent</span>
+                    <ColorSwatchPicker accent={accent} onSelect={setAccent} />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <span className="wizard-field-label">Mode</span>
+                    <div className="theme-btn-group theme-btn-group--vertical">
+                      {(['system', 'light', 'dark'] as const).map((t) => (
+                        <button
+                          key={t}
+                          className={`theme-btn${theme === t ? ' theme-btn--active' : ''}`}
+                          onClick={() => setTheme(t)}
+                        >
+                          {t.charAt(0).toUpperCase() + t.slice(1)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {step === 2 && (
+                <div className="wizard-list-options">
+                  {LIST_OPTIONS.map(({ key, label, icon }) => (
                     <button
-                      key={t}
-                      className={`theme-btn${theme === t ? ' theme-btn--active' : ''}`}
-                      onClick={() => setTheme(t)}
+                      key={key}
+                      className={`wizard-list-option${lists[key] ? ' wizard-list-option--on' : ''}`}
+                      onClick={() => toggle(key)}
                     >
-                      {t.charAt(0).toUpperCase() + t.slice(1)}
+                      <span className="wizard-list-option__label">{icon}{label}</span>
+                      <span className={`toggle-btn${lists[key] ? ' toggle-btn--on' : ''}`} aria-hidden="true" />
                     </button>
                   ))}
                 </div>
-              </div>
-            </div>
-          )}
+              )}
 
-          {step === 2 && (
-            <div className="wizard-list-options">
-              {LIST_OPTIONS.map(({ key, label, icon }) => (
-                <button
-                  key={key}
-                  className={`wizard-list-option${lists[key] ? ' wizard-list-option--on' : ''}`}
-                  onClick={() => toggle(key)}
-                >
-                  <span className="wizard-list-option__label">{icon}{label}</span>
-                  <span className={`toggle-btn${lists[key] ? ' toggle-btn--on' : ''}`} aria-hidden="true" />
-                </button>
-              ))}
-            </div>
-          )}
-
-          {step === 3 && (
-            <div className="wizard-list-options">
-              <button
-                className={`wizard-list-option${syncChoice ? ' wizard-list-option--on' : ''}`}
-                onClick={() => setSyncChoice((v) => !v)}
-              >
-                <span className="wizard-list-option__label">
-                  <CloudArrowUp size={ICON_SIZE} weight="fill" />
-                  Enable cloud sync
-                </span>
-                <span className={`toggle-btn${syncChoice ? ' toggle-btn--on' : ''}`} aria-hidden="true" />
-              </button>
-            </div>
-          )}
+              {step === 3 && (
+                <div className="wizard-list-options">
+                  <button
+                    className={`wizard-list-option${syncChoice ? ' wizard-list-option--on' : ''}`}
+                    onClick={() => setSyncChoice((v) => !v)}
+                  >
+                    <span className="wizard-list-option__label">
+                      <CloudArrowUp size={ICON_SIZE} weight="fill" />
+                      Enable cloud sync
+                    </span>
+                    <span className={`toggle-btn${syncChoice ? ' toggle-btn--on' : ''}`} aria-hidden="true" />
+                  </button>
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
         </div>
 
         <div className="wizard-step__controls">
@@ -142,16 +167,16 @@ export function SetupWizard() {
             {step === 0 ? (
               <>
                 <button className="btn-ghost" onClick={goBack}>Back</button>
-                <button className="btn-primary" onClick={() => setStep(1)}>Get started</button>
+                <button className="btn-primary" onClick={() => advance(1)}>Get started</button>
               </>
             ) : step < STEPS.length - 1 ? (
               <>
-                <button className="btn-ghost" onClick={() => setStep(step - 1)}>Back</button>
-                <button className="btn-primary" onClick={() => setStep(step + 1)}>Next</button>
+                <button className="btn-ghost" onClick={() => advance(step - 1)}>Back</button>
+                <button className="btn-primary" onClick={() => advance(step + 1)}>Next</button>
               </>
             ) : (
               <>
-                <button className="btn-ghost" onClick={() => setStep(step - 1)}>Back</button>
+                <button className="btn-ghost" onClick={() => advance(step - 1)}>Back</button>
                 <button className="btn-primary" onClick={finish} disabled={saving}>Done</button>
               </>
             )}
