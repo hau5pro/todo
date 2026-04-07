@@ -126,7 +126,7 @@ export function TaskDetailPanel() {
       transition={{ duration: 0.26, ease: ease.snap }}
     >
       <div className="task-detail-panel__header">
-        <button className="task-detail-close" onClick={close} title="Close">
+        <button className="task-detail-close" onClick={close} aria-label="Close">
           ✕
         </button>
       </div>
@@ -135,6 +135,7 @@ export function TaskDetailPanel() {
         <input
           ref={inputRef}
           className="task-detail-title-input"
+          aria-label="Task title"
           value={editTitle}
           onChange={(e) => setEditTitle(e.target.value)}
           onBlur={commitTitle}

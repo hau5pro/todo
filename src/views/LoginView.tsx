@@ -188,6 +188,7 @@ export function LoginView() {
               className="auth-input auth-input--icon"
               type="email"
               placeholder="Email"
+              aria-label="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -200,6 +201,7 @@ export function LoginView() {
               className="auth-input auth-input--icon"
               type="password"
               placeholder="Password"
+              aria-label="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -211,6 +213,7 @@ export function LoginView() {
             {error && (
               <motion.p
                 className="auth-error"
+                role="alert"
                 initial={{ opacity: 0, y: -6 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}

@@ -54,6 +54,7 @@ export function TaskItem({ title, completed, dueDate, today, onToggle, onSelect,
       tabIndex={0}
       data-nav-row
       onClick={onSelect}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect?.(); } }}
     >
       <AnimatedCheckbox checked={completed} onChange={handleToggle} popping={popping} />
       <span className={`task-item__title${completed ? ' task-item__title--completed' : ''}`}>

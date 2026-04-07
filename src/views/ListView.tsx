@@ -615,6 +615,7 @@ export function ListView() {
           <input
             className="add-task-input"
             placeholder="+ Add task"
+            aria-label="Add task"
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
             data-add-task
@@ -668,7 +669,7 @@ export function ListView() {
 
       {!taskEditMode && (
         <section>
-          <button className="section-collapse-btn" onClick={() => setShowCompleted((p) => !p)}>
+          <button className="section-collapse-btn" onClick={() => setShowCompleted((p) => !p)} aria-expanded={showCompleted}>
             <span className="section-heading" style={{ margin: 0 }}>
               Completed{completedTasks.length > 0 ? ` (${completedTasks.length})` : ''}
             </span>

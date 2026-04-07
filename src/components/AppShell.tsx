@@ -80,7 +80,7 @@ export function AppShell() {
             </span>
           </NavLink>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <NavLink to="/docs" className="header-icon-btn" title="Help">
+            <NavLink to="/docs" className="header-icon-btn" aria-label="Help">
               <Question size={18} weight="bold" />
             </NavLink>
             {syncEnabled && <SyncDot pendingCount={pendingCount} isSyncing={isSyncing} />}

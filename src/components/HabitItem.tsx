@@ -38,6 +38,7 @@ export function HabitItem({ title, completedToday, streak, onToggle, onSelect, i
       tabIndex={0}
       data-nav-row
       onClick={onSelect}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect?.(); } }}
     >
       <AnimatedCheckbox
         checked={completedToday}
@@ -50,7 +51,7 @@ export function HabitItem({ title, completedToday, streak, onToggle, onSelect, i
         {title}
       </span>
       {streak > 0 && (
-        <span className={`habit-item__streak${streak >= 7 ? ' habit-item__streak--hot' : ''}`}>
+        <span className={`habit-item__streak${streak >= 7 ? ' habit-item__streak--hot' : ''}`} aria-label={`${streak} day streak`}>
           <svg className="habit-item__streak-flame" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M12 2C9.5 6 8 8.5 9 11c-1.5-1-2-2.5-1.5-4C5 9 3.5 12 5 15c1 2 3 3.5 5.5 3.9V20h3v-1.1C16 18.5 18 17 19 15c1.5-3 0-6-2.5-8-.5 1.5-1 2.5-2 3 1-2 .5-5-2.5-8z"/>
           </svg>
