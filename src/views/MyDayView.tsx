@@ -6,6 +6,7 @@ import { useSettings } from '../contexts/SettingsContext';
 import { TaskItem } from '../components/TaskItem';
 import { HabitItem } from '../components/HabitItem';
 import { toggleHabitCompletion } from '../db/habits';
+import { requestSync } from '../sync/orchestrator';
 import { ICON_SIZE } from '../config/constants';
 import { ease } from '../utils/easing';
 import { applyOrder } from '../utils/order';
@@ -50,6 +51,7 @@ export function MyDayView() {
   async function handleHabitToggle(taskId: string) {
     await toggleHabitCompletion(taskId, today);
     loadMyDay();
+    requestSync();
   }
 
   const orderedHabits = useMemo(() => {

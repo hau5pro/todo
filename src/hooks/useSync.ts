@@ -3,6 +3,7 @@ import { getDB, req } from '../db/client';
 import { pushPending, pullFromSupabase } from '../db/sync';
 import { supabase } from '../supabase/client';
 import { useSettings } from '../contexts/SettingsContext';
+import { registerSyncHandler } from '../sync/orchestrator';
 import type { List, Task, HabitCompletion } from '../types';
 
 async function countPending(): Promise<number> {
@@ -51,11 +52,13 @@ export function useSync() {
     if (!syncEnabled) return;
     countPending().then(setPendingCount);
     sync();
+    const unregister = registerSyncHandler(sync);
     const onFocus = () => sync();
     const onVisibility = () => { if (!document.hidden) sync(); };
     window.addEventListener('focus', onFocus);
     document.addEventListener('visibilitychange', onVisibility);
     return () => {
+      unregister();
       window.removeEventListener('focus', onFocus);
       document.removeEventListener('visibilitychange', onVisibility);
     };

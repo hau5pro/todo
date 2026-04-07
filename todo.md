@@ -8,6 +8,7 @@
 
 ## Improvements
 
+- [ ] **Build/perf** — configure `rollupOptions.output.manualChunks` to split vendor chunks (react, framer-motion, phosphor icons, supabase); audit bundle size, lazy-load heavy views, check LCP/TTI with Lighthouse
 
 
 ## Tests

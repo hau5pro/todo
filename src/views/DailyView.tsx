@@ -16,6 +16,7 @@ import { useTaskDetail } from '../contexts/TaskDetailContext';
 import { useSettings } from '../contexts/SettingsContext';
 import { HabitItem } from '../components/HabitItem';
 import { toggleHabitCompletion } from '../db/habits';
+import { requestSync } from '../sync/orchestrator';
 import { LIST_TYPE_LABELS } from '../types';
 import { getListIcon } from '../config/listIcons';
 import { ICON_SIZE } from '../config/constants';
@@ -92,6 +93,7 @@ export function DailyView() {
   async function handleToggle(taskId: string) {
     await toggleHabitCompletion(taskId, today);
     reload();
+    requestSync();
   }
 
   async function handleAdd(e: React.FormEvent) {

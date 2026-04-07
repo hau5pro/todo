@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { requestSync } from '../sync/orchestrator';
 import {
   getLists,
   createList as dbCreateList,
@@ -181,6 +182,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
   createList: async (name, type, folderId) => {
     const list = await dbCreateList(name, type, folderId);
     set((s) => ({ lists: [...s.lists, list] }));
+    requestSync();
     return list;
   },
 
@@ -189,6 +191,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
     set((s) => ({
       lists: s.lists.map((l) => (l.id === id ? { ...l, name } : l)),
     }));
+    requestSync();
   },
 
   updateListIcon: async (id, icon) => {
@@ -196,6 +199,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
     set((s) => ({
       lists: s.lists.map((l) => (l.id === id ? { ...l, icon } : l)),
     }));
+    requestSync();
   },
 
   deleteList: async (id) => {
@@ -206,6 +210,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
         Object.entries(s.tasksByList).filter(([k]) => k !== id)
       ),
     }));
+    requestSync();
   },
 
   moveListToFolder: async (listId, folderId) => {
@@ -213,6 +218,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
     set((s) => ({
       lists: s.lists.map((l) => (l.id === listId ? { ...l, folder_id: folderId } : l)),
     }));
+    requestSync();
   },
 
   duplicateList: async (id) => {
@@ -241,6 +247,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
       lists: [...s.lists, newList],
       tasksByList: { ...s.tasksByList, [newList.id]: newTasks },
     }));
+    requestSync();
     return newList;
   },
 
@@ -249,6 +256,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
   createFolder: async (name) => {
     const folder = await dbCreateFolder(name);
     set((s) => ({ folders: [...s.folders, folder] }));
+    requestSync();
     return folder;
   },
 
@@ -257,6 +265,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
     set((s) => ({
       folders: s.folders.map((f) => (f.id === id ? { ...f, name } : f)),
     }));
+    requestSync();
   },
 
   deleteFolder: async (id) => {
@@ -268,6 +277,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
       folders: s.folders.filter((f) => f.id !== id),
       lists: s.lists.map((l) => (l.folder_id === id ? { ...l, folder_id: null } : l)),
     }));
+    requestSync();
     return { movedListIds: listsInFolder.map((l) => l.id) };
   },
 
@@ -281,12 +291,14 @@ export const useAppStore = create<AppStore>((set, get) => ({
         [listId]: [...(s.tasksByList[listId] ?? []), task],
       },
     }));
+    requestSync();
     return task;
   },
 
   moveTaskToGroup: async (id, listId, group) => {
     const updated = await dbUpdateTask(id, { group });
     set((s) => updateTaskInSlices(s, listId, (t) => (t.id === id ? updated : t)));
+    requestSync();
     return updated;
   },
 
@@ -301,6 +313,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
         }),
       },
     }));
+    requestSync();
   },
 
   deleteGroup: async (listId, name) => {
@@ -314,11 +327,13 @@ export const useAppStore = create<AppStore>((set, get) => ({
         }),
       },
     }));
+    requestSync();
   },
 
   renameTask: async (id, listId, title) => {
     const updated = await dbUpdateTask(id, { title });
     set((s) => updateTaskInSlices(s, listId, (t) => (t.id === id ? updated : t)));
+    requestSync();
     return updated;
   },
 
@@ -326,6 +341,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
     const updated = await dbUpdateTask(id, fields);
     set((s) => updateTaskInSlices(s, listId, (t) => (t.id === id ? updated : t)));
     if (get().myDayLoaded) get().loadMyDay();
+    requestSync();
     return updated;
   },
 
@@ -339,24 +355,27 @@ export const useAppStore = create<AppStore>((set, get) => ({
         const updated = await dbAdvanceRecurring(id);
         set((s) => updateTaskInSlices(s, listId, (t) => (t.id === id ? updated : t)));
         if (get().myDayLoaded) get().loadMyDay();
+        requestSync();
         return;
       }
     }
     const updated = await dbSetCompleted(id, completed);
     set((s) => updateTaskInSlices(s, listId, (t) => (t.id === id ? updated : t)));
     if (get().myDayLoaded) get().loadMyDay();
+    requestSync();
   },
-
 
   advanceCyclicalTask: async (id, listId) => {
     const updated = await dbAdvanceCyclical(id);
     set((s) => updateTaskInSlices(s, listId, (t) => (t.id === id ? updated : t)));
     if (get().myDayLoaded) get().loadMyDay();
+    requestSync();
   },
 
   removeTask: async (id, listId) => {
     await dbSoftDelete(id);
     set((s) => removeTaskFromSlices(s, listId, id));
     if (get().myDayLoaded) get().loadMyDay();
+    requestSync();
   },
 }));
