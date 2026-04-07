@@ -7,7 +7,7 @@
 - [x] **`sync.ts:138`** — `deleteAllCloudData` missing `'folders'` from its tables array
 - [x] **`MyDayView.tsx:77`** — habit ordering puts `rest` before `ordered`, opposite of `DailyView` — habits show in wrong order in My Day
 - [ ] **Habit tasks — no due date or recurrence** — `TaskDetailPanel` should hide due date and recurrence fields when the task belongs to a `daily` list (habits are implicitly daily; setting these causes double display in My Day); groups should remain available; also fix the misleading comment in `getMyDayTasks` (`db/tasks.ts:191`)
-- [ ] **`db/tasks.ts:108`** — `restoreTask` exported but never imported or used anywhere — dead code
+- [x] **`db/tasks.ts:108`** — `restoreTask` exported but never imported or used anywhere — dead code
 
 ## Security
 
@@ -24,6 +24,10 @@
 
 - [ ] **`SettingsContext` `update()`** — 5 setters bypass `update()` and call `setSettings` directly just to do a Record merge — make `update()` accept `(prev) => next` to eliminate the duplication
 - [ ] **`countPending` in `useSync.ts`** — fetches all records from all 3 stores just to count — reuse the already-filtered results from `pushPending` instead of a full re-scan
+
+## Settings
+
+- [ ] **Cloud sync toggle** — setting to enable/disable cloud sync entirely
 
 ## Improvements
 
