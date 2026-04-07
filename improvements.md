@@ -11,7 +11,6 @@ session counter: 4 + 5x lol
 - improv: user defined lists collapsed in sidebare as well? no its too much issue with folders
 - improv: group in details view. dropdown doesnt match anything. maybe an auto complete dropdown?
 - improv: add item in group should be consistent with add task
+- sign in loading icon?
 
-
-- bug: tasks if not opened and i complete it my day, those tasks dont show in completed tasks until refresh
-- bug: when creating a user created list, the default icon doesnt show in sidebar until an icon is picked with picker.
+- bug: fresh user, initial load my day doesnt show
