@@ -12,6 +12,8 @@ import { CalendarPicker } from './CalendarPicker';
 import { RecurrencePicker } from './RecurrencePicker';
 import type { Task } from '../types';
 
+const EMPTY_TASKS: Task[] = [];
+
 function formatDueDate(date: string): string {
   const today = dayjs().format('YYYY-MM-DD');
   const tomorrow = dayjs().add(1, 'day').format('YYYY-MM-DD');
@@ -27,7 +29,7 @@ export function TaskDetailPanel() {
   const updateTaskFields = useAppStore((s) => s.updateTaskFields);
   const moveTaskToGroup = useAppStore((s) => s.moveTaskToGroup);
   const listTasks = useAppStore((s) =>
-    detail ? (s.tasksByList[detail.task.list_id] ?? []) : []
+    s.tasksByList[detail?.task.list_id ?? ''] ?? EMPTY_TASKS
   );
   const { listGroupOrders, setListGroupOrder } = useSettings();
 

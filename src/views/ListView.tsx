@@ -70,7 +70,7 @@ function TaskRow({
       dragControls={dragControls}
       variants={taskItemVariants}
       className="task-row"
-      style={{ cursor: 'default', opacity: dragging ? 0.4 : 1 }}
+      style={{ cursor: editMode ? 'grab' : 'default', opacity: dragging ? 0.4 : 1 }}
     >
       <span style={{ width: editMode ? 26 : 0, opacity: editMode ? 1 : 0, overflow: 'hidden', flexShrink: 0, display: 'flex', transition: 'width 0.15s, opacity 0.15s' }}>
         <span className="task-edit-drag" onPointerDown={(e) => dragControls.start(e)}>
@@ -80,9 +80,17 @@ function TaskRow({
       {/* Wrap content in a draggable div so it doesn't conflict with FM's onDragStart typing */}
       <div
         style={{ flex: 1, minWidth: 0 }}
-        draggable={!editMode}
-        onDragStart={editMode ? undefined : onDragStart}
-        onDragEnd={editMode ? undefined : onDragEnd}
+        draggable={editMode}
+        onDragStart={editMode ? (e) => {
+          const ghost = document.createElement('div');
+          ghost.className = 'task-drag-ghost';
+          ghost.textContent = task.title;
+          document.body.appendChild(ghost);
+          e.dataTransfer.setDragImage(ghost, 0, 0);
+          requestAnimationFrame(() => document.body.removeChild(ghost));
+          onDragStart(e);
+        } : undefined}
+        onDragEnd={editMode ? onDragEnd : undefined}
       >
         <TaskItem
           title={task.title}
@@ -108,7 +116,7 @@ function TaskRow({
 
 function GroupSection({
   groupName, tasks, editMode, today, listId, globalOrder, draggingTaskId,
-  onReorder, onToggle, onSelect, onDelete, onRename, onDeleteGroup, selectedTaskId,
+  onReorder, onToggle, onSelect, onDelete, onRename, onDeleteGroup, onTaskDragStart, onTaskDragEnd, selectedTaskId,
 }: {
   groupName: string;
   tasks: Task[];
@@ -123,6 +131,8 @@ function GroupSection({
   onDelete: (task: Task) => void;
   onRename: (oldName: string, newName: string) => void;
   onDeleteGroup: (name: string) => void;
+  onTaskDragStart: (taskId: string) => void;
+  onTaskDragEnd: () => void;
   selectedTaskId: string | undefined;
 }) {
   const { addTask, moveTaskToGroup } = useAppStore();
@@ -194,13 +204,17 @@ function GroupSection({
   }
 
   return (
-    <div className={`group-section${isDragOver ? ' group-section--drag-over' : ''}`}>
-      <div
-        className="group-header"
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-      >
+    <div
+      className={[
+        'group-section',
+        draggingTaskId ? 'group-section--dragging' : '',
+        isDragOver ? 'group-section--drag-over' : '',
+      ].filter(Boolean).join(' ')}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      <div className="group-header">
         <button
           className="group-header-collapse"
           onClick={() => setCollapsed((p) => !p)}
@@ -222,10 +236,8 @@ function GroupSection({
             }}
           />
         ) : (
-          <span className="group-header-name" onDoubleClick={startEditName}>{groupName}</span>
+          <span className="group-header-name" onDoubleClick={startEditName}>{groupName} <span className="group-header-count">({tasks.length})</span></span>
         )}
-
-        <span className="group-header-count">{tasks.length}</span>
 
         <div className="group-header-menu" ref={menuRef}>
           <button
@@ -282,9 +294,9 @@ function GroupSection({
                     onDragStart={(e) => {
                       e.dataTransfer.effectAllowed = 'move';
                       e.dataTransfer.setData('text/plain', task.id);
-                      // bubble draggingTaskId up is handled by parent via drop
+                      onTaskDragStart(task.id);
                     }}
-                    onDragEnd={() => { /* parent clears via drop */ }}
+                    onDragEnd={onTaskDragEnd}
                     onToggle={() => onToggle(task)}
                     onSelect={() => onSelect(task)}
                     onDelete={() => onDelete(task)}
@@ -586,24 +598,33 @@ export function ListView() {
       <motion.p variants={headerItemVariants} className="view-subtitle">
         {list.type === 'general' ? 'tasks' : LIST_TYPE_LABELS[list.type]}
       </motion.p>
-      <motion.form variants={headerItemVariants} onSubmit={handleAdd}>
-        <input
-          className="add-task-input"
-          placeholder="+ Add task"
-          value={newTitle}
-          onChange={(e) => setNewTitle(e.target.value)}
-          data-add-task
-        />
-      </motion.form>
       </motion.div>
 
-      {/* Ungrouped tasks — also a drop zone to remove group assignment */}
+      {/* Ungrouped tasks + add task — unified drop zone to remove group assignment */}
       <div
-        className={`ungrouped-drop-zone${ungroupedDragOver ? ' ungrouped-drop-zone--active' : ''}`}
+        className={[
+          'ungrouped-drop-zone',
+          draggingTaskId ? 'ungrouped-drop-zone--dragging' : '',
+          ungroupedDragOver ? 'ungrouped-drop-zone--active' : '',
+        ].filter(Boolean).join(' ')}
         onDragOver={handleUngroupedDragOver}
         onDragLeave={handleUngroupedDragLeave}
         onDrop={handleUngroupedDrop}
       >
+        <motion.form
+          initial={{ opacity: 0, y: 5 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2, ease: 'easeOut', delay: 0.21 }}
+          onSubmit={handleAdd}
+        >
+          <input
+            className="add-task-input"
+            placeholder="+ Add task"
+            value={newTitle}
+            onChange={(e) => setNewTitle(e.target.value)}
+            data-add-task
+          />
+        </motion.form>
         <Reorder.Group as="div" axis="y" values={ungroupedTasks} onReorder={handleReorder}
           variants={taskListVariants} initial="hidden" animate="show"
         >
@@ -644,6 +665,8 @@ export function ListView() {
           onDelete={(task) => removeTask(task.id, listId!)}
           onRename={handleRenameGroup}
           onDeleteGroup={handleDeleteGroup}
+          onTaskDragStart={(taskId) => setDraggingTaskId(taskId)}
+          onTaskDragEnd={() => setDraggingTaskId(null)}
           selectedTaskId={detail?.task.id}
         />
       ))}

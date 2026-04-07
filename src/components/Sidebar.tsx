@@ -69,10 +69,15 @@ function SortableItem({
   const deleteList = useAppStore((s) => s.deleteList);
   const navigate = useNavigate();
   const match = useMatch(`/list/${list.id}`);
-
   function handleDragStart(e: React.DragEvent) {
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', JSON.stringify({ listId: list.id, folderId: list.folder_id }));
+    const ghost = document.createElement('div');
+    ghost.className = 'task-drag-ghost';
+    ghost.textContent = list.name;
+    document.body.appendChild(ghost);
+    e.dataTransfer.setDragImage(ghost, 0, 0);
+    requestAnimationFrame(() => document.body.removeChild(ghost));
   }
 
   async function handleDelete() {
@@ -255,6 +260,7 @@ function FolderRow({
   }
 
   function handleDragOver(e: React.DragEvent) {
+    if (!editMode) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
     setIsDragOver(true);
@@ -267,6 +273,7 @@ function FolderRow({
   }
 
   function handleDrop(e: React.DragEvent) {
+    if (!editMode) return;
     e.preventDefault();
     setIsDragOver(false);
     try {
@@ -361,8 +368,8 @@ function FolderRow({
         {!isCollapsed && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1, overflow: 'visible' }}
+            exit={{ height: 0, opacity: 0, overflow: 'hidden' }}
             transition={{ duration: 0.18 }}
             style={{ overflow: 'hidden' }}
           >
@@ -409,6 +416,7 @@ export function Sidebar() {
   const [newListName, setNewListName] = useState('');
   const [newFolderName, setNewFolderName] = useState('');
   const [ungroupedDragOver, setUngroupedDragOver] = useState(false);
+  const [isDraggingList, setIsDraggingList] = useState(false);
   const addInputRef = useRef<HTMLInputElement>(null);
   const addFolderInputRef = useRef<HTMLInputElement>(null);
   const addMenuBtnRef = useRef<HTMLButtonElement>(null);
@@ -417,6 +425,18 @@ export function Sidebar() {
   // Collapse sidebar by default on mobile
   useEffect(() => {
     if (window.innerWidth < 640) setSidebarCollapsed(true);
+  }, []);
+
+  // Track any list drag for drop zone highlight
+  useEffect(() => {
+    const onStart = () => setIsDraggingList(true);
+    const onEnd = () => setIsDraggingList(false);
+    window.addEventListener('dragstart', onStart);
+    window.addEventListener('dragend', onEnd);
+    return () => {
+      window.removeEventListener('dragstart', onStart);
+      window.removeEventListener('dragend', onEnd);
+    };
   }, []);
 
   // Close add menu on scroll/resize
@@ -572,6 +592,7 @@ export function Sidebar() {
   }
 
   function handleUngroupedDragOver(e: React.DragEvent) {
+    if (!editMode) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
     setUngroupedDragOver(true);
@@ -584,6 +605,7 @@ export function Sidebar() {
   }
 
   function handleUngroupedDrop(e: React.DragEvent) {
+    if (!editMode) return;
     e.preventDefault();
     setUngroupedDragOver(false);
     try {
@@ -591,6 +613,7 @@ export function Sidebar() {
       if (listId && folderId !== null) handleMoveToFolder(listId, null);
     } catch {}
   }
+
 
   return (
     <motion.nav
@@ -756,8 +779,8 @@ export function Sidebar() {
                 <motion.div
                   key="lists-content"
                   initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1, overflow: 'visible' }}
+                  exit={{ height: 0, opacity: 0, overflow: 'hidden' }}
                   transition={{ duration: 0.2 }}
                   style={{ overflow: 'hidden' }}
                 >
@@ -766,8 +789,11 @@ export function Sidebar() {
                     onDragOver={handleUngroupedDragOver}
                     onDragLeave={handleUngroupedDragLeave}
                     onDrop={handleUngroupedDrop}
-                    className={ungroupedDragOver ? 'nav-drop-zone nav-drop-zone--active' : 'nav-drop-zone'}
+                    className={['nav-drop-zone', editMode && orderedUngrouped.length === 0 && 'nav-drop-zone--empty', editMode && isDraggingList && 'nav-drop-zone--dragging', ungroupedDragOver && 'nav-drop-zone--active'].filter(Boolean).join(' ')}
                   >
+                    {editMode && orderedUngrouped.length === 0 && (
+                      <span className="nav-remove-zone__label">Drop to ungroup</span>
+                    )}
                     <Reorder.Group
                       as="div"
                       axis="y"
