@@ -7,7 +7,7 @@ import {
   List, Plus, CheckCircle, Pencil, PanelLeft,
   FolderPlus, Folder, Trash2, CornerDownLeft, MoreHorizontal,
 } from 'lucide-react';
-import { signOut } from '../supabase/auth';
+import { logOut } from '../supabase/auth';
 import { useSettings } from '../contexts/SettingsContext';
 import { useAppStore } from '../store';
 import { focusLater } from '../utils/dom';
@@ -461,6 +461,8 @@ export function Sidebar() {
     setFolderOrder,
     sidebarCollapsed,
     setSidebarCollapsed,
+    localOnly,
+    setLocalOnly,
   } = useSettings();
 
   // Pinned
@@ -687,7 +689,7 @@ export function Sidebar() {
             <NavTooltip label="Sign out">
               <button
                 className="nav-icon-btn"
-                onClick={() => signOut().catch(console.error)}
+                onClick={() => logOut(localOnly, setLocalOnly).catch(console.error)}
                 aria-label="Sign out"
               >
                 <LogOut size={20} />
@@ -908,7 +910,7 @@ export function Sidebar() {
               Settings
             </NavLink>
             <div style={{ height: '0.5rem' }} />
-            <button className="nav-item nav-btn nav-item--signout" onClick={() => signOut().catch(console.error)}>
+            <button className="nav-item nav-btn nav-item--signout" onClick={() => logOut(localOnly, setLocalOnly).catch(console.error)}>
               <LogOut size={ICON_SIZE} />
               Sign out
             </button>

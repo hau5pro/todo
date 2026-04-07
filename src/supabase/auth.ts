@@ -26,6 +26,11 @@ export async function signOut(): Promise<void> {
   if (error) throw error;
 }
 
+export async function logOut(localOnly: boolean, setLocalOnly: (v: boolean) => void): Promise<void> {
+  if (localOnly) setLocalOnly(false);
+  else await signOut();
+}
+
 export async function getUser(): Promise<User | null> {
   const { data } = await supabase.auth.getUser();
   return data.user;

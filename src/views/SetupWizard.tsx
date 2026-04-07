@@ -1,7 +1,6 @@
 import { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { signOut } from '../supabase/auth';
+import { logOut } from '../supabase/auth';
 import { Check, Palette, AlignJustify, Sun, List, CalendarCheck, ShoppingCart, Sparkles, CloudUpload, Info } from 'lucide-react';
 import { ICON_SIZE } from '../config/constants';
 import { useSettings } from '../contexts/SettingsContext';
@@ -37,13 +36,10 @@ const stepVariants = {
 
 export function SetupWizard() {
   const { accent, setAccent, theme, setTheme, markSetupDone, toggleListVisibility, setPinnedOrder, setSyncEnabled, localOnly, setLocalOnly } = useSettings();
-  const navigate = useNavigate();
   const dir = useRef(1);
 
-  async function goBack() {
-    if (localOnly) setLocalOnly(false);
-    else await signOut().catch(() => {});
-    navigate('/login');
+  function goBack() {
+    logOut(localOnly, setLocalOnly).catch(() => {});
   }
   const STEPS = localOnly ? STEPS_LOCAL : STEPS_FULL;
   const [step, setStep] = useState(0);
