@@ -783,6 +783,33 @@ button.nav-section-label--button:hover { color: var(--fg); }
   margin: 0 0.1rem;
 }
 
+/* ── Task edit rows (reorder + delete mode) ─────────────── */
+.task-row {
+  display: flex;
+  align-items: center;
+}
+.task-edit-drag {
+  display: flex;
+  align-items: center;
+  color: var(--fg-muted);
+  opacity: 0.5;
+  cursor: grab;
+  touch-action: none;
+  flex-shrink: 0;
+}
+.task-edit-drag:active { cursor: grabbing; }
+.task-edit-delete {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 4px;
+  color: var(--fg-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.task-edit-delete:hover { color: var(--danger); }
+
 /* ── Task items ──────────────────────────────────────────── */
 .task-item {
   display: flex;

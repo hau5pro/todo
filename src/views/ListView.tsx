@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { PencilSimple, Trash, Check, X, CaretDown, CaretRight, CopySimple, List as ListIcon } from '@phosphor-icons/react';
-import { AnimatePresence, motion, Reorder } from 'framer-motion';
+import { PencilSimple, Trash, Check, X, CaretDown, CaretRight, CopySimple, List as ListIcon, TextT, CheckCircle } from '@phosphor-icons/react';
+import { AnimatePresence, motion, Reorder, useDragControls } from 'framer-motion';
 import { ease } from '../utils/easing';
 import { focusLater } from '../utils/dom';
 import { useAppStore } from '../store';
@@ -27,7 +27,7 @@ const taskListVariants = {
 const taskItemVariants = {
   hidden: { opacity: 0, y: -10 },
   show:   { opacity: 1, y: 0, transition: { duration: 0.2, ease: 'easeOut' as const, delay: 0.05 } },
-  exit:   { opacity: 0, height: 0, marginBottom: 0, transition: { duration: 0.22, ease: 'easeIn' as const } },
+  exit:   { opacity: 0, transition: { duration: 0.15, ease: 'easeIn' as const } },
 };
 
 function applyOrder(tasks: Task[], order: string[]): Task[] {
@@ -38,6 +38,45 @@ function applyOrder(tasks: Task[], order: string[]): Task[] {
   return [...rest, ...ordered];
 }
 
+function TaskRow({ task, editMode, today, onToggle, onSelect, onDelete, isSelected }: {
+  task: Task; editMode: boolean; today: string;
+  onToggle: () => void; onSelect: () => void; onDelete: () => void; isSelected: boolean;
+}) {
+  const dragControls = useDragControls();
+  return (
+    <Reorder.Item as="div" value={task} dragListener={false} dragControls={dragControls}
+      variants={taskItemVariants}
+      className="task-row"
+      style={{ cursor: 'default' }}
+    >
+      <span style={{ width: editMode ? 26 : 0, opacity: editMode ? 1 : 0, overflow: 'hidden', flexShrink: 0, display: 'flex', transition: 'width 0.15s, opacity 0.15s' }}>
+        <span className="task-edit-drag" onPointerDown={(e) => dragControls.start(e)}>
+          <ListIcon size={ICON_SIZE} weight="bold" />
+        </span>
+      </span>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <TaskItem
+          title={task.title}
+          completed={task.completed}
+          dueDate={task.due_date}
+          today={today}
+          onToggle={onToggle}
+          onSelect={editMode ? undefined : onSelect}
+          isSelected={!editMode && isSelected}
+        />
+      </div>
+      <button
+        className="task-edit-delete"
+        onClick={onDelete}
+        title="Delete task"
+        style={{ width: editMode ? 24 : 0, opacity: editMode ? 1 : 0, overflow: 'hidden', transition: 'width 0.15s, opacity 0.15s' }}
+      >
+        <Trash size={14} weight="fill" />
+      </button>
+    </Reorder.Item>
+  );
+}
+
 export function ListView() {
   const { listId } = useParams<{ listId: string }>();
   const navigate = useNavigate();
@@ -46,7 +85,7 @@ export function ListView() {
   const list = useAppStore((s) => s.lists.find((l) => l.id === listId));
   const tasks = useAppStore((s) => s.tasksByList[listId!]);
   const loadTasks = useAppStore((s) => s.loadTasks);
-  const { renameList, updateListIcon, deleteList, duplicateList, addTask, completeTask, advanceCyclicalTask } = useAppStore();
+  const { renameList, updateListIcon, deleteList, duplicateList, addTask, completeTask, advanceCyclicalTask, removeTask } = useAppStore();
 
   const { detail, open: openDetail, close: closeDetail } = useTaskDetail();
   const { listOrders, setListOrder, customOrder, setCustomOrder, pinnedOrder } = useSettings();
@@ -57,6 +96,7 @@ export function ListView() {
   const [confirmDeleteList, setConfirmDeleteList] = useState(false);
   const [showCompleted, setShowCompleted] = useState(false);
   const [iconPickerAnchor, setIconPickerAnchor] = useState<DOMRect | null>(null);
+  const [taskEditMode, setTaskEditMode] = useState(false);
   const listNameInputRef = useRef<HTMLInputElement>(null);
   const iconBtnRef = useRef<HTMLButtonElement>(null);
 
@@ -64,9 +104,13 @@ export function ListView() {
     if (tasks === undefined) loadTasks(listId!);
   }, [listId]);
 
+  useEffect(() => {
+    setTaskEditMode(false);
+  }, [listId]);
 
   if (!list || tasks === undefined) return null;
 
+  const isPinned = pinnedOrder.includes(listId!);
   const activeTasks = tasks.filter((t) => !t.completed && t.deleted_at === null).reverse();
   const completedTasks = tasks.filter((t) => t.completed && t.deleted_at === null);
   const orderedActive = applyOrder(activeTasks, listOrders[listId!] ?? []);
@@ -144,7 +188,7 @@ export function ListView() {
           </>
         ) : (
           <>
-            {pinnedOrder.includes(listId!) ? (
+            {isPinned ? (
               <span className="view-title-icon">
                 {getListIcon(list, 20) ?? <ListIcon size={20} weight="fill" />}
               </span>
@@ -164,9 +208,19 @@ export function ListView() {
               </button>
             )}
             <h1 className="view-title">{list.name}</h1>
-            {!pinnedOrder.includes(listId!) && (
+            <button
+              className="view-title-action-btn"
+              onClick={() => setTaskEditMode((m) => !m)}
+              title={taskEditMode ? 'Done editing' : 'Edit tasks'}
+              style={taskEditMode ? { color: 'var(--success)' } : undefined}
+            >
+              {taskEditMode
+                ? <CheckCircle size={ICON_SIZE} weight="fill" />
+                : <PencilSimple size={ICON_SIZE} weight="fill" />}
+            </button>
+            {!isPinned && (
               <span className="view-title-actions">
-                <button className="view-title-action-btn" onClick={startEditListName} title="Rename list"><PencilSimple size={ICON_SIZE} weight="fill" /></button>
+                <button className="view-title-action-btn" onClick={startEditListName} title="Rename list"><TextT size={ICON_SIZE} weight="fill" /></button>
                 <button className="view-title-action-btn" onClick={handleDuplicate} title="Duplicate list"><CopySimple size={ICON_SIZE} weight="fill" /></button>
                 <button className="view-title-action-btn view-title-action-btn--danger" onClick={() => setConfirmDeleteList(true)} title="Delete list"><Trash size={ICON_SIZE} weight="fill" /></button>
               </span>
@@ -203,67 +257,66 @@ export function ListView() {
       >
         <AnimatePresence>
           {orderedActive.map((task) => (
-            <Reorder.Item as="div" key={task.id} value={task} variants={taskItemVariants}
-              layout transition={{ layout: { duration: 0.2, ease: 'easeOut' } }}
-            >
-              <TaskItem
-                title={task.title}
-                completed={task.completed}
-                dueDate={task.due_date}
-                today={today}
-                onToggle={() => handleToggle(task)}
-                onSelect={() => handleSelectTask(task)}
-                isSelected={detail?.task.id === task.id}
-              />
-            </Reorder.Item>
+            <TaskRow
+              key={task.id}
+              task={task}
+              editMode={taskEditMode}
+              today={today}
+              onToggle={() => handleToggle(task)}
+              onSelect={() => handleSelectTask(task)}
+              onDelete={() => removeTask(task.id, listId!)}
+              isSelected={detail?.task.id === task.id}
+            />
           ))}
         </AnimatePresence>
       </Reorder.Group>
 
-      <section>
-        <button className="section-collapse-btn" onClick={() => setShowCompleted((p) => !p)}>
-          <span className="section-heading" style={{ margin: 0 }}>
-            Completed{completedTasks.length > 0 ? ` (${completedTasks.length})` : ''}
-          </span>
-          {showCompleted
-            ? <CaretDown size={ICON_SIZE} weight="fill" />
-            : <CaretRight size={ICON_SIZE} weight="fill" />}
-        </button>
-        <AnimatePresence>
-          {showCompleted && (
-            <motion.div
-              key="completed-list"
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.25, ease: ease.out }}
-              style={{ overflow: 'hidden' }}
-            >
-              <AnimatePresence>
-                {completedTasks.map((task) => (
-                  <motion.div
-                    key={task.id}
-                    initial={{ opacity: 0, y: -6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, height: 0, marginBottom: 0, transition: { duration: 0.22, ease: 'easeIn' as const } }}
-                    transition={{ duration: 0.2, ease: 'easeOut' as const }}
-                  >
-                    <TaskItem
-                      title={task.title}
-                      completed={true}
-                      dueDate={task.due_date}
-                      today={today}
-                      onToggle={() => handleToggle(task)}
-                      onSelect={() => handleSelectTask(task)}
-                      isSelected={detail?.task.id === task.id}
-                    />
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </section>
+      {!taskEditMode && (
+        <section>
+          <button className="section-collapse-btn" onClick={() => setShowCompleted((p) => !p)}>
+            <span className="section-heading" style={{ margin: 0 }}>
+              Completed{completedTasks.length > 0 ? ` (${completedTasks.length})` : ''}
+            </span>
+            {showCompleted
+              ? <CaretDown size={ICON_SIZE} weight="fill" />
+              : <CaretRight size={ICON_SIZE} weight="fill" />}
+          </button>
+          <AnimatePresence>
+            {showCompleted && (
+              <motion.div
+                key="completed-list"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.25, ease: ease.out }}
+                style={{ overflow: 'hidden' }}
+              >
+                <AnimatePresence>
+                  {completedTasks.map((task) => (
+                    <motion.div
+                      key={task.id}
+                      initial={{ opacity: 0, y: -6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, transition: { duration: 0.15, ease: 'easeIn' as const } }}
+                      transition={{ duration: 0.2, ease: 'easeOut' as const }}
+                    >
+                      <TaskItem
+                        title={task.title}
+                        completed={true}
+                        dueDate={task.due_date}
+                        today={today}
+                        onToggle={() => handleToggle(task)}
+                        onSelect={() => handleSelectTask(task)}
+                        isSelected={detail?.task.id === task.id}
+                      />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </section>
+      )}
 
       <AnimatePresence>
         {confirmDeleteList && (
