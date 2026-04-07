@@ -1,6 +1,6 @@
 // src/tests/db/sync.test.ts
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { pushPending, pullFromSupabase, initialSync } from '../../db/sync';
+import { pushPending, pullFromSupabase, initialSync, deleteAllCloudData } from '../../db/sync';
 import { createList, getLists } from '../../db/lists';
 import { createTask, getTasksByList } from '../../db/tasks';
 import { getDB } from '../../db/client';
@@ -209,5 +209,43 @@ describe('initialSync', () => {
     // When pullFromSupabase was first invoked, last_sync should have been cleared
     // (initialSync removes it, then pullFromSupabase reads it as the epoch default)
     expect(capturedLastSync).toBeNull();
+  });
+});
+
+describe('deleteAllCloudData', () => {
+  function makeDeleteMockSupabase() {
+    const deleteMock = vi.fn().mockReturnValue({
+      eq: vi.fn().mockResolvedValue({ error: null }),
+    });
+    return {
+      from: vi.fn().mockReturnValue({ delete: deleteMock }),
+      _deleteMock: deleteMock,
+    };
+  }
+
+  it('calls delete().eq() on every table', async () => {
+    const mockSupa = makeDeleteMockSupabase();
+    await deleteAllCloudData(mockSupa as never, 'user-abc');
+    const tables = ['habit_completions', 'tasks', 'lists', 'folders', 'user_settings'];
+    for (const table of tables) {
+      expect(mockSupa.from).toHaveBeenCalledWith(table);
+    }
+    expect(mockSupa._deleteMock).toHaveBeenCalledTimes(tables.length);
+  });
+
+  it('throws if any table returns an error', async () => {
+    const eqMock = vi.fn()
+      .mockResolvedValueOnce({ error: null })   // habit_completions
+      .mockResolvedValueOnce({ error: { message: 'permission denied' } }) // tasks
+      .mockResolvedValue({ error: null });       // rest
+    const mockSupa = {
+      from: vi.fn().mockReturnValue({ delete: vi.fn().mockReturnValue({ eq: eqMock }) }),
+    };
+    await expect(deleteAllCloudData(mockSupa as never, 'user-abc')).rejects.toThrow('tasks: permission denied');
+  });
+
+  it('does not throw when all tables succeed', async () => {
+    const mockSupa = makeDeleteMockSupabase();
+    await expect(deleteAllCloudData(mockSupa as never, 'user-xyz')).resolves.toBeUndefined();
   });
 });

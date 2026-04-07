@@ -69,4 +69,13 @@ describe('calculateStreak', () => {
     ];
     expect(calculateStreak(completions, 'task-1', '2026-04-05')).toBe(0);
   });
+
+  it('returns 0 when today is not done but yesterday was', () => {
+    // Gap on today means the active streak is 0 (user hasn't completed it yet today)
+    const completions: HabitCompletion[] = [
+      { id: '1', task_id: 'task-1', date: '2026-04-04', created_at: '', deleted_at: null, pending_sync: false },
+      { id: '2', task_id: 'task-1', date: '2026-04-03', created_at: '', deleted_at: null, pending_sync: false },
+    ];
+    expect(calculateStreak(completions, 'task-1', '2026-04-05')).toBe(0);
+  });
 });
