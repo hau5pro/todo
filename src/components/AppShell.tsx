@@ -63,7 +63,7 @@ export function AppShell() {
       <KeyboardNavController />
       <div className="app-shell">
         <header className="app-header">
-          <div className="app-logo">
+          <NavLink to="/my-day" className="app-logo">
             <div className="app-logo__mark">
               <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
                 <polyline
@@ -78,7 +78,7 @@ export function AppShell() {
             <span className="app-title">
               {headerDate}
             </span>
-          </div>
+          </NavLink>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <NavLink to="/docs" className="header-icon-btn" title="Help">
               <Question size={18} weight="bold" />
