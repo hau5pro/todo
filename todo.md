@@ -2,7 +2,7 @@
 
 ## Bugs
 
-- [ ] **`useSync.ts:62`** — visibility handler syncs on *hide* instead of *show* (`if (document.hidden)` should be `if (!document.hidden)`)
+- [x] **`useSync.ts:62`** — visibility handler syncs on *hide* instead of *show* (`if (document.hidden)` should be `if (!document.hidden)`)
 - [ ] **`sync.ts`** — folders never pushed to or pulled from Supabase (`pushPending` + `pullFromSupabase` both skip the `folders` store)
 - [ ] **`sync.ts:138`** — `deleteAllCloudData` missing `'folders'` from its tables array
 - [ ] **`MyDayView.tsx:77`** — habit ordering puts `rest` before `ordered`, opposite of `DailyView` — habits show in wrong order in My Day

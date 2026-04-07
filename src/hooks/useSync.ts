@@ -59,7 +59,7 @@ export function useSync() {
     // sync() calls refreshPending() internally on success
     sync();
     const onFocus = () => sync();
-    const onVisibility = () => { if (document.hidden) sync(); };
+    const onVisibility = () => { if (!document.hidden) sync(); };
     window.addEventListener('focus', onFocus);
     document.addEventListener('visibilitychange', onVisibility);
     return () => {
