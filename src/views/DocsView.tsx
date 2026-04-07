@@ -57,8 +57,8 @@ export function DocsView() {
         <section key={section.title} className="settings-section">
           <div className="settings-section-title">{section.title}</div>
           <div className="docs-shortcut-list">
-            {section.rows.map((row) => (
-              <div key={row.description} className="docs-shortcut-row">
+            {section.rows.map((row, i) => (
+              <div key={i} className="docs-shortcut-row">
                 <span className="docs-shortcut-keys">
                   {row.keys.map((k, i) => (
                     <span key={k}>

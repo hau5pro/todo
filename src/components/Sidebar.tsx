@@ -397,7 +397,7 @@ function FolderRow({
 
 // ── Sidebar ───────────────────────────────────────────────────────────────────
 
-const SIDEBAR_W = 208;
+const SIDEBAR_W = window.innerWidth >= 1024 ? 256 : 208;
 const SIDEBAR_W_MOBILE = 160;
 const COLLAPSED_W = 40;
 

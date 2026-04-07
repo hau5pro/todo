@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Sun, CalendarCheck, Clock } from '@phosphor-icons/react';
 import { motion } from 'framer-motion';
 import { useAppStore } from '../store';
+import { useSettings } from '../contexts/SettingsContext';
 import { TaskItem } from '../components/TaskItem';
 import { HabitItem } from '../components/HabitItem';
 import { toggleHabitCompletion, getCompletionsForTask, calculateStreak } from '../db/habits';
@@ -32,6 +33,7 @@ export function MyDayView() {
   const today = useMemo(() => new Date().toISOString().split('T')[0], []);
   const todayLabel = useMemo(() => new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }), []);
   const { myDayOverdue, myDayToday, myDayHabits, myDayLoaded, loadMyDay, completeTask, advanceCyclicalTask } = useAppStore();
+  const { listOrders } = useSettings();
   const [streaks, setStreaks] = useState<Map<string, number>>(new Map());
 
   useEffect(() => { loadMyDay(); }, []);
@@ -59,6 +61,25 @@ export function MyDayView() {
     loadMyDay();
   }
 
+  const orderedHabits = useMemo(() => {
+    const byList = new Map<string, typeof myDayHabits>();
+    for (const h of myDayHabits) {
+      const id = h.task.list_id;
+      if (!byList.has(id)) byList.set(id, []);
+      byList.get(id)!.push(h);
+    }
+    const result: typeof myDayHabits = [];
+    for (const [listId, habits] of byList) {
+      const order = listOrders[listId] ?? [];
+      if (!order.length) { result.push(...habits); continue; }
+      const map = new Map(habits.map(h => [h.task.id, h]));
+      const ordered = order.flatMap(id => map.has(id) ? [map.get(id)!] : []);
+      const rest = habits.filter(h => !order.includes(h.task.id));
+      result.push(...rest, ...ordered);
+    }
+    return result;
+  }, [myDayHabits, listOrders]);
+
   if (!myDayLoaded) return null;
 
   const hasAnything = myDayOverdue.length > 0 || myDayToday.length > 0 || myDayHabits.length > 0;
@@ -75,10 +96,10 @@ export function MyDayView() {
       </motion.div>
       <motion.p variants={itemVariants} className="view-subtitle">{todayLabel}</motion.p>
       {!hasAnything && <motion.p variants={itemVariants} className="empty-state">Nothing due today.</motion.p>}
-        {myDayHabits.length > 0 && (
+        {orderedHabits.length > 0 && (
           <motion.section variants={sectionVariants}>
             <div className="section-heading"><CalendarCheck size={ICON_SIZE} weight="fill" />Habits</div>
-            {myDayHabits.map(({ task, completedToday }) => (
+            {orderedHabits.map(({ task, completedToday }) => (
               <HabitItem
                 key={task.id}
                 title={task.title}
