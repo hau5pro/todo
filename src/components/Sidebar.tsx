@@ -419,14 +419,12 @@ export function Sidebar() {
   const [addingList, setAddingList] = useState(false);
   const [addingFolder, setAddingFolder] = useState(false);
   const [showAddMenu, setShowAddMenu] = useState(false);
-  const [addMenuPos, setAddMenuPos] = useState<{ top: number; left: number } | null>(null);
   const [newListName, setNewListName] = useState('');
   const [newFolderName, setNewFolderName] = useState('');
   const [ungroupedDragOver, setUngroupedDragOver] = useState(false);
   const [isDraggingList, setIsDraggingList] = useState(false);
   const addInputRef = useRef<HTMLInputElement>(null);
   const addFolderInputRef = useRef<HTMLInputElement>(null);
-  const addMenuBtnRef = useRef<HTMLButtonElement>(null);
   const navigate = useNavigate();
 
   // Collapse sidebar by default on mobile
@@ -446,17 +444,6 @@ export function Sidebar() {
     };
   }, []);
 
-  // Close add menu on scroll/resize
-  useEffect(() => {
-    if (!showAddMenu) return;
-    const close = () => setShowAddMenu(false);
-    window.addEventListener('scroll', close, true);
-    window.addEventListener('resize', close);
-    return () => {
-      window.removeEventListener('scroll', close, true);
-      window.removeEventListener('resize', close);
-    };
-  }, [showAddMenu]);
 
   const {
     hiddenListIds,
@@ -534,14 +521,6 @@ export function Sidebar() {
   function cancelAddList() {
     setAddingList(false);
     setNewListName('');
-  }
-
-  function openAddMenu() {
-    if (addMenuBtnRef.current) {
-      const rect = addMenuBtnRef.current.getBoundingClientRect();
-      setAddMenuPos({ top: rect.bottom + 4, left: rect.left });
-    }
-    setShowAddMenu((p) => !p);
   }
 
   function startAddList() {
@@ -720,9 +699,17 @@ export function Sidebar() {
             animate={{ opacity: 1, transition: { duration: 0.14, delay: 0.1 } }}
             exit={{ opacity: 0, transition: { duration: 0.08 } }}
           >
-            {/* Top toolbar: edit + collapse */}
+            {/* Top toolbar: add + edit + collapse */}
             <div className="sidebar-toolbar">
               <span className="view-title-actions">
+                <button
+                  className="sidebar-collapse-btn"
+                  onClick={() => setShowAddMenu((p) => !p)}
+                  title="New list or folder"
+                  aria-expanded={showAddMenu}
+                >
+                  <Plus size={ICON_SIZE} weight="bold" />
+                </button>
                 <button
                   className="sidebar-collapse-btn"
                   onClick={() => setEditMode((e) => !e)}
@@ -740,6 +727,27 @@ export function Sidebar() {
                   <SidebarSimple size={ICON_SIZE} weight="fill" />
                 </button>
               </span>
+              <AnimatePresence initial={false}>
+                {showAddMenu && (
+                  <motion.div
+                    className="nav-add-options"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.15 }}
+                    style={{ overflow: 'hidden' }}
+                  >
+                    <button className="nav-add-option" onClick={startAddList}>
+                      <List size={13} weight="fill" />
+                      New list
+                    </button>
+                    <button className="nav-add-option" onClick={startAddFolder}>
+                      <FolderSimplePlus size={13} weight="fill" />
+                      New folder
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* Pinned section */}
@@ -766,6 +774,8 @@ export function Sidebar() {
               </Reorder.Group>
             )}
 
+            {pinnedItems.length > 0 && <div className="nav-divider" />}
+
             {/* Lists section header */}
             <div className="nav-section-header">
               <button
@@ -777,35 +787,6 @@ export function Sidebar() {
                   : <CaretRight size={10} weight="bold" />}
                 Lists
               </button>
-              <span className="view-title-actions">
-                <button
-                  ref={addMenuBtnRef}
-                  className="nav-add-btn"
-                  onClick={openAddMenu}
-                  title="New list or folder"
-                >
-                  <Plus size={ICON_SIZE} weight="bold" />
-                </button>
-              </span>
-              {showAddMenu && addMenuPos && createPortal(
-                <>
-                  <div className="folder-picker-backdrop" onClick={() => setShowAddMenu(false)} />
-                  <div
-                    className="folder-picker"
-                    style={{ position: 'fixed', top: addMenuPos.top, left: addMenuPos.left }}
-                  >
-                    <button onClick={startAddList}>
-                      <List size={13} weight="fill" />
-                      New list
-                    </button>
-                    <button onClick={startAddFolder}>
-                      <FolderSimplePlus size={13} weight="fill" />
-                      New folder
-                    </button>
-                  </div>
-                </>,
-                document.body
-              )}
             </div>
 
             {/* Lists section content */}
@@ -888,7 +869,7 @@ export function Sidebar() {
                           if (e.key === 'Escape') cancelAddFolder();
                         }}
                       />
-                      <button className="nav-action-btn nav-action-btn--success" onClick={commitAddFolder} title="Create">
+                      <button className="nav-action-btn" onClick={commitAddFolder} title="Create">
                         <ArrowElbowDownLeft size={ICON_SIZE} weight="bold" />
                       </button>
                     </div>
@@ -908,7 +889,7 @@ export function Sidebar() {
                           if (e.key === 'Escape') cancelAddList();
                         }}
                       />
-                      <button className="nav-action-btn nav-action-btn--success" onClick={commitAddList} title="Create">
+                      <button className="nav-action-btn" onClick={commitAddList} title="Create">
                         <ArrowElbowDownLeft size={ICON_SIZE} weight="bold" />
                       </button>
                     </div>

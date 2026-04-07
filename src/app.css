@@ -178,12 +178,14 @@ body {
 
 .sidebar-toolbar {
   display: flex;
-  align-items: center;
-  justify-content: flex-end;
+  flex-direction: column;
   gap: 2px;
   padding: 0 2px 6px;
   margin-bottom: 4px;
   border-bottom: 1px solid var(--border);
+}
+.sidebar-toolbar > .view-title-actions {
+  align-self: flex-end;
 }
 
 .sidebar-collapse-btn {
@@ -515,6 +517,42 @@ button.nav-section-label--button:hover { color: var(--fg); }
 .nav-folder-name--active { color: var(--accent) !important; opacity: 1; }
 
 .nav-folder-lists { padding-left: 14px; min-width: 0; overflow: hidden; }
+
+/* ── Nav divider ─────────────────────────────────────────── */
+.nav-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 8px;
+  flex-shrink: 0;
+}
+
+/* ── Inline add options (list / folder) ─────────────────── */
+.nav-add-options {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 2px 4px 6px;
+  background: var(--hover);
+  border-radius: 6px;
+  margin: 2px 0 4px;
+}
+
+.nav-add-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 5px;
+  font-size: 0.8125rem;
+  color: var(--fg-muted);
+  transition: background 0.12s, color 0.12s;
+  text-align: left;
+}
+.nav-add-option:hover { background: var(--hover); color: var(--fg); }
 
 /* ── Folder picker popover ───────────────────────────────── */
 .folder-picker-backdrop {
