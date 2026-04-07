@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useMatch } from 'react-router-dom';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Reorder, useDragControls, motion, AnimatePresence } from 'framer-motion';
@@ -58,16 +58,26 @@ function SortableItem({
   list,
   editMode,
   allowFolderDrag = true,
+  pinned = false,
 }: {
   list: ListType;
   editMode: boolean;
   allowFolderDrag?: boolean;
+  pinned?: boolean;
 }) {
   const dragControls = useDragControls();
+  const deleteList = useAppStore((s) => s.deleteList);
+  const navigate = useNavigate();
+  const match = useMatch(`/list/${list.id}`);
 
   function handleDragStart(e: React.DragEvent) {
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', JSON.stringify({ listId: list.id, folderId: list.folder_id }));
+  }
+
+  async function handleDelete() {
+    await deleteList(list.id);
+    if (match) navigate('/');
   }
 
   return (
@@ -118,6 +128,21 @@ function SortableItem({
           <span className="nav-item__name">{list.name}</span>
         </NavLink>
       )}
+      <AnimatePresence initial={false}>
+        {editMode && !pinned && (
+          <motion.button
+            className="nav-item-delete-btn"
+            onClick={handleDelete}
+            initial={{ width: 0, opacity: 0 }}
+            animate={{ width: 24, opacity: 1 }}
+            exit={{ width: 0, opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            title="Delete list"
+          >
+            <Trash size={14} weight="fill" />
+          </motion.button>
+        )}
+      </AnimatePresence>
     </Reorder.Item>
   );
 }
@@ -675,6 +700,7 @@ export function Sidebar() {
                         list={item as ListType}
                         editMode={editMode}
                         allowFolderDrag={false}
+                        pinned
                       />
                 )}
               </Reorder.Group>

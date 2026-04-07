@@ -387,6 +387,20 @@ button.nav-section-label--button:hover { color: var(--fg); }
 }
 .nav-item-row--editing:active { cursor: default; }
 
+.nav-item-delete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--fg-muted);
+  cursor: pointer;
+  overflow: hidden;
+}
+.nav-item-delete-btn:hover { color: var(--danger); }
+
 .nav-inline-input {
   flex: 1;
   background: none;

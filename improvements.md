@@ -3,8 +3,6 @@ session counter: 4 + 5x lol
 
 - address accessability (final sweep)
 
-- feat: delete task do we need conf?
-
 - feat: toggle icon given some sort of variance to show its a toggle.
 - feat: also in edit ability to delete quickly many tasks without conf.
 - feat: edit mode in task view, maybe we move reordering items in there? along with renaming?

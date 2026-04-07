@@ -164,11 +164,13 @@ export function ListView() {
               </button>
             )}
             <h1 className="view-title">{list.name}</h1>
-            <span className="view-title-actions">
-              <button className="view-title-action-btn" onClick={startEditListName} title="Rename list"><PencilSimple size={ICON_SIZE} weight="fill" /></button>
-              <button className="view-title-action-btn" onClick={handleDuplicate} title="Duplicate list"><CopySimple size={ICON_SIZE} weight="fill" /></button>
-              <button className="view-title-action-btn view-title-action-btn--danger" onClick={() => setConfirmDeleteList(true)} title="Delete list"><Trash size={ICON_SIZE} weight="fill" /></button>
-            </span>
+            {!pinnedOrder.includes(listId!) && (
+              <span className="view-title-actions">
+                <button className="view-title-action-btn" onClick={startEditListName} title="Rename list"><PencilSimple size={ICON_SIZE} weight="fill" /></button>
+                <button className="view-title-action-btn" onClick={handleDuplicate} title="Duplicate list"><CopySimple size={ICON_SIZE} weight="fill" /></button>
+                <button className="view-title-action-btn view-title-action-btn--danger" onClick={() => setConfirmDeleteList(true)} title="Delete list"><Trash size={ICON_SIZE} weight="fill" /></button>
+              </span>
+            )}
             <AnimatePresence>
               {iconPickerAnchor && (
                 <IconPicker
