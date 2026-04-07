@@ -1,5 +1,5 @@
-import type { Icon } from '@phosphor-icons/react';
-import { Question, Keyboard, ListBullets, Sun, Repeat, ShoppingCart, Folder, WifiSlash, Cloud } from '@phosphor-icons/react';
+import type { LucideIcon } from 'lucide-react';
+import { HelpCircle, Keyboard, List, Sun, Repeat, ShoppingCart, Folder, WifiOff, Cloud } from 'lucide-react';
 
 interface ShortcutRow {
   keys: string[];
@@ -42,18 +42,18 @@ const sections: Section[] = [
 ];
 
 interface FeatureItem {
-  icon: Icon;
+  icon: LucideIcon;
   heading: string;
   body: string;
 }
 
 const features: FeatureItem[] = [
-  { icon: WifiSlash, heading: 'Offline first', body: 'Your data lives on this device. The app works without a connection.' },
+  { icon: WifiOff, heading: 'Offline first', body: 'Your data lives on this device. The app works without a connection.' },
   { icon: Cloud, heading: 'Cloud sync', body: 'Sign in to back up your data and sync across devices. Enable or disable any time in Settings.' },
 ];
 
 interface ListSubSection {
-  icon: Icon;
+  icon: LucideIcon;
   heading: string;
   body: string;
 }
@@ -65,7 +65,7 @@ const listSubSections: ListSubSection[] = [
     body: 'A pinned view that pulls in overdue tasks, anything due today, and habits from your daily lists.',
   },
   {
-    icon: ListBullets,
+    icon: List,
     heading: 'General lists',
     body: 'Standard task lists for one-off to-dos. Tasks stay until you delete them.',
   },
@@ -86,11 +86,11 @@ const listSubSections: ListSubSection[] = [
   },
 ];
 
-function ItemRow({ icon: ItemIcon, heading, body }: { icon: Icon; heading: string; body: string }) {
+function ItemRow({ icon: ItemIcon, heading, body }: { icon: LucideIcon; heading: string; body: string }) {
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
-        <ItemIcon size={13} weight="fill" style={{ color: 'var(--fg-muted)', flexShrink: 0 }} />
+        <ItemIcon size={13} style={{ color: 'var(--fg-muted)', flexShrink: 0 }} />
         <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{heading}</span>
       </div>
       <p style={{ fontSize: '0.85rem', color: 'var(--fg-muted)', lineHeight: 1.5, paddingLeft: 'calc(13px + 0.4rem)' }}>{body}</p>
@@ -102,7 +102,7 @@ export function DocsView() {
   return (
     <div style={{ maxWidth: 480, margin: '0 auto' }}>
       <div className="view-title-row" style={{ marginBottom: '2rem' }}>
-        <span className="view-title-icon"><Question size={18} weight="fill" /></span>
+        <span className="view-title-icon"><HelpCircle size={18} /></span>
         <h1 className="view-title">Help</h1>
       </div>
 
@@ -115,7 +115,7 @@ export function DocsView() {
 
       <section className="settings-section">
         <div className="settings-section-title">
-          <ListBullets size={16} weight="fill" />
+          <List size={16} />
           Lists
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '0.25rem' }}>
@@ -125,7 +125,7 @@ export function DocsView() {
 
       <section className="settings-section">
         <div className="settings-section-title">
-          <Keyboard size={16} weight="fill" />
+          <Keyboard size={16} />
           Keyboard shortcuts
         </div>
         <p className="view-subtitle" style={{ marginBottom: '1.5rem', marginTop: '0.25rem', textTransform: 'none', letterSpacing: 0 }}>Navigate without touching your mouse.</p>

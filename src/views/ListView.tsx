@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { PencilSimple, Trash, CaretDown, CaretRight, CopySimple, List as ListIcon, CheckCircle, DotsThree } from '@phosphor-icons/react';
+import { Pencil, Trash2, ChevronDown, ChevronRight, Copy, List, CheckCircle, MoreHorizontal } from 'lucide-react';
 import { AnimatePresence, motion, Reorder, useDragControls } from 'framer-motion';
 import { ease } from '../utils/easing';
 import { focusLater } from '../utils/dom';
@@ -70,7 +70,7 @@ function TaskRow({
     >
       <span style={{ width: editMode ? 26 : 0, opacity: editMode ? 1 : 0, overflow: 'hidden', flexShrink: 0, display: 'flex', transition: 'width 0.15s, opacity 0.15s' }}>
         <span className="task-edit-drag" title="Drag to reorder" onPointerDown={(e) => dragControls.start(e)}>
-          <ListIcon size={ICON_SIZE} weight="bold" />
+          <List size={ICON_SIZE} />
         </span>
       </span>
       {/* Wrap content in a draggable div so it doesn't conflict with FM's onDragStart typing */}
@@ -105,7 +105,7 @@ function TaskRow({
         title="Delete task"
         style={{ width: editMode ? 24 : 0, opacity: editMode ? 1 : 0, overflow: 'hidden', transition: 'width 0.15s, opacity 0.15s' }}
       >
-        <Trash size={14} weight="fill" />
+        <Trash2 size={14} />
       </button>
     </Reorder.Item>
   );
@@ -208,7 +208,7 @@ function GroupSection({
       <div className="group-header">
         <span style={{ width: editMode ? 26 : 0, opacity: editMode ? 1 : 0, overflow: 'hidden', flexShrink: 0, display: 'flex', transition: 'width 0.15s, opacity 0.15s' }}>
           <span className="task-edit-drag" onPointerDown={(e) => dragControls.start(e)}>
-            <ListIcon size={ICON_SIZE} weight="bold" />
+            <List size={ICON_SIZE} />
           </span>
         </span>
         <button
@@ -216,7 +216,7 @@ function GroupSection({
           onClick={() => setCollapsed((p) => !p)}
           aria-label={collapsed ? 'Expand group' : 'Collapse group'}
         >
-          {collapsed ? <CaretRight size={12} weight="bold" /> : <CaretDown size={12} weight="bold" />}
+          {collapsed ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
         </button>
 
         {editingName ? (
@@ -241,7 +241,7 @@ function GroupSection({
             onClick={() => setMenuOpen((p) => !p)}
             aria-label="Group actions"
           >
-            <DotsThree size={16} weight="bold" />
+            <MoreHorizontal size={16} />
           </button>
           <AnimatePresence>
             {menuOpen && (
@@ -253,13 +253,13 @@ function GroupSection({
                 transition={{ duration: 0.1 }}
               >
                 <button className="group-header-dropdown-item" onClick={startEditName}>
-                  <PencilSimple size={13} weight="fill" /> Rename
+                  <Pencil size={13} /> Rename
                 </button>
                 <button
                   className="group-header-dropdown-item group-header-dropdown-item--danger"
                   onClick={() => { setConfirmDelete(true); setMenuOpen(false); }}
                 >
-                  <Trash size={13} weight="fill" /> Delete group
+                  <Trash2 size={13} /> Delete group
                 </button>
               </motion.div>
             )}
@@ -271,7 +271,7 @@ function GroupSection({
           title="Delete group"
           style={{ width: editMode ? 24 : 0, opacity: editMode ? 1 : 0, overflow: 'hidden', transition: 'width 0.15s, opacity 0.15s' }}
         >
-          <Trash size={14} weight="fill" />
+          <Trash2 size={14} />
         </button>
       </div>
 
@@ -550,13 +550,13 @@ export function ListView() {
                 if (e.key === 'Escape') setEditingListName(false);
               }}
             />
-            <button className="view-title-action-btn" onClick={commitEditListName} title="Save"><CheckCircle size={ICON_SIZE} weight="fill" /></button>
+            <button className="view-title-action-btn" onClick={commitEditListName} title="Save"><CheckCircle size={ICON_SIZE} /></button>
           </>
         ) : (
           <>
             {isPinned ? (
               <span className="view-title-icon">
-                {getListIcon(list, 20) ?? <ListIcon size={20} weight="fill" />}
+                {getListIcon(list, 20) ?? <List size={20} />}
               </span>
             ) : (
               <button
@@ -570,7 +570,7 @@ export function ListView() {
                 aria-label="Change icon"
                 aria-expanded={!!iconPickerAnchor}
               >
-                {getListIcon(list, 20) ?? <ListIcon size={20} weight="fill" />}
+                {getListIcon(list, 20) ?? <List size={20} />}
               </button>
             )}
             <h1 className="view-title" onClick={!isPinned ? startEditListName : undefined} style={!isPinned ? { cursor: 'text' } : undefined}>{list.name}</h1>
@@ -582,12 +582,12 @@ export function ListView() {
                 style={taskEditMode ? { color: 'var(--success)' } : undefined}
               >
                 {taskEditMode
-                  ? <CheckCircle size={ICON_SIZE} weight="fill" />
-                  : <PencilSimple size={ICON_SIZE} weight="fill" />}
+                  ? <CheckCircle size={ICON_SIZE} />
+                  : <Pencil size={ICON_SIZE} />}
               </button>
               {!isPinned && (<>
-                <button className="view-title-action-btn" onClick={handleDuplicate} title="Duplicate list"><CopySimple size={ICON_SIZE} weight="fill" /></button>
-                <button className="view-title-action-btn view-title-action-btn--danger" onClick={() => setConfirmDeleteList(true)} title="Delete list"><Trash size={ICON_SIZE} weight="fill" /></button>
+                <button className="view-title-action-btn" onClick={handleDuplicate} title="Duplicate list"><Copy size={ICON_SIZE} /></button>
+                <button className="view-title-action-btn view-title-action-btn--danger" onClick={() => setConfirmDeleteList(true)} title="Delete list"><Trash2 size={ICON_SIZE} /></button>
               </>)}
             </span>
             <AnimatePresence>
@@ -689,8 +689,8 @@ export function ListView() {
               Completed{completedTasks.length > 0 ? ` (${completedTasks.length})` : ''}
             </span>
             {showCompleted
-              ? <CaretDown size={ICON_SIZE} weight="fill" />
-              : <CaretRight size={ICON_SIZE} weight="fill" />}
+              ? <ChevronDown size={ICON_SIZE} />
+              : <ChevronRight size={ICON_SIZE} />}
           </button>
           <AnimatePresence>
             {showCompleted && (

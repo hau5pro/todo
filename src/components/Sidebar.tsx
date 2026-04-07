@@ -3,10 +3,10 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Reorder, useDragControls, motion, AnimatePresence } from 'framer-motion';
 import {
-  Sun, GearSix, SignOut, CaretDown, CaretRight,
-  List, Plus, CheckCircle, PencilSimple, SidebarSimple,
-  FolderSimplePlus, FolderSimple, Trash, ArrowElbowDownLeft, DotsThree,
-} from '@phosphor-icons/react';
+  Sun, Settings, LogOut, ChevronDown, ChevronRight,
+  List, Plus, CheckCircle, Pencil, PanelLeft,
+  FolderPlus, Folder, Trash2, CornerDownLeft, MoreHorizontal,
+} from 'lucide-react';
 import { signOut } from '../supabase/auth';
 import { useSettings } from '../contexts/SettingsContext';
 import { useAppStore } from '../store';
@@ -48,8 +48,8 @@ function NavTooltip({ label, children }: { label: string; children: React.ReactN
 }
 
 function pinnedIcon(item: PinnedItem): React.ReactNode {
-  if (item.id === 'my-day') return <Sun size={COLLAPSED_ICON_SIZE} weight="fill" />;
-  return getListIcon(item as ListType, COLLAPSED_ICON_SIZE) ?? <List size={COLLAPSED_ICON_SIZE} weight="fill" />;
+  if (item.id === 'my-day') return <Sun size={COLLAPSED_ICON_SIZE} />;
+  return getListIcon(item as ListType, COLLAPSED_ICON_SIZE) ?? <List size={COLLAPSED_ICON_SIZE} />;
 }
 
 // ── Sortable list item ────────────────────────────────────────────────────────
@@ -108,7 +108,7 @@ function SortableItem({
               title="Drag to reorder"
               onPointerDown={(e) => dragControls.start(e)}
             >
-              <List size={ICON_SIZE} weight="bold" />
+              <List size={ICON_SIZE} />
             </span>
           </motion.span>
         )}
@@ -122,7 +122,7 @@ function SortableItem({
           style={allowFolderDrag ? { cursor: 'grab' } : undefined}
           title={allowFolderDrag ? 'Drag to move to folder' : undefined}
         >
-          {getListIcon(list) ?? <List size={ICON_SIZE} weight="fill" />}
+          {getListIcon(list) ?? <List size={ICON_SIZE} />}
           <span className="nav-item__name">{list.name}</span>
         </div>
       ) : (
@@ -131,7 +131,7 @@ function SortableItem({
           className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'}
           data-nav-item
         >
-          {getListIcon(list) ?? <List size={ICON_SIZE} weight="fill" />}
+          {getListIcon(list) ?? <List size={ICON_SIZE} />}
           <span className="nav-item__name">{list.name}</span>
         </NavLink>
       )}
@@ -146,7 +146,7 @@ function SortableItem({
             transition={{ duration: 0.15 }}
             title="Delete list"
           >
-            <Trash size={14} weight="fill" />
+            <Trash2 size={14} />
           </motion.button>
         )}
       </AnimatePresence>
@@ -175,14 +175,14 @@ function SortableMyDayItem({ editMode }: { editMode: boolean }) {
             transition={{ duration: 0.15 }}
           >
             <span className="nav-drag-icon" title="Drag to reorder" onPointerDown={(e) => dragControls.start(e)}>
-              <List size={ICON_SIZE} weight="bold" />
+              <List size={ICON_SIZE} />
             </span>
           </motion.span>
         )}
       </AnimatePresence>
       {editMode ? (
         <div className="nav-item">
-          <Sun size={ICON_SIZE} weight="fill" />
+          <Sun size={ICON_SIZE} />
           My Day
         </div>
       ) : (
@@ -191,7 +191,7 @@ function SortableMyDayItem({ editMode }: { editMode: boolean }) {
           className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'}
           data-nav-item
         >
-          <Sun size={ICON_SIZE} weight="fill" />
+          <Sun size={ICON_SIZE} />
           My Day
         </NavLink>
       )}
@@ -307,7 +307,7 @@ function FolderRow({
               transition={{ duration: 0.15 }}
             >
               <span className="nav-drag-icon" title="Drag to reorder" onPointerDown={(e) => dragControls.start(e)}>
-                <List size={ICON_SIZE} weight="bold" />
+                <List size={ICON_SIZE} />
               </span>
             </motion.span>
           )}
@@ -319,11 +319,11 @@ function FolderRow({
             onClick={() => setFolderCollapsed(folder.id, !isCollapsed)}
             aria-label={isCollapsed ? 'Expand folder' : 'Collapse folder'}
           >
-            {isCollapsed ? <CaretRight size={12} weight="bold" /> : <CaretDown size={12} weight="bold" />}
+            {isCollapsed ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
           </button>
         )}
 
-        <FolderSimple size={ICON_SIZE} weight="fill" className="nav-folder-icon" />
+        <Folder size={ICON_SIZE} className="nav-folder-icon" />
 
         {editingName ? (
           <input
@@ -351,7 +351,7 @@ function FolderRow({
 
         {!editingName && (
           <button ref={menuBtnRef} className="nav-folder-menu-btn" onClick={openMenu} title="Folder options">
-            <DotsThree size={ICON_SIZE} weight="bold" />
+            <MoreHorizontal size={ICON_SIZE} />
           </button>
         )}
 
@@ -360,11 +360,11 @@ function FolderRow({
             <div className="folder-picker-backdrop" onClick={closeMenu} />
             <div className="folder-picker" style={{ position: 'fixed', top: menuPos.top, left: menuPos.left }}>
               <button onClick={startRename}>
-                <PencilSimple size={13} weight="fill" />
+                <Pencil size={13} />
                 Rename
               </button>
               <button className="folder-picker-danger" onClick={handleDelete}>
-                <Trash size={13} weight="fill" />
+                <Trash2 size={13} />
                 Delete
               </button>
             </div>
@@ -626,7 +626,7 @@ export function Sidebar() {
                 onClick={() => setSidebarCollapsed(false)}
                 title="Expand sidebar"
               >
-                <SidebarSimple size={COLLAPSED_ICON_SIZE} weight="fill" />
+                <PanelLeft size={COLLAPSED_ICON_SIZE} />
               </button>
             </div>
 
@@ -656,7 +656,7 @@ export function Sidebar() {
                   className={({ isActive }) => isActive ? 'nav-icon-btn nav-icon-btn--active' : 'nav-icon-btn'}
                   aria-label={list.name}
                 >
-                  {getListIcon(list, COLLAPSED_ICON_SIZE) ?? <List size={COLLAPSED_ICON_SIZE} weight="fill" />}
+                  {getListIcon(list, COLLAPSED_ICON_SIZE) ?? <List size={COLLAPSED_ICON_SIZE} />}
                 </NavLink>
               </NavTooltip>
             ))}
@@ -668,7 +668,7 @@ export function Sidebar() {
                   className={({ isActive }) => isActive ? 'nav-icon-btn nav-icon-btn--active' : 'nav-icon-btn'}
                   aria-label={folder.name}
                 >
-                  <FolderSimple size={COLLAPSED_ICON_SIZE} weight="fill" />
+                  <Folder size={COLLAPSED_ICON_SIZE} />
                 </NavLink>
               </NavTooltip>
             ))}
@@ -681,7 +681,7 @@ export function Sidebar() {
                 className={({ isActive }) => isActive ? 'nav-icon-btn nav-icon-btn--active' : 'nav-icon-btn'}
                 aria-label="Settings"
               >
-                <GearSix size={20} weight="fill" />
+                <Settings size={20} />
               </NavLink>
             </NavTooltip>
             <NavTooltip label="Sign out">
@@ -690,7 +690,7 @@ export function Sidebar() {
                 onClick={() => signOut().catch(console.error)}
                 aria-label="Sign out"
               >
-                <SignOut size={20} weight="fill" />
+                <LogOut size={20} />
               </button>
             </NavTooltip>
           </motion.div>
@@ -711,7 +711,7 @@ export function Sidebar() {
                   title="New list or folder"
                   aria-expanded={showAddMenu}
                 >
-                  <Plus size={ICON_SIZE} weight="bold" />
+                  <Plus size={ICON_SIZE} />
                 </button>
                 <button
                   className="sidebar-collapse-btn"
@@ -719,15 +719,15 @@ export function Sidebar() {
                   title={editMode ? 'Done reordering' : 'Reorder lists'}
                 >
                   {editMode
-                    ? <CheckCircle size={ICON_SIZE} weight="fill" style={{ color: 'var(--success)' }} />
-                    : <PencilSimple size={ICON_SIZE} weight="fill" />}
+                    ? <CheckCircle size={ICON_SIZE} style={{ color: 'var(--success)' }} />
+                    : <Pencil size={ICON_SIZE} />}
                 </button>
                 <button
                   className="sidebar-collapse-btn sidebar-collapse-btn--toggle"
                   onClick={() => setSidebarCollapsed(true)}
                   title="Collapse sidebar"
                 >
-                  <SidebarSimple size={ICON_SIZE} weight="fill" />
+                  <PanelLeft size={ICON_SIZE} />
                 </button>
               </span>
               <AnimatePresence initial={false}>
@@ -741,11 +741,11 @@ export function Sidebar() {
                     style={{ overflow: 'hidden' }}
                   >
                     <button className="nav-add-option" onClick={startAddList}>
-                      <List size={13} weight="fill" />
+                      <List size={13} />
                       New list
                     </button>
                     <button className="nav-add-option" onClick={startAddFolder}>
-                      <FolderSimplePlus size={13} weight="fill" />
+                      <FolderPlus size={13} />
                       New folder
                     </button>
                   </motion.div>
@@ -786,8 +786,8 @@ export function Sidebar() {
                 onClick={() => setListsOpen(!listsOpen)}
               >
                 {listsOpen
-                  ? <CaretDown size={10} weight="bold" />
-                  : <CaretRight size={10} weight="bold" />}
+                  ? <ChevronDown size={10} />
+                  : <ChevronRight size={10} />}
                 Lists
               </button>
             </div>
@@ -860,7 +860,7 @@ export function Sidebar() {
                   {/* Add folder inline */}
                   {addingFolder && (
                     <div className="nav-item nav-item--editing">
-                      <FolderSimple size={ICON_SIZE} weight="fill" style={{ color: 'var(--fg-muted)', flexShrink: 0 }} />
+                      <Folder size={ICON_SIZE} style={{ color: 'var(--fg-muted)', flexShrink: 0 }} />
                       <input
                         ref={addFolderInputRef}
                         className="nav-inline-input"
@@ -873,7 +873,7 @@ export function Sidebar() {
                         }}
                       />
                       <button className="nav-action-btn" onClick={commitAddFolder} title="Create">
-                        <ArrowElbowDownLeft size={ICON_SIZE} weight="bold" />
+                        <CornerDownLeft size={ICON_SIZE} />
                       </button>
                     </div>
                   )}
@@ -893,7 +893,7 @@ export function Sidebar() {
                         }}
                       />
                       <button className="nav-action-btn" onClick={commitAddList} title="Create">
-                        <ArrowElbowDownLeft size={ICON_SIZE} weight="bold" />
+                        <CornerDownLeft size={ICON_SIZE} />
                       </button>
                     </div>
                   )}
@@ -904,12 +904,12 @@ export function Sidebar() {
             <div className="sidebar-spacer" />
 
             <NavLink to="/settings" className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'}>
-              <GearSix size={ICON_SIZE} weight="fill" />
+              <Settings size={ICON_SIZE} />
               Settings
             </NavLink>
             <div style={{ height: '0.5rem' }} />
             <button className="nav-item nav-btn nav-item--signout" onClick={() => signOut().catch(console.error)}>
-              <SignOut size={ICON_SIZE} weight="fill" />
+              <LogOut size={ICON_SIZE} />
               Sign out
             </button>
           </motion.div>

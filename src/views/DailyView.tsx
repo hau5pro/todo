@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
-import { PencilSimple, CheckCircle, Trash, List as DragIcon } from '@phosphor-icons/react';
+import { Pencil, CheckCircle, Trash2, List } from 'lucide-react';
 import { Reorder, useDragControls } from 'framer-motion';
 
 const habitListVariants = {
@@ -36,7 +36,7 @@ function HabitRow({ row, editMode, onToggle, onSelect, onDelete, isSelected }: {
     >
       <span style={{ width: editMode ? 26 : 0, opacity: editMode ? 1 : 0, overflow: 'hidden', flexShrink: 0, display: 'flex', transition: 'width 0.15s, opacity 0.15s' }}>
         <span className="task-edit-drag" onPointerDown={(e) => dragControls.start(e)}>
-          <DragIcon size={ICON_SIZE} weight="bold" />
+          <List size={ICON_SIZE} />
         </span>
       </span>
       <div style={{ flex: 1, minWidth: 0 }}>
@@ -55,7 +55,7 @@ function HabitRow({ row, editMode, onToggle, onSelect, onDelete, isSelected }: {
         title="Delete habit"
         style={{ width: editMode ? 24 : 0, opacity: editMode ? 1 : 0, overflow: 'hidden', transition: 'width 0.15s, opacity 0.15s' }}
       >
-        <Trash size={14} weight="fill" />
+        <Trash2 size={14} />
       </button>
     </Reorder.Item>
   );
@@ -118,8 +118,8 @@ export function DailyView() {
             style={habitEditMode ? { color: 'var(--success)' } : undefined}
           >
             {habitEditMode
-              ? <CheckCircle size={ICON_SIZE} weight="fill" />
-              : <PencilSimple size={ICON_SIZE} weight="fill" />}
+              ? <CheckCircle size={ICON_SIZE} />
+              : <Pencil size={ICON_SIZE} />}
           </button>
         </span>
       </div>

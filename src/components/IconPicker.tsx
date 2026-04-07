@@ -44,7 +44,7 @@ export function IconPicker({ currentIcon, anchorRect, onSelect, onClose }: IconP
                 aria-label={name}
                 aria-pressed={currentIcon === name}
               >
-                <IconComp size={18} weight="fill" />
+                <IconComp size={18} />
               </button>
             );
           })}

@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { Outlet, useLocation, NavLink } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Question } from '@phosphor-icons/react';
+import { HelpCircle } from 'lucide-react';
 import { ease } from '../utils/easing';
 import { Sidebar } from './Sidebar';
 import { SyncDot } from './SyncDot';
@@ -81,7 +81,7 @@ export function AppShell() {
           </NavLink>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <NavLink to="/docs" className="header-icon-btn" aria-label="Help">
-              <Question size={18} weight="bold" />
+              <HelpCircle size={18} />
             </NavLink>
             {syncEnabled && <SyncDot pendingCount={pendingCount} isSyncing={isSyncing} />}
           </div>

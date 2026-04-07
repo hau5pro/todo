@@ -1,52 +1,52 @@
-import type { Icon } from '@phosphor-icons/react';
+import type { LucideIcon } from 'lucide-react';
 import {
-  List, ShoppingCart, CalendarCheck, Sparkle,
+  List, ShoppingCart, CalendarCheck, Sparkles,
   Star, Heart, Bookmark, Flag, Tag,
   Package, CreditCard, Wallet,
-  House, Car, Bicycle, Airplane,
-  ForkKnife, Coffee, Wine,
-  Barbell, Trophy, SoccerBall,
-  Books, GraduationCap, Briefcase,
+  House, Car, Bike, Plane,
+  Utensils, Coffee, Wine,
+  Dumbbell, Trophy, CircleDot,
+  BookOpen, GraduationCap, Briefcase,
   Laptop, Code,
-  Camera, MusicNote, FilmStrip,
+  Camera, Music, Film,
   PawPrint, Leaf,
   Sun, Moon,
-  Fire, Snowflake,
-  Clock, CalendarBlank,
+  Flame, Snowflake,
+  Clock, Calendar,
   MapPin, Globe,
-  Envelope, Phone,
+  Mail, Phone,
   Diamond, Crown,
   Wrench, Palette, Scissors,
-  GameController, Note,
-  Heartbeat, Smiley,
-  Bell, Rocket, Baby, Pill, Tree,
-} from '@phosphor-icons/react';
+  Gamepad2, StickyNote,
+  HeartPulse, Smile,
+  Bell, Rocket, Baby, Pill, TreePine,
+} from 'lucide-react';
 import { ICON_SIZE } from './constants';
 import type { List as ListData } from '../types';
 
-// Map from stored icon name string → Phosphor component
-export const ICON_MAP: Record<string, Icon> = {
+// Map from stored icon name string → Lucide component
+export const ICON_MAP: Record<string, LucideIcon> = {
   Star, Heart, Bookmark, Flag, Tag,
   ShoppingCart, Package, CreditCard, Wallet,
-  House, Car, Bicycle, Airplane,
-  ForkKnife, Coffee, Wine,
-  Barbell, Trophy, SoccerBall,
-  Books, GraduationCap, Briefcase,
+  House, Car, Bike, Plane,
+  Utensils, Coffee, Wine,
+  Dumbbell, Trophy, CircleDot,
+  BookOpen, GraduationCap, Briefcase,
   Laptop, Code,
-  Camera, MusicNote, FilmStrip,
+  Camera, Music, Film,
   PawPrint, Leaf,
   Sun, Moon,
-  Fire, Snowflake,
-  Clock, CalendarBlank,
+  Flame, Snowflake,
+  Clock, Calendar,
   MapPin, Globe,
-  Envelope, Phone,
+  Mail, Phone,
   Diamond, Crown,
   Wrench, Palette, Scissors,
-  GameController, Note,
-  Heartbeat, Smiley,
-  Bell, Rocket, Baby, Pill, Tree,
+  Gamepad2, StickyNote,
+  HeartPulse, Smile,
+  Bell, Rocket, Baby, Pill, TreePine,
   // Built-in list type icons (also selectable)
-  List, CalendarCheck, Sparkle,
+  List, CalendarCheck, Sparkles,
 };
 
 // Ordered list for the picker UI
@@ -54,24 +54,24 @@ export const PICKABLE_ICONS: string[] = [
   'List',
   'Star', 'Heart', 'Bookmark', 'Flag', 'Tag',
   'ShoppingCart', 'Package', 'CreditCard', 'Wallet',
-  'House', 'Car', 'Bicycle', 'Airplane',
-  'ForkKnife', 'Coffee', 'Wine',
-  'Barbell', 'Trophy', 'SoccerBall',
-  'Books', 'GraduationCap', 'Briefcase',
+  'House', 'Car', 'Bike', 'Plane',
+  'Utensils', 'Coffee', 'Wine',
+  'Dumbbell', 'Trophy', 'CircleDot',
+  'BookOpen', 'GraduationCap', 'Briefcase',
   'Laptop', 'Code',
-  'Camera', 'MusicNote', 'FilmStrip',
+  'Camera', 'Music', 'Film',
   'PawPrint', 'Leaf',
   'Sun', 'Moon',
-  'Fire', 'Snowflake',
-  'Clock', 'CalendarBlank',
+  'Flame', 'Snowflake',
+  'Clock', 'Calendar',
   'MapPin', 'Globe',
-  'Envelope', 'Phone',
+  'Mail', 'Phone',
   'Diamond', 'Crown',
   'Wrench', 'Palette', 'Scissors',
-  'GameController', 'Note',
-  'Heartbeat', 'Smiley',
-  'Bell', 'Rocket', 'Baby', 'Pill', 'Tree',
-  'CalendarCheck', 'Sparkle',
+  'Gamepad2', 'StickyNote',
+  'HeartPulse', 'Smile',
+  'Bell', 'Rocket', 'Baby', 'Pill', 'TreePine',
+  'CalendarCheck', 'Sparkles',
 ];
 
 export function getListIcon(list: Pick<ListData, 'name' | 'type' | 'icon'>, size?: number): React.ReactNode {
@@ -80,21 +80,21 @@ export function getListIcon(list: Pick<ListData, 'name' | 'type' | 'icon'>, size
   // Custom icon takes precedence
   if (list.icon) {
     const IconComp = ICON_MAP[list.icon];
-    if (IconComp) return <IconComp size={iconSize} weight="fill" />;
+    if (IconComp) return <IconComp size={iconSize} />;
   }
 
   // Name-based overrides
-  const nameMap: Record<string, Icon> = { Tasks: List, Chores: Sparkle };
+  const nameMap: Record<string, LucideIcon> = { Tasks: List, Chores: Sparkles };
   if (nameMap[list.name]) {
     const IconComp = nameMap[list.name];
-    return <IconComp size={iconSize} weight="fill" />;
+    return <IconComp size={iconSize} />;
   }
 
   // Type-based defaults
-  const typeMap: Partial<Record<string, Icon>> = {
+  const typeMap: Partial<Record<string, LucideIcon>> = {
     shopping: ShoppingCart,
     daily: CalendarCheck,
   };
   const TypeIcon = typeMap[list.type];
-  return TypeIcon ? <TypeIcon size={iconSize} weight="fill" /> : null;
+  return TypeIcon ? <TypeIcon size={iconSize} /> : null;
 }

@@ -2,31 +2,31 @@ import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { signOut } from '../supabase/auth';
-import { Check, Palette, ListDashes, Sun, List, CalendarCheck, ShoppingCart, Sparkle, CloudArrowUp, Info } from '@phosphor-icons/react';
+import { Check, Palette, AlignJustify, Sun, List, CalendarCheck, ShoppingCart, Sparkles, CloudUpload, Info } from 'lucide-react';
 import { ICON_SIZE } from '../config/constants';
 import { useSettings } from '../contexts/SettingsContext';
 import { createList } from '../db/lists';
 import { ColorSwatchPicker } from '../components/ColorSwatchPicker';
 
 const LIST_OPTIONS: { key: string; label: string; icon: React.ReactNode }[] = [
-  { key: 'My Day',    label: 'My Day',    icon: <Sun size={ICON_SIZE} weight="fill" /> },
-  { key: 'Tasks',     label: 'Tasks',     icon: <List size={ICON_SIZE} weight="fill" /> },
-  { key: 'Habits',    label: 'Habits',    icon: <CalendarCheck size={ICON_SIZE} weight="fill" /> },
-  { key: 'Groceries', label: 'Groceries', icon: <ShoppingCart size={ICON_SIZE} weight="fill" /> },
-  { key: 'Chores',    label: 'Chores',    icon: <Sparkle size={ICON_SIZE} weight="fill" /> },
+  { key: 'My Day',    label: 'My Day',    icon: <Sun size={ICON_SIZE} /> },
+  { key: 'Tasks',     label: 'Tasks',     icon: <List size={ICON_SIZE} /> },
+  { key: 'Habits',    label: 'Habits',    icon: <CalendarCheck size={ICON_SIZE} /> },
+  { key: 'Groceries', label: 'Groceries', icon: <ShoppingCart size={ICON_SIZE} /> },
+  { key: 'Chores',    label: 'Chores',    icon: <Sparkles size={ICON_SIZE} /> },
 ];
 
 const STEPS_FULL = [
-  { icon: <Check size={28} weight="fill" />,        title: 'Welcome to TO DO', body: '' },
-  { icon: <Palette size={28} weight="fill" />,      title: 'Appearance',       body: 'Choose your accent color and theme.' },
-  { icon: <ListDashes size={28} weight="fill" />,   title: 'Your lists',       body: 'Choose which lists you want to start with.' },
-  { icon: <CloudArrowUp size={28} weight="fill" />, title: 'Cloud sync',       body: 'Sync your data to the cloud to back it up and access it on multiple devices. You can change this later in Settings.' },
+  { icon: <Check size={28} />,        title: 'Welcome to TO DO', body: '' },
+  { icon: <Palette size={28} />,      title: 'Appearance',       body: 'Choose your accent color and theme.' },
+  { icon: <AlignJustify size={28} />,   title: 'Your lists',       body: 'Choose which lists you want to start with.' },
+  { icon: <CloudUpload size={28} />, title: 'Cloud sync',       body: 'Sync your data to the cloud to back it up and access it on multiple devices. You can change this later in Settings.' },
 ];
 
 const STEPS_LOCAL = [
-  { icon: <Check size={28} weight="fill" />,      title: 'Welcome to TO DO', body: 'Your data will only live on this device. Cloud sync is not available in local-only mode — to use it you would need to create an account.' },
-  { icon: <Palette size={28} weight="fill" />,    title: 'Appearance',       body: 'Choose your accent color and theme.' },
-  { icon: <ListDashes size={28} weight="fill" />, title: 'Your lists',       body: 'Choose which lists you want to start with.' },
+  { icon: <Check size={28} />,      title: 'Welcome to TO DO', body: 'Your data will only live on this device. Cloud sync is not available in local-only mode — to use it you would need to create an account.' },
+  { icon: <Palette size={28} />,    title: 'Appearance',       body: 'Choose your accent color and theme.' },
+  { icon: <AlignJustify size={28} />, title: 'Your lists',       body: 'Choose which lists you want to start with.' },
 ];
 
 const stepVariants = {
@@ -96,7 +96,7 @@ export function SetupWizard() {
 
               {localOnly && step === 0 ? (
                 <div className="wizard-callout">
-                  <Info size={18} weight="fill" className="wizard-callout__icon" />
+                  <Info size={18} className="wizard-callout__icon" />
                   <span>{STEPS[step].body}</span>
                 </div>
               ) : STEPS[step].body ? (
@@ -148,7 +148,7 @@ export function SetupWizard() {
                     onClick={() => setSyncChoice((v) => !v)}
                   >
                     <span className="wizard-list-option__label">
-                      <CloudArrowUp size={ICON_SIZE} weight="fill" />
+                      <CloudUpload size={ICON_SIZE} />
                       Enable cloud sync
                     </span>
                     <span className={`toggle-btn${syncChoice ? ' toggle-btn--on' : ''}`} aria-hidden="true" />

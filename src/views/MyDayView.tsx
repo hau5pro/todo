@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import { Sun, CalendarCheck, Clock } from '@phosphor-icons/react';
+import { Sun, CalendarCheck, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAppStore } from '../store';
 import { useSettings } from '../contexts/SettingsContext';
@@ -79,14 +79,14 @@ export function MyDayView() {
     <div>
       <motion.div variants={containerVariants} initial="hidden" animate="show">
       <motion.div variants={itemVariants} className="view-title-row">
-        <span className="view-title-icon"><Sun size={20} weight="fill" /></span>
+        <span className="view-title-icon"><Sun size={20} /></span>
         <h1 className="view-title">My Day</h1>
       </motion.div>
       <motion.p variants={itemVariants} className="view-subtitle">{todayLabel}</motion.p>
       {!hasAnything && <motion.p variants={itemVariants} className="empty-state">Nothing due today.</motion.p>}
         {orderedHabits.length > 0 && (
           <motion.section variants={sectionVariants}>
-            <div className="section-heading"><CalendarCheck size={ICON_SIZE} weight="fill" />Habits</div>
+            <div className="section-heading"><CalendarCheck size={ICON_SIZE} />Habits</div>
             {orderedHabits.map(({ task, completedToday, streak }) => (
               <HabitItem
                 key={task.id}
@@ -101,7 +101,7 @@ export function MyDayView() {
 
         {myDayOverdue.length > 0 && (
           <motion.section variants={sectionVariants}>
-            <div className="section-heading"><Clock size={ICON_SIZE} weight="fill" />Overdue</div>
+            <div className="section-heading"><Clock size={ICON_SIZE} />Overdue</div>
             {sortedOverdue.map((task) => (
               <TaskItem
                 key={task.id}
@@ -117,7 +117,7 @@ export function MyDayView() {
 
         {myDayToday.length > 0 && (
           <motion.section variants={sectionVariants}>
-            <div className="section-heading"><Sun size={ICON_SIZE} weight="fill" />Today</div>
+            <div className="section-heading"><Sun size={ICON_SIZE} />Today</div>
             {sortedToday.map((task) => (
               <TaskItem
                 key={task.id}

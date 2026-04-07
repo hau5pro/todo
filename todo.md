@@ -4,9 +4,12 @@
 
 ## Bugs
 
+- [ ] **Sign out (local-only user)** — clicking sign out does nothing; local-only users have no Supabase session so `signOut()` is a no-op, but the app should still clear local state and redirect to `/login`
+- [ ] **Auth → local-only transition** — when a signed-in user signs out and then continues as a local-only user, stale cloud data or auth state may bleed into the new local session; need to verify full teardown (store reset, `localOnly` flag, localStorage) before the local session starts
+
 ## Improvements
 
-- [ ] **Build/perf** — configure `rollupOptions.output.manualChunks` to split vendor chunks (react, framer-motion, phosphor icons, supabase); audit bundle size, lazy-load heavy views, check LCP/TTI with Lighthouse
+- [x] **Build/perf** — vendor chunk splitting, lazy-load heavy views, switched from phosphor-icons to lucide-react (tree-shaken per icon)
 
 
 ## Tests

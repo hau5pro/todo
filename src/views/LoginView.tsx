@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { DeviceMobile, CaretDown, Envelope, Lock, SignIn, UserPlus, ShareNetwork, DotsThreeVertical, PlusSquare, CircleNotch } from '@phosphor-icons/react';
+import { Smartphone, ChevronDown, Mail, Lock, LogIn, UserPlus, Share2, MoreVertical, SquarePlus, Loader } from 'lucide-react';
 import { signInWithGoogle, signInWithEmail, signUpWithEmail } from '../supabase/auth';
 import { useSettings } from '../contexts/SettingsContext';
 import { ICON_SIZE } from '../config/constants';
@@ -39,7 +39,7 @@ function PWAAccordion() {
     <div className="pwa-accordion">
       <button className="pwa-accordion__toggle" onClick={() => setOpen((o) => !o)}>
         <span style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
-          <DeviceMobile size={ICON_SIZE} weight="fill" />
+          <Smartphone size={ICON_SIZE} />
           Install as app
         </span>
         <motion.span
@@ -47,7 +47,7 @@ function PWAAccordion() {
           transition={{ duration: 0.2, ease: 'easeInOut' }}
           style={{ display: 'flex' }}
         >
-          <CaretDown size={ICON_SIZE} weight="fill" />
+          <ChevronDown size={ICON_SIZE} />
         </motion.span>
       </button>
       <AnimatePresence initial={false}>
@@ -66,18 +66,18 @@ function PWAAccordion() {
               {isIOS ? (
                 <ol className="install-steps">
                   <li>Open in <strong>Safari</strong></li>
-                  <li>Tap the <span className="install-inline-icon"><ShareNetwork size={ICON_SIZE} weight="fill" /></span> <strong>Share</strong> button at the bottom</li>
+                  <li>Tap the <span className="install-inline-icon"><Share2 size={ICON_SIZE} /></span> <strong>Share</strong> button at the bottom</li>
                   <li>Tap <strong>"Add to Home Screen"</strong></li>
                 </ol>
               ) : isAndroid ? (
                 <ol className="install-steps">
                   <li>Open in <strong>Chrome</strong></li>
-                  <li>Tap <span className="install-inline-icon"><DotsThreeVertical size={ICON_SIZE} weight="fill" /></span> in the top right</li>
+                  <li>Tap <span className="install-inline-icon"><MoreVertical size={ICON_SIZE} /></span> in the top right</li>
                   <li>Tap <strong>"Add to Home Screen"</strong></li>
                 </ol>
               ) : (
                 <ol className="install-steps">
-                  <li>Look for <span className="install-inline-icon"><PlusSquare size={ICON_SIZE} weight="fill" /></span> in your address bar</li>
+                  <li>Look for <span className="install-inline-icon"><SquarePlus size={ICON_SIZE} /></span> in your address bar</li>
                   <li>Click it and confirm</li>
                 </ol>
               )}
@@ -183,7 +183,7 @@ export function LoginView() {
         {/* Email / password form */}
         <motion.form variants={fade} onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '100%' }}>
           <div className="auth-field">
-            <Envelope size={ICON_SIZE} weight="fill" className="auth-field__icon" />
+            <Mail size={ICON_SIZE} className="auth-field__icon" />
             <input
               className="auth-input auth-input--icon"
               type="email"
@@ -196,7 +196,7 @@ export function LoginView() {
             />
           </div>
           <div className="auth-field">
-            <Lock size={ICON_SIZE} weight="fill" className="auth-field__icon" />
+            <Lock size={ICON_SIZE} className="auth-field__icon" />
             <input
               className="auth-input auth-input--icon"
               type="password"
@@ -225,8 +225,8 @@ export function LoginView() {
           </AnimatePresence>
           <button className="btn-auth btn-primary auth-submit" type="submit" disabled={loading !== null}>
             {loading === 'email'
-              ? <CircleNotch size={32} weight="fill" className="spin" />
-              : <>{mode === 'signin' ? <SignIn size={ICON_SIZE} weight="fill" /> : <UserPlus size={ICON_SIZE} weight="fill" />}{mode === 'signin' ? 'Sign in' : 'Create account'}</>
+              ? <Loader size={32} className="spin" />
+              : <>{mode === 'signin' ? <LogIn size={ICON_SIZE} /> : <UserPlus size={ICON_SIZE} />}{mode === 'signin' ? 'Sign in' : 'Create account'}</>
             }
           </button>
         </motion.form>
@@ -237,7 +237,7 @@ export function LoginView() {
 
           <button className="btn-auth btn-google" onClick={handleGoogle} disabled={loading !== null}>
             {loading === 'google'
-              ? <CircleNotch size={32} weight="fill" className="spin" />
+              ? <Loader size={32} className="spin" />
               : <><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" style={{ display: 'block', flexShrink: 0 }}>
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                   <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>

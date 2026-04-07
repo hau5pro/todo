@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import dayjs from 'dayjs';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trash, CalendarBlank, FolderSimple, X } from '@phosphor-icons/react';
+import { Trash2, Calendar, Folder, X } from 'lucide-react';
 import { useTaskDetail } from '../contexts/TaskDetailContext';
 import { useAppStore } from '../store';
 import { useSettings } from '../contexts/SettingsContext';
@@ -181,7 +181,7 @@ export function TaskDetailPanel() {
                   onClick={() => setCalOpen((o) => !o)}
                   title={dueDate ? 'Change due date' : 'Set a due date'}
                 >
-                  <CalendarBlank size={14} weight="fill" />
+                  <Calendar size={14} />
                   <span>{dueDate ? formatDueDate(dueDate) : 'Add due date'}</span>
                 </button>
 
@@ -216,7 +216,7 @@ export function TaskDetailPanel() {
           {editingGroup ? (
             <div className="task-detail-group-wrap">
               <div className="task-detail-group-edit">
-                <FolderSimple size={14} weight="fill" style={{ color: 'var(--fg-muted)', flexShrink: 0 }} />
+                <Folder size={14} style={{ color: 'var(--fg-muted)', flexShrink: 0 }} />
                 <input
                   ref={groupInputRef}
                   className="task-detail-group-input"
@@ -264,7 +264,7 @@ export function TaskDetailPanel() {
                     }}
                     title="Remove from group"
                   >
-                    <X size={12} weight="bold" />
+                    <X size={12} />
                   </button>
                 )}
               </div>
@@ -293,7 +293,7 @@ export function TaskDetailPanel() {
               onClick={() => { setEditingGroup(true); focusLater(groupInputRef); }}
               title={currentGroup ? 'Change group' : 'Assign to a group'}
             >
-              <FolderSimple size={14} weight="fill" />
+              <Folder size={14} />
               <span>{currentGroup ?? 'Add to group'}</span>
             </button>
           )}
@@ -303,7 +303,7 @@ export function TaskDetailPanel() {
 
       <div className="task-detail-panel__footer">
         <button className="task-detail-delete-btn" onClick={executeDelete}>
-          <Trash size={ICON_SIZE} weight="fill" />
+          <Trash2 size={ICON_SIZE} />
           Delete task
         </button>
       </div>

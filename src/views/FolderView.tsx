@@ -1,5 +1,5 @@
 import { useParams, NavLink, Navigate } from 'react-router-dom';
-import { FolderSimple, List } from '@phosphor-icons/react';
+import { Folder, List } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAppStore } from '../store';
 import { getListIcon } from '../config/listIcons';
@@ -32,7 +32,7 @@ export function FolderView() {
       <motion.div variants={headerVariants} initial="hidden" animate="show">
         <motion.div variants={itemVariants} className="view-title-row">
           <span className="view-title-icon">
-            <FolderSimple size={20} weight="fill" />
+            <Folder size={20} />
           </span>
           <h1 className="view-title">{folder.name}</h1>
         </motion.div>
@@ -51,7 +51,7 @@ export function FolderView() {
           <motion.div key={list.id} variants={itemVariants}>
             <NavLink to={`/list/${list.id}`} className="folder-view-list-item" data-nav-row>
               <span className="folder-view-list-icon">
-                {getListIcon(list, ICON_SIZE) ?? <List size={ICON_SIZE} weight="fill" />}
+                {getListIcon(list, ICON_SIZE) ?? <List size={ICON_SIZE} />}
               </span>
               <span className="folder-view-list-name">{list.name}</span>
             </NavLink>

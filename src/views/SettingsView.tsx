@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Trash, List as ListIcon, UserCircle, PaintBrush, SpeakerHigh, PushPin, Warning, GearSix } from '@phosphor-icons/react';
+import { Trash2, List as ListIcon, CircleUser, Paintbrush, Volume2, Pin, TriangleAlert, Settings } from 'lucide-react';
 import { ICON_SIZE } from '../config/constants';
 import { Reorder, useDragControls } from 'framer-motion';
 import { useSettings } from '../contexts/SettingsContext';
@@ -24,7 +24,7 @@ function SortableSettingsRow({ list, checked, onChange }: { list: List; checked:
   return (
     <Reorder.Item as="div" value={list} dragListener={false} dragControls={dragControls} className="settings-row-sortable">
       <div className="settings-drag-handle" onPointerDown={(e) => dragControls.start(e)}>
-        <ListIcon size={ICON_SIZE} weight="bold" />
+        <ListIcon size={ICON_SIZE} />
       </div>
       <SettingsRow label={list.name} sublabel={LIST_TYPE_LABELS[list.type]} checked={checked} onChange={onChange} />
     </Reorder.Item>
@@ -36,7 +36,7 @@ function SortableMyDaySettingsRow({ checked, onChange }: { checked: boolean; onC
   return (
     <Reorder.Item as="div" value={MY_DAY_SENTINEL} dragListener={false} dragControls={dragControls} className="settings-row-sortable">
       <div className="settings-drag-handle" onPointerDown={(e) => dragControls.start(e)}>
-        <ListIcon size={ICON_SIZE} weight="bold" />
+        <ListIcon size={ICON_SIZE} />
       </div>
       <SettingsRow label="My Day" sublabel="built-in" checked={checked} onChange={onChange} />
     </Reorder.Item>
@@ -92,14 +92,14 @@ export function SettingsView() {
   return (
     <div style={{ maxWidth: 480, margin: '0 auto' }}>
       <div className="view-title-row" style={{ marginBottom: '2rem' }}>
-        <span className="view-title-icon"><GearSix size={20} weight="fill" /></span>
+        <span className="view-title-icon"><Settings size={20} /></span>
         <h1 className="view-title">Settings</h1>
       </div>
 
       {/* Account */}
       <section className="settings-section">
         <div className="settings-section-title">
-          <UserCircle size={16} weight="fill" />
+          <CircleUser size={16} />
           Account
         </div>
         {email && <p className="settings-email">{email}</p>}
@@ -116,7 +116,7 @@ export function SettingsView() {
       {/* Appearance */}
       <section className="settings-section">
         <div className="settings-section-title">
-          <PaintBrush size={16} weight="fill" />
+          <Paintbrush size={16} />
           Appearance
         </div>
         <div className="settings-appearance-fields">
@@ -144,7 +144,7 @@ export function SettingsView() {
       {/* Sound */}
       <section className="settings-section">
         <div className="settings-section-title">
-          <SpeakerHigh size={16} weight="fill" />
+          <Volume2 size={16} />
           Sound
         </div>
         <SettingsRow
@@ -176,7 +176,7 @@ export function SettingsView() {
       {pinnedItems.length > 0 && (
         <section className="settings-section">
           <div className="settings-section-title">
-            <PushPin size={16} weight="fill" />
+            <Pin size={16} />
             Pinned
           </div>
           <p style={{ fontSize: '0.85rem', color: 'var(--fg-muted)', margin: '0.5rem 0 0.875rem' }}>
@@ -209,7 +209,7 @@ export function SettingsView() {
       {/* Danger zone */}
       <section className="settings-section">
         <div className="settings-section-title settings-section-title--danger">
-          <Warning size={16} weight="fill" />
+          <TriangleAlert size={16} />
           Danger zone
         </div>
         <div className="danger-zone" style={{ marginTop: '0.75rem' }}>
@@ -221,7 +221,7 @@ export function SettingsView() {
                   : 'Permanently deletes all your data from this device and the cloud.'}
               </p>
               <button className="btn-danger" onClick={() => setConfirmDelete(true)} disabled={busy}>
-                <Trash size={ICON_SIZE} weight="fill" />
+                <Trash2 size={ICON_SIZE} />
                 {localOnly ? 'Delete everything' : 'Delete everything and sign out'}
               </button>
             </>

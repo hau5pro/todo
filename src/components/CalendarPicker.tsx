@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import dayjs from 'dayjs';
-import { CaretLeft, CaretRight } from '@phosphor-icons/react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { ICON_SIZE } from '../config/constants';
 
 const DAY_HEADERS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
@@ -45,14 +45,14 @@ export function CalendarPicker({ value, onChange }: Props) {
         <div className="cal__header">
           <button className="cal__nav" type="button"
             onClick={() => setViewMonth((m) => m.subtract(1, 'month'))}>
-            <CaretLeft size={ICON_SIZE} weight="fill" />
+            <ChevronLeft size={ICON_SIZE} />
           </button>
           <button className="cal__heading-btn" type="button" onClick={() => setView('months')}>
             {viewMonth.format('MMMM YYYY')}
           </button>
           <button className="cal__nav" type="button"
             onClick={() => setViewMonth((m) => m.add(1, 'month'))}>
-            <CaretRight size={ICON_SIZE} weight="fill" />
+            <ChevronRight size={ICON_SIZE} />
           </button>
         </div>
         <div className="cal__grid">
@@ -94,7 +94,7 @@ export function CalendarPicker({ value, onChange }: Props) {
           <button className="cal__nav" type="button"
             disabled={year - 1 < MIN_YEAR}
             onClick={() => setViewMonth((m) => m.subtract(1, 'year'))}>
-            <CaretLeft size={ICON_SIZE} weight="fill" />
+            <ChevronLeft size={ICON_SIZE} />
           </button>
           <button className="cal__heading-btn" type="button" onClick={() => setView('years')}>
             {year}
@@ -102,7 +102,7 @@ export function CalendarPicker({ value, onChange }: Props) {
           <button className="cal__nav" type="button"
             disabled={year + 1 > MAX_YEAR}
             onClick={() => setViewMonth((m) => m.add(1, 'year'))}>
-            <CaretRight size={ICON_SIZE} weight="fill" />
+            <ChevronRight size={ICON_SIZE} />
           </button>
         </div>
         <div className="cal__month-grid">
@@ -146,7 +146,7 @@ export function CalendarPicker({ value, onChange }: Props) {
           <button className="cal__nav" type="button"
             disabled={blockStart <= MIN_YEAR}
             onClick={() => setViewMonth((m) => m.subtract(YEARS_PER_PAGE, 'year'))}>
-            <CaretLeft size={ICON_SIZE} weight="fill" />
+            <ChevronLeft size={ICON_SIZE} />
           </button>
           <span className="cal__heading-btn cal__heading-btn--static">
             {blockStart} – {blockStart + YEARS_PER_PAGE - 1}
@@ -154,7 +154,7 @@ export function CalendarPicker({ value, onChange }: Props) {
           <button className="cal__nav" type="button"
             disabled={blockStart + YEARS_PER_PAGE > MAX_YEAR}
             onClick={() => setViewMonth((m) => m.add(YEARS_PER_PAGE, 'year'))}>
-            <CaretRight size={ICON_SIZE} weight="fill" />
+            <ChevronRight size={ICON_SIZE} />
           </button>
         </div>
         <div className="cal__year-grid">
