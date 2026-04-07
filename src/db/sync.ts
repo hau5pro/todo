@@ -1,12 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { List, ListFolder, Task, HabitCompletion } from '../types';
-
-function req<T>(r: IDBRequest<T>): Promise<T> {
-  return new Promise((res, rej) => {
-    r.onsuccess = () => res(r.result);
-    r.onerror = () => rej(r.error);
-  });
-}
+import { req } from './client';
 
 const LAST_SYNC_KEY = 'todo_last_sync';
 

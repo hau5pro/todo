@@ -1,12 +1,5 @@
-import { getDB } from './client';
+import { getDB, req } from './client';
 import type { HabitCompletion } from '../types';
-
-function req<T>(r: IDBRequest<T>): Promise<T> {
-  return new Promise((res, rej) => {
-    r.onsuccess = () => res(r.result);
-    r.onerror = () => rej(r.error);
-  });
-}
 
 export async function getCompletionsForTask(taskId: string): Promise<HabitCompletion[]> {
   const db = await getDB();

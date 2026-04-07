@@ -1,15 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { getDB } from '../db/client';
+import { getDB, req } from '../db/client';
 import { pushPending, pullFromSupabase } from '../db/sync';
 import { supabase } from '../supabase/client';
 import type { List, Task, HabitCompletion } from '../types';
-
-function req<T>(r: IDBRequest<T>): Promise<T> {
-  return new Promise((res, rej) => {
-    r.onsuccess = () => res(r.result);
-    r.onerror = () => rej(r.error);
-  });
-}
 
 async function countPending(): Promise<number> {
   const db = await getDB();

@@ -1,13 +1,6 @@
 import { RRule } from 'rrule';
-import { getDB } from './client';
+import { getDB, req } from './client';
 import type { Task, RecurrenceUnit } from '../types';
-
-function req<T>(r: IDBRequest<T>): Promise<T> {
-  return new Promise((res, rej) => {
-    r.onsuccess = () => res(r.result);
-    r.onerror = () => rej(r.error);
-  });
-}
 
 function advanceDueDate(dueDate: string, interval: number, unit: RecurrenceUnit): string {
   // Parse as local date to avoid timezone issues

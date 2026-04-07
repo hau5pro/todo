@@ -1,3 +1,10 @@
+export function req<T>(r: IDBRequest<T>): Promise<T> {
+  return new Promise((res, rej) => {
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+  });
+}
+
 const DB_NAME = 'todo-app';
 const DB_VERSION = 2;
 
