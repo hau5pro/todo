@@ -3,7 +3,6 @@ session counter: 4 + 5x lol
 
 - address accessability (final sweep)
 
-- feat: toggle icon given some sort of variance to show its a toggle.
 - feat: also in edit ability to delete quickly many tasks without conf.
 - feat: edit mode in task view, maybe we move reordering items in there? along with renaming?
 - feat: selected list in title?
@@ -12,8 +11,6 @@ session counter: 4 + 5x lol
 - feat: improve recurrence UX
 
 - only confirm button on rename list in task view.
-- should actionable icons be more highlighted than others?
-
 
 - bug: tasks if not opened and i complete it my day, those tasks dont show in completed tasks until refresh
 - bug: drag folder highlights visible when not in edit mode.

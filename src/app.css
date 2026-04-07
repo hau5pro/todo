@@ -193,6 +193,10 @@ body {
   flex-shrink: 0;
 }
 .sidebar-collapse-btn:hover { color: var(--fg); background: var(--hover); }
+.sidebar-collapse-btn--toggle { background: var(--accent-dim); color: var(--accent); filter: brightness(1.1); }
+.sidebar-collapse-btn--toggle:hover { background: var(--accent-dim); color: var(--accent); filter: brightness(0.92); }
+.sidebar-collapse-btn--dark { background: rgba(0,0,0,0.15); color: var(--accent); filter: none; border: none; }
+.sidebar-collapse-btn--dark:hover { background: rgba(0,0,0,0.25); color: var(--accent); filter: none; border: none; }
 
 .nav-icon-btn {
   display: flex;

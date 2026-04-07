@@ -610,7 +610,7 @@ export function Sidebar() {
           >
             <div className="sidebar-toolbar">
               <button
-                className="sidebar-collapse-btn"
+                className="sidebar-collapse-btn sidebar-collapse-btn--toggle sidebar-collapse-btn--dark"
                 onClick={() => setSidebarCollapsed(false)}
                 title="Expand sidebar"
               >
@@ -674,7 +674,7 @@ export function Sidebar() {
                   : <PencilSimple size={ICON_SIZE} weight="fill" />}
               </button>
               <button
-                className="sidebar-collapse-btn"
+                className="sidebar-collapse-btn sidebar-collapse-btn--toggle"
                 onClick={() => setSidebarCollapsed(true)}
                 title="Collapse sidebar"
               >
