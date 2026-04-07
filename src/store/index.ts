@@ -218,7 +218,12 @@ export const useAppStore = create<AppStore>((set, get) => ({
   duplicateList: async (id) => {
     const source = get().lists.find((l) => l.id === id);
     if (!source) throw new Error(`List ${id} not found`);
-    const newList = await dbCreateList(`${source.name} (copy)`, source.type, source.folder_id);
+    const existingNames = new Set(get().lists.map((l) => l.name));
+    const baseName = source.name.replace(/ \(\d+\)$/, '');
+    let n = 2;
+    let copyName = `${baseName} (${n})`;
+    while (existingNames.has(copyName)) copyName = `${baseName} (${++n})`;
+    const newList = await dbCreateList(copyName, source.type, source.folder_id);
     const sourceTasks = await getTasksByList(id);
     const newTasks = await Promise.all(
       sourceTasks.map((t) =>

@@ -335,8 +335,15 @@ function FolderRow({
             }}
             onBlur={commitRename}
           />
-        ) : (
+        ) : editMode ? (
           <span className="nav-folder-name">{folder.name}</span>
+        ) : (
+          <NavLink
+            to={`/folder/${folder.id}`}
+            className={({ isActive }) => isActive ? 'nav-folder-name nav-folder-name--active' : 'nav-folder-name'}
+          >
+            {folder.name}
+          </NavLink>
         )}
 
         {!editingName && (
@@ -655,6 +662,34 @@ export function Sidebar() {
                 </NavTooltip>
               );
             })}
+
+            {(orderedUngrouped.length > 0 || orderedFolders.length > 0) && (
+              <div className="sidebar-collapsed-divider" />
+            )}
+
+            {orderedUngrouped.map((list) => (
+              <NavTooltip key={list.id} label={list.name}>
+                <NavLink
+                  to={`/list/${list.id}`}
+                  className={({ isActive }) => isActive ? 'nav-icon-btn nav-icon-btn--active' : 'nav-icon-btn'}
+                  aria-label={list.name}
+                >
+                  {getListIcon(list, COLLAPSED_ICON_SIZE) ?? <List size={COLLAPSED_ICON_SIZE} weight="fill" />}
+                </NavLink>
+              </NavTooltip>
+            ))}
+
+            {orderedFolders.map((folder) => (
+              <NavTooltip key={folder.id} label={folder.name}>
+                <NavLink
+                  to={`/folder/${folder.id}`}
+                  className={({ isActive }) => isActive ? 'nav-icon-btn nav-icon-btn--active' : 'nav-icon-btn'}
+                  aria-label={folder.name}
+                >
+                  <FolderSimple size={COLLAPSED_ICON_SIZE} weight="fill" />
+                </NavLink>
+              </NavTooltip>
+            ))}
 
             <div className="sidebar-spacer" />
 

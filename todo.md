@@ -31,7 +31,7 @@
 
 ## Improvements
 
-- [ ] **Folder nav destinations** — folders become NavLinks (`/folder/:id`) with a `FolderView` showing lists inside the folder; collapsed sidebar shows folder icons (no child lists); ungrouped user lists appear as icon buttons in collapsed sidebar just like pinned items
+- [x] **Folder nav destinations** — folders become NavLinks (`/folder/:id`) with a `FolderView` showing lists inside the folder; collapsed sidebar shows folder icons (no child lists); ungrouped user lists appear as icon buttons in collapsed sidebar just like pinned items
 - [ ] **Accessibility** — final sweep
 - [ ] **Recurrence UX** — improve recurrence picker/flow
 - [ ] **Fast multi-complete** — ability to rapidly tap many items to completion; drop animations for that interaction, prioritise snappiness
@@ -40,6 +40,7 @@
 - [ ] **Add item in group** — "Add item" button inside a group should behave consistently with the main "Add task" input at the top of the list
 - [ ] **Wizard animations** — step transitions (slide or fade between steps), entrance animation on first load
 - [ ] help doc icons and styling
+- [ ] list/folder creation ui
 
 
 ## Tests
