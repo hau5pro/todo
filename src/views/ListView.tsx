@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { PencilSimple, Trash, CaretDown, CaretRight, CopySimple, List as ListIcon, TextT, CheckCircle } from '@phosphor-icons/react';
+import { PencilSimple, Trash, CaretDown, CaretRight, CopySimple, List as ListIcon, CheckCircle } from '@phosphor-icons/react';
 import { AnimatePresence, motion, Reorder, useDragControls } from 'framer-motion';
 import { ease } from '../utils/easing';
 import { focusLater } from '../utils/dom';
@@ -178,6 +178,7 @@ export function ListView() {
               className="view-title-input"
               value={newListName}
               onChange={(e) => setNewListName(e.target.value)}
+              onBlur={commitEditListName}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') commitEditListName();
                 if (e.key === 'Escape') setEditingListName(false);
@@ -206,7 +207,7 @@ export function ListView() {
                 {getListIcon(list, 20) ?? <ListIcon size={20} weight="fill" />}
               </button>
             )}
-            <h1 className="view-title">{list.name}</h1>
+            <h1 className="view-title" onClick={!isPinned ? startEditListName : undefined} style={!isPinned ? { cursor: 'text' } : undefined}>{list.name}</h1>
             <span className="view-title-actions">
               <button
                 className="view-title-action-btn"
@@ -219,7 +220,6 @@ export function ListView() {
                   : <PencilSimple size={ICON_SIZE} weight="fill" />}
               </button>
               {!isPinned && (<>
-                <button className="view-title-action-btn" onClick={startEditListName} title="Rename list"><TextT size={ICON_SIZE} weight="fill" /></button>
                 <button className="view-title-action-btn" onClick={handleDuplicate} title="Duplicate list"><CopySimple size={ICON_SIZE} weight="fill" /></button>
                 <button className="view-title-action-btn view-title-action-btn--danger" onClick={() => setConfirmDeleteList(true)} title="Delete list"><Trash size={ICON_SIZE} weight="fill" /></button>
               </>)}
