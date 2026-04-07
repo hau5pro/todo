@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Trash, DotsSixVertical, UserCircle, PaintBrush, SpeakerHigh, PushPin, Warning, Question, GearSix } from '@phosphor-icons/react';
+import { Trash, List as ListIcon, UserCircle, PaintBrush, SpeakerHigh, PushPin, Warning, Question, GearSix } from '@phosphor-icons/react';
 import { ICON_SIZE } from '../config/icons';
 import { Reorder, useDragControls } from 'framer-motion';
 import { useSettings } from '../contexts/SettingsContext';
@@ -25,7 +25,7 @@ function SortableSettingsRow({ list, checked, onChange }: { list: List; checked:
   return (
     <Reorder.Item as="div" value={list} dragListener={false} dragControls={dragControls} className="settings-row-sortable">
       <div className="settings-drag-handle" onPointerDown={(e) => dragControls.start(e)}>
-        <DotsSixVertical size={ICON_SIZE} weight="fill" />
+        <ListIcon size={ICON_SIZE} weight="bold" />
       </div>
       <SettingsRow label={list.name} sublabel={LIST_TYPE_LABELS[list.type]} checked={checked} onChange={onChange} />
     </Reorder.Item>
@@ -37,7 +37,7 @@ function SortableMyDaySettingsRow({ checked, onChange }: { checked: boolean; onC
   return (
     <Reorder.Item as="div" value={MY_DAY_SENTINEL} dragListener={false} dragControls={dragControls} className="settings-row-sortable">
       <div className="settings-drag-handle" onPointerDown={(e) => dragControls.start(e)}>
-        <DotsSixVertical size={ICON_SIZE} weight="fill" />
+        <ListIcon size={ICON_SIZE} weight="bold" />
       </div>
       <SettingsRow label="My Day" sublabel="built-in" checked={checked} onChange={onChange} />
     </Reorder.Item>
