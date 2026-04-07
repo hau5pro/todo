@@ -10,8 +10,10 @@ export function SyncDot({ pendingCount, isSyncing }: Props) {
   const mod = isSyncing ? 'syncing' : pendingCount > 0 ? 'pending' : 'synced';
   return (
     <span className="sync-indicator" title={title}>
-      <Cloud size={14} weight="fill" className="sync-cloud-icon" />
-      <span className={`sync-dot sync-dot--${mod}`} />
+      <span className="sync-cloud-wrap">
+        <Cloud size={20} weight="fill" className="sync-cloud-icon" />
+        <span className={`sync-dot sync-dot--${mod}`} />
+      </span>
     </span>
   );
 }
