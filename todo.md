@@ -27,7 +27,7 @@
 
 ## Settings
 
-- [ ] **Cloud sync toggle** — setting to enable/disable cloud sync entirely
+- [x] **Cloud sync toggle** — setting to enable/disable cloud sync entirely
 
 ## Improvements
 
@@ -38,6 +38,9 @@
 - [ ] **Completed list performance** — will the completed section get heavy over time? consider pagination or a cap with "show older"
 - [ ] **Group field in task detail** — dropdown doesn't match any existing group names; replace with autocomplete from active groups in the list
 - [ ] **Add item in group** — "Add item" button inside a group should behave consistently with the main "Add task" input at the top of the list
+- [ ] **Wizard animations** — step transitions (slide or fade between steps), entrance animation on first load
+- [ ] help doc icons and styling
+
 
 ## Tests
 

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { getDB, req } from '../db/client';
 import { pushPending, pullFromSupabase } from '../db/sync';
 import { supabase } from '../supabase/client';
+import { useSettings } from '../contexts/SettingsContext';
 import type { List, Task, HabitCompletion } from '../types';
 
 async function countPending(): Promise<number> {
@@ -19,12 +20,14 @@ async function countPending(): Promise<number> {
 }
 
 export function useSync() {
+  const { syncEnabled } = useSettings();
   const [pendingCount, setPendingCount] = useState(0);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncError, setSyncError] = useState<Error | null>(null);
   const syncingRef = useRef(false);
 
   const sync = useCallback(async () => {
+    if (!syncEnabled) return;
     if (syncingRef.current) return;
     syncingRef.current = true;
     setIsSyncing(true);
@@ -42,9 +45,10 @@ export function useSync() {
       syncingRef.current = false;
       setIsSyncing(false);
     }
-  }, []);
+  }, [syncEnabled]);
 
   useEffect(() => {
+    if (!syncEnabled) return;
     countPending().then(setPendingCount);
     sync();
     const onFocus = () => sync();
@@ -55,7 +59,7 @@ export function useSync() {
       window.removeEventListener('focus', onFocus);
       document.removeEventListener('visibilitychange', onVisibility);
     };
-  }, [sync]);
+  }, [sync, syncEnabled]);
 
-  return { pendingCount, isSyncing, sync, syncError };
+  return { pendingCount, isSyncing, sync, syncError, syncEnabled };
 }

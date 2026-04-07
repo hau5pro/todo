@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { NavLink } from 'react-router-dom';
-import { Trash, List as ListIcon, UserCircle, PaintBrush, SpeakerHigh, PushPin, Warning, Question, GearSix } from '@phosphor-icons/react';
+import { Trash, List as ListIcon, UserCircle, PaintBrush, SpeakerHigh, PushPin, Warning, GearSix } from '@phosphor-icons/react';
 import { ICON_SIZE } from '../config/icons';
 import { Reorder, useDragControls } from 'framer-motion';
 import { useSettings } from '../contexts/SettingsContext';
@@ -54,6 +53,8 @@ export function SettingsView() {
     pinnedOrder, setPinnedOrder,
     soundEnabled, setSoundEnabled,
     soundStyle, setSoundStyle,
+    syncEnabled, setSyncEnabled,
+    localOnly,
   } = useSettings();
 
   const lists = useAppStore((s) => s.lists);
@@ -74,7 +75,8 @@ export function SettingsView() {
       if (user) await deleteAllCloudData(supabase, user.id);
       await clearAllLocalData();
       localStorage.clear();
-      await signOut();
+      if (user) await signOut();
+      else window.location.reload();
     } catch (err) {
       setDeleteError(err instanceof Error ? err.message : 'Something went wrong.');
       setBusy(false);
@@ -94,17 +96,21 @@ export function SettingsView() {
         <h1 className="view-title">Settings</h1>
       </div>
 
-      {/* Account + Help */}
+      {/* Account */}
       <section className="settings-section">
         <div className="settings-section-title">
           <UserCircle size={16} weight="fill" />
           Account
         </div>
         {email && <p className="settings-email">{email}</p>}
-        <NavLink to="/docs" className="settings-docs-link">
-          <Question size={16} weight="bold" style={{ marginRight: '0.3rem' }} />
-          Keyboard shortcuts
-        </NavLink>
+        {!localOnly && (
+          <SettingsRow
+            label="Cloud sync"
+            sublabel="back up and access your data on multiple devices"
+            checked={syncEnabled}
+            onChange={() => setSyncEnabled(!syncEnabled)}
+          />
+        )}
       </section>
 
       {/* Appearance */}
@@ -210,11 +216,13 @@ export function SettingsView() {
           {!confirmDelete ? (
             <>
               <p style={{ fontSize: '0.85rem', color: 'var(--fg-muted)', marginBottom: '0.75rem' }}>
-                Permanently deletes all your data from this device and the cloud.
+                {localOnly
+                  ? 'Permanently deletes all your data from this device.'
+                  : 'Permanently deletes all your data from this device and the cloud.'}
               </p>
               <button className="btn-danger" onClick={() => setConfirmDelete(true)} disabled={busy}>
                 <Trash size={ICON_SIZE} weight="fill" />
-                Delete everything and sign out
+                {localOnly ? 'Delete everything' : 'Delete everything and sign out'}
               </button>
             </>
           ) : (
@@ -223,7 +231,9 @@ export function SettingsView() {
                 Are you absolutely sure?
               </p>
               <p style={{ fontSize: '0.85rem', color: 'var(--fg-muted)', marginBottom: '0.875rem' }}>
-                This will permanently delete all lists, tasks, and habits from <strong>this device and the cloud</strong>. There is no undo.
+                {localOnly
+                  ? 'This will permanently delete all lists, tasks, and habits from this device. There is no undo.'
+                  : <>This will permanently delete all lists, tasks, and habits from <strong>this device and the cloud</strong>. There is no undo.</>}
               </p>
               {deleteError && (
                 <p style={{ fontSize: '0.8rem', color: 'var(--danger)', marginBottom: '0.625rem' }}>{deleteError}</p>

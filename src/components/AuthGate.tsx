@@ -5,6 +5,7 @@ import { onAuthStateChange } from '../supabase/auth';
 import { getDB } from '../db/client';
 import { initialSync } from '../db/sync';
 import { supabase } from '../supabase/client';
+import { useSettings } from '../contexts/SettingsContext';
 
 interface Props {
   children: React.ReactNode;
@@ -15,12 +16,13 @@ export function AuthGate({ children }: Props) {
   const navigate = useNavigate();
   const location = useLocation();
   const prevUserRef = useRef<User | null | 'loading'>('loading');
+  const { localOnly } = useSettings();
 
   useEffect(() => {
     const unsub = onAuthStateChange(async (u) => {
       const prev = prevUserRef.current;
       prevUserRef.current = u;
-      setUser(u); // unblock UI immediately
+      setUser(u);
       if (u && prev === null) {
         getDB()
           .then((db) => initialSync(db, supabase))
@@ -32,12 +34,11 @@ export function AuthGate({ children }: Props) {
 
   useEffect(() => {
     if (user === 'loading') return;
-    if (!user && location.pathname !== '/login') navigate('/login', { viewTransition: true });
-    if (user && location.pathname === '/login') {
-      navigate('/my-day');
-    }
-  }, [user, location.pathname, navigate]);
+    const authed = !!user || localOnly;
+    if (!authed && location.pathname !== '/login') navigate('/login', { viewTransition: true });
+    if (authed && location.pathname === '/login') navigate('/my-day');
+  }, [user, localOnly, location.pathname, navigate]);
 
-  if (user === 'loading') return null;
+  if (user === 'loading' && !localOnly) return null;
   return <>{children}</>;
 }

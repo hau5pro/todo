@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DeviceMobile, CaretDown, Envelope, Lock, SignIn, UserPlus, ShareNetwork, DotsThreeVertical, PlusSquare, CircleNotch } from '@phosphor-icons/react';
 import { signInWithGoogle, signInWithEmail, signUpWithEmail } from '../supabase/auth';
+import { useSettings } from '../contexts/SettingsContext';
 import { ICON_SIZE } from '../config/icons';
 
 type Mode = 'signin' | 'signup';
@@ -94,6 +96,8 @@ export function LoginView() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<'email' | 'google' | null>(null);
   const [verified, setVerified] = useState(false);
+  const { setLocalOnly } = useSettings();
+  const navigate = useNavigate();
 
   function switchMode(next: Mode) {
     setMode(next);
@@ -154,14 +158,15 @@ export function LoginView() {
       <motion.div className="wizard-step" variants={stagger} initial="hidden" animate="show">
 
         {/* Branding */}
-        <motion.div variants={fade} style={{ marginBottom: '3rem', textAlign: 'center' }}>
+        <motion.div variants={fade} style={{ marginBottom: '3.5rem', textAlign: 'center' }}>
           <div className="app-logo__mark" style={{ width: '3.5rem', height: '3.5rem', borderRadius: '1rem', marginBottom: '1rem', marginInline: 'auto' }}>
             <svg width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true">
               <polyline points="3,14 10,21 23,6" stroke="var(--accent)" strokeWidth="2.75" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
           <div style={{ fontSize: '1.75rem', fontWeight: 800, letterSpacing: '0.06em', lineHeight: 1 }}>TO DO</div>
-          <p style={{ fontSize: '0.85rem', color: 'var(--fg-muted)', marginTop: '0.5rem' }}>yet another todo app</p>
+          <p style={{ fontSize: '0.85rem', color: 'var(--fg-muted)', marginTop: '0.75rem' }}>A minimal, offline-first task manager.</p>
+          <p style={{ fontSize: '0.8rem', color: 'var(--fg-muted)', marginTop: '0.5rem', opacity: 0.7 }}>Your data lives on this device. Sign in to sync across devices.</p>
           <div style={{ marginTop: '0.875rem', textAlign: 'left' }}><PWAAccordion /></div>
         </motion.div>
 
@@ -215,7 +220,7 @@ export function LoginView() {
               </motion.p>
             )}
           </AnimatePresence>
-          <button className="btn-primary auth-submit" type="submit" disabled={loading !== null}>
+          <button className="btn-auth btn-primary auth-submit" type="submit" disabled={loading !== null}>
             {loading === 'email'
               ? <CircleNotch size={32} weight="fill" className="spin" />
               : <>{mode === 'signin' ? <SignIn size={ICON_SIZE} weight="fill" /> : <UserPlus size={ICON_SIZE} weight="fill" />}{mode === 'signin' ? 'Sign in' : 'Create account'}</>
@@ -223,21 +228,30 @@ export function LoginView() {
           </button>
         </motion.form>
 
-        {/* Divider */}
-        <motion.div variants={fade} className="auth-divider"><span>or</span></motion.div>
+        {/* Divider + OAuth + local-only grouped tightly */}
+        <motion.div variants={fade} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '100%' }}>
+          <div className="auth-divider"><span>or</span></div>
 
-        {/* Google */}
-        <motion.button variants={fade} className="btn-google" onClick={handleGoogle} disabled={loading !== null}>
-          {loading === 'google'
-            ? <CircleNotch size={32} weight="fill" className="spin" />
-            : <><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" style={{ display: 'block', flexShrink: 0 }}>
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-              </svg>Continue with Google</>
-          }
-        </motion.button>
+          <button className="btn-auth btn-google" onClick={handleGoogle} disabled={loading !== null}>
+            {loading === 'google'
+              ? <CircleNotch size={32} weight="fill" className="spin" />
+              : <><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" style={{ display: 'block', flexShrink: 0 }}>
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>Continue with Google</>
+            }
+          </button>
+
+          <button
+            className="btn-auth btn-ghost"
+            onClick={() => { setLocalOnly(true); navigate('/my-day'); }}
+            disabled={loading !== null}
+          >
+            Use without an account
+          </button>
+        </motion.div>
 
       </motion.div>
     </div>

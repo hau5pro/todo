@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation, NavLink } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
+import { Question } from '@phosphor-icons/react';
 import { ease } from '../utils/easing';
 import { Sidebar } from './Sidebar';
 import { SyncDot } from './SyncDot';
@@ -30,7 +31,7 @@ function KeyboardNavController() {
 
 export function AppShell() {
   const { pathname } = useLocation();
-  const { pendingCount, isSyncing, syncError: _syncError } = useSync();
+  const { pendingCount, isSyncing, syncError: _syncError, syncEnabled } = useSync();
   const loadLists = useAppStore((s) => s.loadLists);
   const loadFolders = useAppStore((s) => s.loadFolders);
   const lists = useAppStore((s) => s.lists);
@@ -78,7 +79,12 @@ export function AppShell() {
               {headerDate}
             </span>
           </div>
-          <SyncDot pendingCount={pendingCount} isSyncing={isSyncing} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <NavLink to="/docs" className="header-icon-btn" title="Help">
+              <Question size={18} weight="bold" />
+            </NavLink>
+            {syncEnabled && <SyncDot pendingCount={pendingCount} isSyncing={isSyncing} />}
+          </div>
         </header>
         <div className="app-body">
           <Sidebar />

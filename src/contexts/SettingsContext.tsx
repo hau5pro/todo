@@ -36,6 +36,8 @@ export interface Settings {
   folderCollapsed: Record<string, boolean>;
   folderOrders: Record<string, string[]>;
   listGroupOrders: Record<string, string[]>;  // ordered group names per list id
+  syncEnabled: boolean;
+  localOnly: boolean;
 }
 
 interface SettingsContextValue extends Settings {
@@ -54,6 +56,8 @@ interface SettingsContextValue extends Settings {
   setFolderCollapsed: (folderId: string, collapsed: boolean) => void;
   setFolderOrder: (folderId: string, ids: string[]) => void;
   setListGroupOrder: (listId: string, groups: string[]) => void;
+  setSyncEnabled: (v: boolean) => void;
+  setLocalOnly: (v: boolean) => void;
 }
 
 const STORAGE_KEY = 'todo_settings';
@@ -76,6 +80,8 @@ const DEFAULTS: Settings = {
   folderCollapsed: {},
   folderOrders: {},
   listGroupOrders: {},
+  syncEnabled: true,
+  localOnly: false,
 };
 
 function loadSettings(): Settings {
@@ -268,6 +274,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       update((prev) => ({ ...prev, folderOrders: { ...prev.folderOrders, [folderId]: ids } })),
     setListGroupOrder: (listId, groups) =>
       update((prev) => ({ ...prev, listGroupOrders: { ...prev.listGroupOrders, [listId]: groups } })),
+    setSyncEnabled: (syncEnabled) => update({ syncEnabled }),
+    setLocalOnly: (v) => update({ localOnly: v, syncEnabled: v ? false : true }),
   };
 
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;
