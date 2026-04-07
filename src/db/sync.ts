@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { List, Task, HabitCompletion } from '../types';
+import type { List, ListFolder, Task, HabitCompletion } from '../types';
 
 function req<T>(r: IDBRequest<T>): Promise<T> {
   return new Promise((res, rej) => {
@@ -24,6 +24,24 @@ function fromRemote<T extends Record<string, unknown>>(remote: T): Omit<T, 'user
 
 export async function pushPending(db: IDBDatabase, supabase: SupabaseClient, userId: string): Promise<void> {
   const errors: string[] = [];
+
+  // Folders
+  const allFolders = await req<ListFolder[]>(db.transaction('folders').objectStore('folders').getAll());
+  const pendingFolders = allFolders.filter((f) => f.pending_sync);
+  if (pendingFolders.length > 0) {
+    const { error } = await supabase
+      .from('folders')
+      .upsert(pendingFolders.map((f) => toRemote(f, userId)), { onConflict: 'id' });
+    if (error) {
+      errors.push(`folders: ${error.message}`);
+    } else {
+      const tx = db.transaction('folders', 'readwrite');
+      const store = tx.objectStore('folders');
+      await Promise.all(
+        pendingFolders.map((f) => req(store.put({ ...f, pending_sync: false })))
+      );
+    }
+  }
 
   // Lists
   const allLists = await req<List[]>(db.transaction('lists').objectStore('lists').getAll());
@@ -88,7 +106,7 @@ export async function pullFromSupabase(db: IDBDatabase, supabase: SupabaseClient
   const lastSync = localStorage.getItem(LAST_SYNC_KEY) ?? '1970-01-01T00:00:00Z';
   let hasError = false;
 
-  for (const table of ['lists', 'tasks', 'habit_completions'] as const) {
+  for (const table of ['folders', 'lists', 'tasks', 'habit_completions'] as const) {
     const filterField = table === 'habit_completions' ? 'created_at' : 'updated_at';
     const { data, error } = await supabase
       .from(table)
@@ -104,13 +122,13 @@ export async function pullFromSupabase(db: IDBDatabase, supabase: SupabaseClient
     const store = tx.objectStore(table);
 
     for (const remote of data) {
-      const local = await req<List | Task | HabitCompletion | undefined>(store.get(remote.id));
+      const local = await req<ListFolder | List | Task | HabitCompletion | undefined>(store.get(remote.id));
       const remoteTime = remote.updated_at ?? remote.created_at;
       // Use the correct timestamp field per record type: habit_completions has created_at, others have updated_at
       const localTime = local
         ? table === 'habit_completions'
           ? (local as HabitCompletion).created_at
-          : (local as List | Task).updated_at
+          : (local as ListFolder | List | Task).updated_at
         : null;
 
       if (!localTime || remoteTime > localTime) {
@@ -135,7 +153,7 @@ export async function initialSync(db: IDBDatabase, supabase: SupabaseClient): Pr
 
 /** Delete all of the user's records from Supabase. Children before parents to respect FK order. */
 export async function deleteAllCloudData(supabase: SupabaseClient, userId: string): Promise<void> {
-  const tables = ['habit_completions', 'tasks', 'lists', 'user_settings'] as const;
+  const tables = ['habit_completions', 'tasks', 'lists', 'folders', 'user_settings'] as const;
   const errors: string[] = [];
   for (const table of tables) {
     const { error } = await supabase.from(table).delete().eq('user_id', userId);
