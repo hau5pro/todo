@@ -341,6 +341,7 @@ function FolderRow({
           <NavLink
             to={`/folder/${folder.id}`}
             className={({ isActive }) => isActive ? 'nav-folder-name nav-folder-name--active' : 'nav-folder-name'}
+            data-nav-item
           >
             {folder.name}
           </NavLink>

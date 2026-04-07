@@ -11,6 +11,16 @@ export function useKeyboardNav() {
     function onKeyDown(e: KeyboardEvent) {
       const active = document.activeElement as HTMLElement | null;
 
+      // Fresh load: Tab with nothing focused → jump straight to active nav item
+      if ((!active || active === document.body) && e.key === 'Tab') {
+        e.preventDefault();
+        const navActive =
+          document.querySelector<HTMLElement>('[data-nav-item].nav-item--active') ??
+          document.querySelector<HTMLElement>('[data-nav-item]');
+        navActive?.focus();
+        return;
+      }
+
       const isNavRow = active?.hasAttribute('data-nav-row');
       const isAddTask = active?.hasAttribute('data-add-task');
       const inSidebar = !!document.querySelector('.sidebar')?.contains(active);
@@ -58,7 +68,10 @@ export function useKeyboardNav() {
         } else if ((e.key === 'Enter' || e.key === 'ArrowRight') && isNavItem) {
           active!.click();
           setTimeout(() => {
-            document.querySelector<HTMLElement>('[data-nav-row]')?.focus();
+            const target =
+              document.querySelector<HTMLElement>('[data-nav-row]') ??
+              document.querySelector<HTMLElement>('[data-add-task]');
+            target?.focus();
           }, 50);
         }
         return;

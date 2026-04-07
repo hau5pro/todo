@@ -49,7 +49,7 @@ export function FolderView() {
       >
         {folderLists.map((list) => (
           <motion.div key={list.id} variants={itemVariants}>
-            <NavLink to={`/list/${list.id}`} className="folder-view-list-item">
+            <NavLink to={`/list/${list.id}`} className="folder-view-list-item" data-nav-row>
               <span className="folder-view-list-icon">
                 {getListIcon(list, ICON_SIZE) ?? <List size={ICON_SIZE} weight="fill" />}
               </span>
