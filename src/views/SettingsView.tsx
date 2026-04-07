@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Trash, List as ListIcon, UserCircle, PaintBrush, SpeakerHigh, PushPin, Warning, GearSix } from '@phosphor-icons/react';
-import { ICON_SIZE } from '../config/icons';
+import { ICON_SIZE } from '../config/constants';
 import { Reorder, useDragControls } from 'framer-motion';
 import { useSettings } from '../contexts/SettingsContext';
 import { playComplete, SOUND_STYLES } from '../utils/sound';

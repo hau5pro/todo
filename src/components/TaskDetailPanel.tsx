@@ -5,7 +5,7 @@ import { Trash, CalendarBlank, FolderSimple, X } from '@phosphor-icons/react';
 import { useTaskDetail } from '../contexts/TaskDetailContext';
 import { useAppStore } from '../store';
 import { useSettings } from '../contexts/SettingsContext';
-import { ICON_SIZE } from '../config/icons';
+import { ICON_SIZE } from '../config/constants';
 import { ease } from '../utils/easing';
 import { focusLater } from '../utils/dom';
 import { CalendarPicker } from './CalendarPicker';

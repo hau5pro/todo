@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { signOut } from '../supabase/auth';
 import { Check, Palette, ListDashes, Sun, List, CalendarCheck, ShoppingCart, Sparkle, CloudArrowUp, Info } from '@phosphor-icons/react';
-import { ICON_SIZE } from '../config/icons';
+import { ICON_SIZE } from '../config/constants';
 import { useSettings } from '../contexts/SettingsContext';
 import { createList } from '../db/lists';
 import { ColorSwatchPicker } from '../components/ColorSwatchPicker';

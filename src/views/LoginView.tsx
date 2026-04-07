@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { DeviceMobile, CaretDown, Envelope, Lock, SignIn, UserPlus, ShareNetwork, DotsThreeVertical, PlusSquare, CircleNotch } from '@phosphor-icons/react';
 import { signInWithGoogle, signInWithEmail, signUpWithEmail } from '../supabase/auth';
 import { useSettings } from '../contexts/SettingsContext';
-import { ICON_SIZE } from '../config/icons';
+import { ICON_SIZE } from '../config/constants';
 
 type Mode = 'signin' | 'signup';
 

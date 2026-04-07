@@ -18,7 +18,7 @@ import { HabitItem } from '../components/HabitItem';
 import { toggleHabitCompletion } from '../db/habits';
 import { LIST_TYPE_LABELS } from '../types';
 import { getListIcon } from '../config/listIcons';
-import { ICON_SIZE } from '../config/icons';
+import { ICON_SIZE } from '../config/constants';
 import type { HabitRow } from '../hooks/useHabits';
 import { applyOrder } from '../utils/order';
 

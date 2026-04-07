@@ -11,7 +11,7 @@ import { useTaskDetail } from '../contexts/TaskDetailContext';
 import { useSettings } from '../contexts/SettingsContext';
 import { TaskItem } from '../components/TaskItem';
 import { IconPicker } from '../components/IconPicker';
-import { ICON_SIZE } from '../config/icons';
+import { ICON_SIZE, COMPLETED_PAGE_SIZE } from '../config/constants';
 import { LIST_TYPE_LABELS } from '../types';
 import { getListIcon } from '../config/listIcons';
 import type { Task } from '../types';
@@ -374,6 +374,8 @@ export function ListView() {
   const [newListName, setNewListName] = useState('');
   const [confirmDeleteList, setConfirmDeleteList] = useState(false);
   const [showCompleted, setShowCompleted] = useState(false);
+  const [completedVisible, setCompletedVisible] = useState(COMPLETED_PAGE_SIZE);
+  const completedSentinelRef = useRef<HTMLDivElement>(null);
   const [iconPickerAnchor, setIconPickerAnchor] = useState<DOMRect | null>(null);
   const [taskEditMode, setTaskEditMode] = useState(false);
   const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
@@ -387,7 +389,24 @@ export function ListView() {
 
   useEffect(() => {
     setTaskEditMode(false);
+    setCompletedVisible(COMPLETED_PAGE_SIZE);
   }, [listId]);
+
+  useEffect(() => {
+    if (!showCompleted) return;
+    const sentinel = completedSentinelRef.current;
+    if (!sentinel) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setCompletedVisible((v) => v + COMPLETED_PAGE_SIZE);
+        }
+      },
+      { threshold: 0 }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [showCompleted, completedVisible]);
 
   // Auto-sync group order: add any new groups that appear in tasks
   useEffect(() => {
@@ -406,7 +425,10 @@ export function ListView() {
 
   const isPinned = pinnedOrder.includes(listId!);
   const activeTasks = tasks.filter((t) => !t.completed && t.deleted_at === null).reverse();
-  const completedTasks = tasks.filter((t) => t.completed && t.deleted_at === null);
+  const completedTasks = tasks
+    .filter((t) => t.completed && t.deleted_at === null)
+    .sort((a, b) => b.updated_at.localeCompare(a.updated_at));
+  const visibleCompleted = completedTasks.slice(0, completedVisible);
   const orderedActive = applyOrder(activeTasks, listOrders[listId!] ?? [], (t) => t.id);
 
   const ungroupedTasks = orderedActive.filter((t) => !t.group);
@@ -688,14 +710,11 @@ export function ListView() {
                 transition={{ duration: 0.25, ease: ease.out }}
                 style={{ overflow: 'hidden' }}
               >
-                <AnimatePresence>
-                  {completedTasks.map((task) => (
+                <AnimatePresence initial={false}>
+                  {visibleCompleted.map((task) => (
                     <motion.div
                       key={task.id}
-                      initial={{ opacity: 0, y: -6 }}
-                      animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, transition: { duration: 0.15, ease: 'easeIn' as const } }}
-                      transition={{ duration: 0.2, ease: 'easeOut' as const }}
                     >
                       <TaskItem
                         title={task.title}
@@ -709,6 +728,9 @@ export function ListView() {
                     </motion.div>
                   ))}
                 </AnimatePresence>
+                {completedVisible < completedTasks.length && (
+                  <div ref={completedSentinelRef} style={{ height: 1 }} />
+                )}
               </motion.div>
             )}
           </AnimatePresence>

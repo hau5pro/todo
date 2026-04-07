@@ -11,7 +11,7 @@ import { signOut } from '../supabase/auth';
 import { useSettings } from '../contexts/SettingsContext';
 import { useAppStore } from '../store';
 import { focusLater } from '../utils/dom';
-import { ICON_SIZE } from '../config/icons';
+import { ICON_SIZE } from '../config/constants';
 import { getListIcon } from '../config/listIcons';
 import type { List as ListType, ListFolder } from '../types';
 

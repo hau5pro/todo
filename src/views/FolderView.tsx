@@ -3,7 +3,7 @@ import { FolderSimple, List } from '@phosphor-icons/react';
 import { motion } from 'framer-motion';
 import { useAppStore } from '../store';
 import { getListIcon } from '../config/listIcons';
-import { ICON_SIZE } from '../config/icons';
+import { ICON_SIZE } from '../config/constants';
 import { ease } from '../utils/easing';
 
 const headerVariants = {

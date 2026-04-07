@@ -21,7 +21,7 @@ import {
   Heartbeat, Smiley,
   Bell, Rocket, Baby, Pill, Tree,
 } from '@phosphor-icons/react';
-import { ICON_SIZE } from './icons';
+import { ICON_SIZE } from './constants';
 import type { List as ListData } from '../types';
 
 // Map from stored icon name string → Phosphor component

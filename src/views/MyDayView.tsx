@@ -6,7 +6,7 @@ import { useSettings } from '../contexts/SettingsContext';
 import { TaskItem } from '../components/TaskItem';
 import { HabitItem } from '../components/HabitItem';
 import { toggleHabitCompletion } from '../db/habits';
-import { ICON_SIZE } from '../config/icons';
+import { ICON_SIZE } from '../config/constants';
 import { ease } from '../utils/easing';
 import { applyOrder } from '../utils/order';
 import { getTodayString } from '../utils/date';
