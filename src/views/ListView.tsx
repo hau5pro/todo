@@ -69,13 +69,14 @@ function TaskRow({
       transition={{ layout: { duration: 0.08, ease: 'easeOut' } }}
     >
       <span style={{ width: editMode ? 26 : 0, opacity: editMode ? 1 : 0, overflow: 'hidden', flexShrink: 0, display: 'flex', transition: 'width 0.15s, opacity 0.15s' }}>
-        <span className="task-edit-drag" onPointerDown={(e) => dragControls.start(e)}>
+        <span className="task-edit-drag" title="Drag to reorder" onPointerDown={(e) => dragControls.start(e)}>
           <ListIcon size={ICON_SIZE} weight="bold" />
         </span>
       </span>
       {/* Wrap content in a draggable div so it doesn't conflict with FM's onDragStart typing */}
       <div
         style={{ flex: 1, minWidth: 0 }}
+        title={editMode ? 'Drag to move to group' : undefined}
         draggable={editMode}
         onDragStart={editMode ? (e) => {
           const ghost = document.createElement('div');
@@ -132,6 +133,7 @@ function GroupSection({
   selectedTaskId: string | undefined;
 }) {
   const { moveTaskToGroup } = useAppStore();
+  const dragControls = useDragControls();
   const [collapsed, setCollapsed] = useState(false);
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState(groupName);
@@ -189,7 +191,11 @@ function GroupSection({
   }
 
   return (
-    <div
+    <Reorder.Item
+      as="div"
+      value={groupName}
+      dragListener={false}
+      dragControls={dragControls}
       className={[
         'group-section',
         draggingTaskId ? 'group-section--dragging' : '',
@@ -200,6 +206,11 @@ function GroupSection({
       onDrop={handleDrop}
     >
       <div className="group-header">
+        <span style={{ width: editMode ? 26 : 0, opacity: editMode ? 1 : 0, overflow: 'hidden', flexShrink: 0, display: 'flex', transition: 'width 0.15s, opacity 0.15s' }}>
+          <span className="task-edit-drag" onPointerDown={(e) => dragControls.start(e)}>
+            <ListIcon size={ICON_SIZE} weight="bold" />
+          </span>
+        </span>
         <button
           className="group-header-collapse"
           onClick={() => setCollapsed((p) => !p)}
@@ -254,6 +265,14 @@ function GroupSection({
             )}
           </AnimatePresence>
         </div>
+        <button
+          className="task-edit-delete"
+          onClick={() => setConfirmDelete(true)}
+          title="Delete group"
+          style={{ width: editMode ? 24 : 0, opacity: editMode ? 1 : 0, overflow: 'hidden', transition: 'width 0.15s, opacity 0.15s' }}
+        >
+          <Trash size={14} weight="fill" />
+        </button>
       </div>
 
       <AnimatePresence>
@@ -323,7 +342,7 @@ function GroupSection({
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </Reorder.Item>
   );
 }
 
@@ -639,27 +658,29 @@ export function ListView() {
       </div>
 
       {/* Group sections */}
-      {allGroupNames.map((groupName) => (
-        <GroupSection
-          key={groupName}
-          groupName={groupName}
-          tasks={groupMap.get(groupName) ?? []}
-          editMode={taskEditMode}
-          today={today}
-          listId={listId!}
-          globalOrder={globalOrder}
-          draggingTaskId={draggingTaskId}
-          onReorder={handleGroupReorder}
-          onToggle={handleToggle}
-          onSelect={handleSelectTask}
-          onDelete={(task) => removeTask(task.id, listId!)}
-          onRename={handleRenameGroup}
-          onDeleteGroup={handleDeleteGroup}
-          onTaskDragStart={(taskId) => setDraggingTaskId(taskId)}
-          onTaskDragEnd={() => setDraggingTaskId(null)}
-          selectedTaskId={detail?.task.id}
-        />
-      ))}
+      <Reorder.Group as="div" axis="y" values={allGroupNames} onReorder={(names) => setListGroupOrder(listId!, names)}>
+        {allGroupNames.map((groupName) => (
+          <GroupSection
+            key={groupName}
+            groupName={groupName}
+            tasks={groupMap.get(groupName) ?? []}
+            editMode={taskEditMode}
+            today={today}
+            listId={listId!}
+            globalOrder={globalOrder}
+            draggingTaskId={draggingTaskId}
+            onReorder={handleGroupReorder}
+            onToggle={handleToggle}
+            onSelect={handleSelectTask}
+            onDelete={(task) => removeTask(task.id, listId!)}
+            onRename={handleRenameGroup}
+            onDeleteGroup={handleDeleteGroup}
+            onTaskDragStart={(taskId) => setDraggingTaskId(taskId)}
+            onTaskDragEnd={() => setDraggingTaskId(null)}
+            selectedTaskId={detail?.task.id}
+          />
+        ))}
+      </Reorder.Group>
 
       {!taskEditMode && (
         <section>

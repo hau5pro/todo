@@ -105,6 +105,7 @@ function SortableItem({
             {/* ≡ handle — triggers FM reorder only */}
             <span
               className="nav-drag-icon"
+              title="Drag to reorder"
               onPointerDown={(e) => dragControls.start(e)}
             >
               <List size={ICON_SIZE} weight="bold" />
@@ -119,6 +120,7 @@ function SortableItem({
           draggable={allowFolderDrag}
           onDragStart={allowFolderDrag ? handleDragStart : undefined}
           style={allowFolderDrag ? { cursor: 'grab' } : undefined}
+          title={allowFolderDrag ? 'Drag to move to folder' : undefined}
         >
           {getListIcon(list) ?? <List size={ICON_SIZE} weight="fill" />}
           <span className="nav-item__name">{list.name}</span>
@@ -172,7 +174,7 @@ function SortableMyDayItem({ editMode }: { editMode: boolean }) {
             exit={{ width: 0, opacity: 0 }}
             transition={{ duration: 0.15 }}
           >
-            <span className="nav-drag-icon" onPointerDown={(e) => dragControls.start(e)}>
+            <span className="nav-drag-icon" title="Drag to reorder" onPointerDown={(e) => dragControls.start(e)}>
               <List size={ICON_SIZE} weight="bold" />
             </span>
           </motion.span>
@@ -304,7 +306,7 @@ function FolderRow({
               exit={{ width: 0, opacity: 0 }}
               transition={{ duration: 0.15 }}
             >
-              <span className="nav-drag-icon" onPointerDown={(e) => dragControls.start(e)}>
+              <span className="nav-drag-icon" title="Drag to reorder" onPointerDown={(e) => dragControls.start(e)}>
                 <List size={ICON_SIZE} weight="bold" />
               </span>
             </motion.span>
