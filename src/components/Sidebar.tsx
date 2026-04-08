@@ -329,6 +329,7 @@ function FolderRow({
           <input
             ref={inputRef}
             className="nav-inline-input"
+            inputMode="text"
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
             onKeyDown={(e) => {
@@ -410,7 +411,7 @@ function FolderRow({
 const SIDEBAR_W = window.innerWidth >= 1024 ? 256 : 208;
 const COLLAPSED_W = 40;
 
-export function Sidebar({ isDrawerOpen = false, onClose }: { isDrawerOpen?: boolean; onClose?: () => void }) {
+export function Sidebar() {
   const lists = useAppStore((s) => s.lists);
   const folders = useAppStore((s) => s.folders);
   const createList = useAppStore((s) => s.createList);
@@ -460,19 +461,19 @@ export function Sidebar({ isDrawerOpen = false, onClose }: { isDrawerOpen?: bool
   } = useSettings();
 
   const { pathname } = useLocation();
-  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 640);
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 640);
 
   useEffect(() => {
-    const mq = window.matchMedia('(max-width: 639px)');
+    const mq = window.matchMedia('(max-width: 640px)');
     const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);
   }, []);
 
-  // Close drawer when navigating on mobile
+  // Collapse sidebar when navigating on mobile
   useEffect(() => {
-    if (isMobile) onClose?.();
-  }, [pathname, isMobile, onClose]);
+    if (isMobile) setSidebarCollapsed(true);
+  }, [pathname]);
 
   // Pinned
   const pinnedItems: PinnedItem[] = pinnedOrder
@@ -616,14 +617,22 @@ export function Sidebar({ isDrawerOpen = false, onClose }: { isDrawerOpen?: bool
 
 
   return (
+    <>
+    {isMobile && !sidebarCollapsed && createPortal(
+      <div
+        className="sidebar-backdrop sidebar-backdrop--visible"
+        onClick={() => setSidebarCollapsed(true)}
+      />,
+      document.body
+    )}
     <motion.nav
-      className={`sidebar${isMobile && isDrawerOpen ? ' sidebar--drawer-open' : ''}`}
-      animate={isMobile ? {} : { width: sidebarCollapsed ? COLLAPSED_W : SIDEBAR_W }}
+      className="sidebar"
+      animate={{ width: sidebarCollapsed ? COLLAPSED_W : (isMobile ? 280 : SIDEBAR_W) }}
       initial={false}
       transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
     >
       <AnimatePresence mode="wait" initial={false}>
-        {(!isMobile && sidebarCollapsed) ? (
+        {sidebarCollapsed ? (
           <motion.div
             key="collapsed"
             className="sidebar--collapsed"
@@ -929,5 +938,6 @@ export function Sidebar({ isDrawerOpen = false, onClose }: { isDrawerOpen?: bool
         )}
       </AnimatePresence>
     </motion.nav>
+    </>
   );
 }
