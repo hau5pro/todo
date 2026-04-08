@@ -640,14 +640,15 @@ export function Sidebar() {
             animate={{ opacity: 1, transition: { duration: 0.12, delay: 0.1 } }}
             exit={{ opacity: 0, transition: { duration: 0.08 } }}
           >
-            <button
-              className="sidebar-collapse-btn"
-              onClick={() => setSidebarCollapsed(false)}
-              title="Expand sidebar"
-            >
-              <Menu size={COLLAPSED_ICON_SIZE} />
-            </button>
-            <div className="sidebar-collapsed-divider" />
+            <div className="sidebar-toggle-section">
+              <button
+                className="sidebar-collapse-btn"
+                onClick={() => setSidebarCollapsed(false)}
+                title="Expand sidebar"
+              >
+                <Menu size={COLLAPSED_ICON_SIZE} />
+              </button>
+            </div>
 
             {pinnedItems.map((item) => {
               const label = item.id === 'my-day' ? 'My Day' : (item as ListType).name;
