@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import { Reorder, useDragControls, motion, AnimatePresence } from 'framer-motion';
 import {
   Sun, Settings, LogOut, ChevronDown, ChevronRight,
-  List, Plus, CheckCircle, Pencil, PanelLeft,
+  List, Plus, CheckCircle, Pencil, Menu,
   FolderPlus, Folder, Trash2, CornerDownLeft, MoreHorizontal, HelpCircle,
 } from 'lucide-react';
 import { logOut } from '../supabase/auth';
@@ -409,7 +409,7 @@ function FolderRow({
 // ── Sidebar ───────────────────────────────────────────────────────────────────
 
 const SIDEBAR_W = window.innerWidth >= 1024 ? 256 : 208;
-const COLLAPSED_W = 40;
+const COLLAPSED_W = 48;
 
 export function Sidebar() {
   const lists = useAppStore((s) => s.lists);
@@ -640,15 +640,14 @@ export function Sidebar() {
             animate={{ opacity: 1, transition: { duration: 0.12, delay: 0.1 } }}
             exit={{ opacity: 0, transition: { duration: 0.08 } }}
           >
-            <div className="sidebar-toolbar">
-              <button
-                className="sidebar-collapse-btn sidebar-collapse-btn--toggle sidebar-collapse-btn--dark"
-                onClick={() => setSidebarCollapsed(false)}
-                title="Expand sidebar"
-              >
-                <PanelLeft size={COLLAPSED_ICON_SIZE} />
-              </button>
-            </div>
+            <button
+              className="sidebar-collapse-btn"
+              onClick={() => setSidebarCollapsed(false)}
+              title="Expand sidebar"
+            >
+              <Menu size={COLLAPSED_ICON_SIZE} />
+            </button>
+            <div className="sidebar-collapsed-divider" />
 
             {pinnedItems.map((item) => {
               const label = item.id === 'my-day' ? 'My Day' : (item as ListType).name;
@@ -756,7 +755,7 @@ export function Sidebar() {
                   onClick={() => setSidebarCollapsed(true)}
                   title="Collapse sidebar"
                 >
-                  <PanelLeft size={ICON_SIZE} />
+                  <Menu size={ICON_SIZE} />
                 </button>
               </span>
               <AnimatePresence initial={false}>

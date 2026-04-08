@@ -179,7 +179,7 @@ body {
   flex: 1;
   padding: 0.5rem 0.375rem;
   align-items: center;
-  min-width: 40px;
+  min-width: 48px;
 }
 
 .sidebar-toolbar {
@@ -1873,7 +1873,7 @@ button.nav-section-label--button:hover { color: var(--fg); }
 /* ── Mobile ──────────────────────────────────────────────── */
 @media (max-width: 640px) {
   .app-right {
-    margin-left: 40px; /* compensate for fixed sidebar strip */
+    margin-left: 48px; /* compensate for fixed sidebar strip */
   }
 
   .app-main {
