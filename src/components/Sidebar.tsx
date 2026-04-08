@@ -541,6 +541,8 @@ export function Sidebar() {
   function startAddList() {
     setShowAddMenu(false);
     setListsOpen(true);
+    setAddingFolder(false);
+    setNewFolderName('');
     setNewListName('');
     setAddingList(true);
     focusLater(addInputRef);
@@ -549,6 +551,8 @@ export function Sidebar() {
   function startAddFolder() {
     setShowAddMenu(false);
     setListsOpen(true);
+    setAddingList(false);
+    setNewListName('');
     setNewFolderName('');
     setAddingFolder(true);
     focusLater(addFolderInputRef);
