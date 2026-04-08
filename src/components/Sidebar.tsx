@@ -910,6 +910,7 @@ export function Sidebar() {
                           if (e.key === 'Enter') commitAddFolder();
                           if (e.key === 'Escape') cancelAddFolder();
                         }}
+                        onBlur={commitAddFolder}
                       />
                       <button className="nav-action-btn" onClick={commitAddFolder} title="Create">
                         <CornerDownLeft size={ICON_SIZE} />
@@ -931,6 +932,7 @@ export function Sidebar() {
                           if (e.key === 'Enter') commitAddList();
                           if (e.key === 'Escape') cancelAddList();
                         }}
+                        onBlur={commitAddList}
                       />
                       <button className="nav-action-btn" onClick={commitAddList} title="Create">
                         <CornerDownLeft size={ICON_SIZE} />
