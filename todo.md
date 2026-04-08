@@ -13,3 +13,5 @@
 - dont make webview zoomable on mobile. *(plan: mobile-design-language — Tasks 1 & 3)*
 - collapsed sidebar tooltip over main task view on mobile, it just stays there. *(plan: mobile-design-language — Tasks 3 & 6)*
 - too muted on actual mobile device, think about making the theme a bit better. *(plan: mobile-design-language — Task 2)*
+
+- due time?
