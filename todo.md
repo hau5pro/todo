@@ -13,4 +13,6 @@
 - too muted on actual mobile device, think about making the theme a bit better. *(plan: mobile-design-language — Task 2)*
 
 - due time?
-- should tasks in my day dissappear on completion?
+- mobile bug: header is bleeding in with dynamic island area.
+- whats with the annoying checkmark in kb in safari? doesnt act like enter.
+- bug: when i complete an item in my day, and i go to the task list it was in, it isnt in completed.
