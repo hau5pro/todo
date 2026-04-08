@@ -24,8 +24,8 @@ export default defineConfig({
       filename: 'service-worker.ts',
       registerType: 'autoUpdate',
       manifest: {
-        name: 'Todo',
-        short_name: 'Todo',
+        name: 'TO DO',
+        short_name: 'TO DO',
         theme_color: '#111118',
         background_color: '#0a0a0e',
         display: 'standalone',
