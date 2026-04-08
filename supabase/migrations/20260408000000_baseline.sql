@@ -1,13 +1,5 @@
--- !! DESTRUCTIVE — drops and recreates all app tables !!
--- Run this to fully reset the database schema.
-
--- Drop tables in FK-safe order
-DROP TABLE IF EXISTS push_subscriptions CASCADE;
-DROP TABLE IF EXISTS habit_completions CASCADE;
-DROP TABLE IF EXISTS tasks CASCADE;
-DROP TABLE IF EXISTS lists CASCADE;
-DROP TABLE IF EXISTS folders CASCADE;
-DROP TABLE IF EXISTS user_settings CASCADE;
+-- Baseline migration — represents the full schema as of 2026-04-08.
+-- Applied manually to the remote database prior to Supabase CLI setup.
 
 -- Lists
 CREATE TABLE lists (
@@ -41,6 +33,7 @@ CREATE TABLE tasks (
   list_id UUID REFERENCES lists(id) NOT NULL,
   title TEXT NOT NULL,
   completed BOOLEAN NOT NULL DEFAULT false,
+  completed_at TIMESTAMPTZ,
   due_date DATE,
   recurrence_interval INTEGER,
   recurrence_unit TEXT CHECK (recurrence_unit IN ('days', 'weeks', 'months')),

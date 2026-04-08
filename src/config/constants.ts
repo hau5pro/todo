@@ -1,5 +1,8 @@
-/** Global icon size (px) — change this to resize all icons at once. */
-export const ICON_SIZE = 16;
+/** Visual size of icons in px. */
+export const ICON_SIZE = 22;
+
+/** Minimum touch target size in px — all actionable icon buttons must meet this. */
+export const TOUCH_SIZE = 44;
 
 /** Number of completed tasks to show per page in the completed section. */
 export const COMPLETED_PAGE_SIZE = 25;

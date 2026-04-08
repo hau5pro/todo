@@ -1,18 +1,34 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import dayjs from 'dayjs';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trash2, Calendar, Folder, X } from 'lucide-react';
+import { Trash2, Calendar, Clock, Folder, X } from 'lucide-react';
 import { useTaskDetail } from '../contexts/TaskDetailContext';
 import { useAppStore } from '../store';
 import { useSettings } from '../contexts/SettingsContext';
 import { ICON_SIZE } from '../config/constants';
 import { ease } from '../utils/easing';
 import { focusLater } from '../utils/dom';
+import { formatTime } from '../utils/date';
 import { CalendarPicker } from './CalendarPicker';
 import { RecurrencePicker } from './RecurrencePicker';
 import type { Task } from '../types';
 
 const EMPTY_TASKS: Task[] = [];
+
+/** Parse numeric time input (e.g. "9", "930", "1430") → "HH:MM" or null. */
+function parseTimeInput(raw: string): string | null {
+  const digits = raw.replace(/\D/g, '');
+  if (!digits) return null;
+  let h: number, m: number;
+  if (digits.length <= 2) {
+    h = parseInt(digits, 10); m = 0;
+  } else {
+    h = parseInt(digits.slice(0, digits.length - 2), 10);
+    m = parseInt(digits.slice(-2), 10);
+  }
+  if (h > 23 || m > 59) return null;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
 
 function formatDueDate(date: string): string {
   const today = dayjs().format('YYYY-MM-DD');
@@ -37,6 +53,8 @@ export function TaskDetailPanel() {
   );
 
   const [editTitle, setEditTitle] = useState('');
+  const [timeInput, setTimeInput] = useState('');
+  const [editingTime, setEditingTime] = useState(false);
   const [calOpen, setCalOpen] = useState(false);
   const [editingGroup, setEditingGroup] = useState(false);
   const [groupInput, setGroupInput] = useState('');
@@ -46,6 +64,7 @@ export function TaskDetailPanel() {
   const inputRef = useRef<HTMLInputElement>(null);
   const groupInputRef = useRef<HTMLInputElement>(null);
   const calRef = useRef<HTMLDivElement>(null);
+  const timeInputRef = useRef<HTMLInputElement>(null);
   const taskSnapshot = useRef<Task | undefined>(detail?.task);
   if (detail?.task) taskSnapshot.current = detail.task;
   const task = taskSnapshot.current;
@@ -99,11 +118,17 @@ export function TaskDetailPanel() {
   async function handleDueDateChange(date: string | null) {
     if (!task) return;
     const fields = date === null
-      ? { due_date: null, rrule: null }
+      ? { due_date: null, due_time: null, rrule: null }
       : { due_date: date };
     const updated = await updateTaskFields(task.id, task.list_id, fields);
     updateCtx(updated);
     if (date !== null) setCalOpen(false);
+  }
+
+  async function handleDueTimeChange(time: string | null) {
+    if (!task) return;
+    const updated = await updateTaskFields(task.id, task.list_id, { due_time: time });
+    updateCtx(updated);
   }
 
   async function handleRRuleChange(rrule: string | null) {
@@ -138,6 +163,7 @@ export function TaskDetailPanel() {
   }
 
   const dueDate = task.due_date ?? null;
+  const dueTime = task.due_time ?? null;
   const rrule = task.rrule ?? null;
   const currentGroup = task.group ?? null;
 
@@ -181,7 +207,7 @@ export function TaskDetailPanel() {
                   onClick={() => setCalOpen((o) => !o)}
                   title={dueDate ? 'Change due date' : 'Set a due date'}
                 >
-                  <Calendar size={14} />
+                  <Calendar size={ICON_SIZE} />
                   <span>{dueDate ? formatDueDate(dueDate) : 'Add due date'}</span>
                 </button>
 
@@ -200,6 +226,56 @@ export function TaskDetailPanel() {
                 </AnimatePresence>
               </div>
 
+              {dueDate && (
+                <div
+                  className={`task-detail-time-wrap${dueTime ? ' task-detail-time-wrap--set' : ''}`}
+                  onClick={() => {
+                    if (!editingTime) {
+                      setTimeInput(dueTime ? dueTime.replace(':', '') : '900');
+                      setEditingTime(true);
+                      setTimeout(() => timeInputRef.current?.select(), 0);
+                    }
+                  }}
+                >
+                  <Clock size={ICON_SIZE} />
+                  {editingTime ? (
+                    <input
+                      ref={timeInputRef}
+                      type="text"
+                      inputMode="numeric"
+                      className="task-detail-time-input task-detail-time-input--set"
+                      value={timeInput}
+                      placeholder={dueTime ?? '900'}
+                      onChange={(e) => setTimeInput(e.target.value)}
+                      onBlur={() => {
+                        const parsed = parseTimeInput(timeInput);
+                        if (parsed) handleDueTimeChange(parsed);
+                        setEditingTime(false);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') e.currentTarget.blur();
+                        if (e.key === 'Escape') { setEditingTime(false); }
+                      }}
+                    />
+                  ) : dueTime ? (
+                    <span className="task-detail-time-input task-detail-time-input--set">
+                      {formatTime(dueTime)}
+                    </span>
+                  ) : (
+                    <span className="task-detail-time-placeholder">9:00 AM</span>
+                  )}
+                  {dueTime && !editingTime && (
+                    <button
+                      className="task-detail-time-clear"
+                      onClick={(e) => { e.stopPropagation(); handleDueTimeChange(null); }}
+                      title="Remove time"
+                    >
+                      <X size={ICON_SIZE} />
+                    </button>
+                  )}
+                </div>
+              )}
+
               <RecurrencePicker
                 value={rrule}
                 dueDate={dueDate}
@@ -216,7 +292,7 @@ export function TaskDetailPanel() {
           {editingGroup ? (
             <div className="task-detail-group-wrap">
               <div className="task-detail-group-edit">
-                <Folder size={14} style={{ color: 'var(--fg-muted)', flexShrink: 0 }} />
+                <Folder size={ICON_SIZE} style={{ color: 'var(--fg-muted)', flexShrink: 0 }} />
                 <input
                   ref={groupInputRef}
                   className="task-detail-group-input"
@@ -264,7 +340,7 @@ export function TaskDetailPanel() {
                     }}
                     title="Remove from group"
                   >
-                    <X size={12} />
+                    <X size={ICON_SIZE} />
                   </button>
                 )}
               </div>
@@ -293,7 +369,7 @@ export function TaskDetailPanel() {
               onClick={() => { setEditingGroup(true); focusLater(groupInputRef); }}
               title={currentGroup ? 'Change group' : 'Assign to a group'}
             >
-              <Folder size={14} />
+              <Folder size={ICON_SIZE} />
               <span>{currentGroup ?? 'Add to group'}</span>
             </button>
           )}

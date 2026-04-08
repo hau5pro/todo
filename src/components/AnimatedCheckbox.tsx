@@ -30,7 +30,7 @@ export function AnimatedCheckbox({ checked, onChange, popping = false, variant, 
       tabIndex={-1}
       onClick={(e) => { e.stopPropagation(); onChange(); }}
     >
-      <svg width={22} height={22} viewBox="0 0 16 16" overflow="visible">
+      <svg width={24} height={24} viewBox="0 0 16 16" overflow="visible">
         {popping && doubleRing && (
           <circle cx="8" cy="8" r="7" className="animated-checkbox__ring animated-checkbox__ring--delayed" />
         )}

@@ -24,11 +24,17 @@ const containerVariants = {
   show: { transition: { staggerChildren: 0.06, delayChildren: 0.03 } },
 };
 
-function sortByDueDate<T extends { due_date?: string | null }>(tasks: T[]): T[] {
+function sortByDueDateTime<T extends { due_date?: string | null; due_time?: string | null }>(tasks: T[]): T[] {
   return [...tasks].sort((a, b) => {
     if (!a.due_date) return 1;
     if (!b.due_date) return -1;
-    return a.due_date.localeCompare(b.due_date);
+    const dateCmp = a.due_date.localeCompare(b.due_date);
+    if (dateCmp !== 0) return dateCmp;
+    // Same date: tasks with a time come before tasks without
+    if (a.due_time && !b.due_time) return -1;
+    if (!a.due_time && b.due_time) return 1;
+    if (a.due_time && b.due_time) return a.due_time.localeCompare(b.due_time);
+    return 0;
   });
 }
 
@@ -72,8 +78,8 @@ export function MyDayView() {
 
   const hasAnything = myDayOverdue.length > 0 || myDayToday.length > 0 || myDayHabits.length > 0;
 
-  const sortedOverdue = sortByDueDate(myDayOverdue);
-  const sortedToday = sortByDueDate(myDayToday);
+  const sortedOverdue = sortByDueDateTime(myDayOverdue);
+  const sortedToday = sortByDueDateTime(myDayToday);
 
   return (
     <div>
@@ -108,6 +114,7 @@ export function MyDayView() {
                 title={task.title}
                 completed={task.completed}
                 dueDate={task.due_date}
+                dueTime={task.due_time}
                 today={today}
                 onToggle={() => handleTaskToggle(task)}
               />
@@ -124,6 +131,7 @@ export function MyDayView() {
                 title={task.title}
                 completed={task.completed}
                 dueDate={task.due_date}
+                dueTime={task.due_time}
                 today={today}
                 onToggle={() => handleTaskToggle(task)}
               />

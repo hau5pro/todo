@@ -40,7 +40,9 @@ export async function createTask(listId: string, title: string, opts: CreateTask
     list_id: listId,
     title,
     completed: opts.completed ?? false,
+    completed_at: null,
     due_date: opts.due_date ?? null,
+    due_time: null,
     recurrence_interval: opts.recurrence_interval ?? null,
     recurrence_unit: opts.recurrence_unit ?? null,
     rrule: opts.rrule ?? null,
@@ -69,10 +71,12 @@ export async function setTaskCompleted(id: string, completed: boolean): Promise<
   const tx = db.transaction('tasks', 'readwrite');
   const store = tx.objectStore('tasks');
   const existing = await req<Task>(store.get(id));
+  const now = new Date().toISOString();
   const updated: Task = {
     ...existing,
     completed,
-    updated_at: new Date().toISOString(),
+    completed_at: completed ? now : null,
+    updated_at: now,
     pending_sync: true,
   };
   await req(store.put(updated));
@@ -91,6 +95,7 @@ export async function advanceCyclicalTask(id: string): Promise<Task> {
     ...existing,
     due_date: advanceDueDate(existing.due_date, existing.recurrence_interval, existing.recurrence_unit),
     completed: false,
+    completed_at: null,
     updated_at: new Date().toISOString(),
     pending_sync: true,
   };
@@ -127,6 +132,7 @@ export async function advanceRecurringTask(id: string): Promise<Task> {
     ...existing,
     due_date: nextDate ?? existing.due_date,
     completed: nextDate ? false : true,
+    completed_at: nextDate ? null : new Date().toISOString(),
     updated_at: new Date().toISOString(),
     pending_sync: true,
   };
@@ -150,7 +156,7 @@ export async function bulkUpdateTaskGroup(listId: string, oldGroup: string | nul
   return updated;
 }
 
-export async function updateTask(id: string, changes: Partial<Pick<Task, 'title' | 'due_date' | 'recurrence_interval' | 'recurrence_unit' | 'rrule' | 'group'>>): Promise<Task> {
+export async function updateTask(id: string, changes: Partial<Pick<Task, 'title' | 'due_date' | 'due_time' | 'recurrence_interval' | 'recurrence_unit' | 'rrule' | 'group'>>): Promise<Task> {
   const db = await getDB();
   const tx = db.transaction('tasks', 'readwrite');
   const store = tx.objectStore('tasks');
@@ -165,16 +171,20 @@ export async function updateTask(id: string, changes: Partial<Pick<Task, 'title'
   return updated;
 }
 
-/** Returns overdue and today tasks across all lists. Habit tasks (daily lists) are excluded implicitly — they never have a due_date. */
+/** Returns overdue and today tasks across all lists. Habit tasks (daily lists) are excluded implicitly — they never have a due_date.
+ *  Completed tasks that were finished today are included so they remain visible until the next day. */
 export async function getMyDayTasks(today: string): Promise<{ overdue: Task[]; today: Task[] }> {
   const db = await getDB();
   const all = await req<Task[]>(db.transaction('tasks').objectStore('tasks').getAll());
-  const active = all.filter(
-    (t) => t.due_date !== null && t.completed === false && t.deleted_at === null
-  );
+  const relevant = all.filter((t) => {
+    if (t.due_date === null || t.deleted_at !== null) return false;
+    if (!t.completed) return true;
+    // Completed: only keep if it was completed today
+    return t.completed_at != null && t.completed_at.startsWith(today);
+  });
   return {
-    overdue: active.filter((t) => t.due_date! < today),
-    today: active.filter((t) => t.due_date! === today),
+    overdue: relevant.filter((t) => t.due_date! < today),
+    today: relevant.filter((t) => t.due_date! === today),
   };
 }
 

@@ -5,6 +5,7 @@ import {
   bulkUpdateTaskGroup, updateTask,
 } from '../../db/tasks';
 import { createList } from '../../db/lists';
+import { getTodayString } from '../../utils/date';
 
 describe('tasks CRUD', () => {
   it('createTask adds a task', async () => {
@@ -24,11 +25,16 @@ describe('tasks CRUD', () => {
     expect(tasks).toHaveLength(2);
   });
 
-  it('setTaskCompleted toggles completion', async () => {
+  it('setTaskCompleted toggles completion and sets completed_at', async () => {
     const list = await createList('Test', 'general');
     const task = await createTask(list.id, 'Foo');
-    const updated = await setTaskCompleted(task.id, true);
-    expect(updated.completed).toBe(true);
+    expect(task.completed_at).toBeNull();
+    const completed = await setTaskCompleted(task.id, true);
+    expect(completed.completed).toBe(true);
+    expect(completed.completed_at).not.toBeNull();
+    const uncompleted = await setTaskCompleted(task.id, false);
+    expect(uncompleted.completed).toBe(false);
+    expect(uncompleted.completed_at).toBeNull();
   });
 
   it('softDeleteTask excludes task from getTasksByList', async () => {
@@ -121,6 +127,44 @@ describe('tasks CRUD', () => {
     expect(overdue[0].title).toBe('Overdue');
     expect(today).toHaveLength(1);
     expect(today[0].title).toBe('Today');
+  });
+
+  it('getMyDayTasks keeps tasks completed today visible', async () => {
+    const todayDate = getTodayString();
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayDate = yesterday.toISOString().split('T')[0];
+    const list = await createList('Chores', 'general');
+    const overdueTask = await createTask(list.id, 'Overdue done today', { due_date: yesterdayDate });
+    const todayTask = await createTask(list.id, 'Today done today', { due_date: todayDate });
+    await createTask(list.id, 'Still active', { due_date: todayDate });
+    await setTaskCompleted(overdueTask.id, true);
+    await setTaskCompleted(todayTask.id, true);
+    const { overdue, today } = await getMyDayTasks(todayDate);
+    // Completed-today tasks remain visible
+    expect(overdue.some((t) => t.title === 'Overdue done today')).toBe(true);
+    expect(today.some((t) => t.title === 'Today done today')).toBe(true);
+    expect(today.some((t) => t.title === 'Still active')).toBe(true);
+  });
+
+  it('getMyDayTasks hides tasks completed on a prior day', async () => {
+    const list = await createList('Chores', 'general');
+    const task = await createTask(list.id, 'Old done', { due_date: '2026-04-01' });
+    // Manually set completed_at to yesterday
+    await setTaskCompleted(task.id, true);
+    // Overwrite completed_at to simulate it was completed yesterday
+    const db = await (await import('../../db/client')).getDB();
+    const tx = db.transaction('tasks', 'readwrite');
+    const store = tx.objectStore('tasks');
+    const req2 = store.get(task.id);
+    await new Promise((res) => { req2.onsuccess = res; });
+    await new Promise((res, rej) => {
+      const put = store.put({ ...req2.result, completed_at: '2026-04-04T12:00:00.000Z' });
+      put.onsuccess = res;
+      put.onerror = rej;
+    });
+    const { overdue } = await getMyDayTasks('2026-04-05');
+    expect(overdue.some((t) => t.title === 'Old done')).toBe(false);
   });
 
   it('updateTask changes title and sets pending_sync', async () => {

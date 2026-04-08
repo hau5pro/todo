@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
-import { Pencil, CheckCircle, Trash2, List } from 'lucide-react';
+import { Pencil, CheckCircle, Trash2, GripVertical } from 'lucide-react';
 import { Reorder, useDragControls } from 'framer-motion';
 
 const habitListVariants = {
@@ -34,9 +34,9 @@ function HabitRow({ row, editMode, onToggle, onSelect, onDelete, isSelected }: {
       className="task-row"
       style={{ cursor: 'default' }}
     >
-      <span style={{ width: editMode ? 26 : 0, opacity: editMode ? 1 : 0, overflow: 'hidden', flexShrink: 0, display: 'flex', transition: 'width 0.15s, opacity 0.15s' }}>
+      <span style={{ width: editMode ? 44 : 0, opacity: editMode ? 1 : 0, overflow: 'hidden', flexShrink: 0, display: 'flex', transition: 'width 0.15s, opacity 0.15s' }}>
         <span className="task-edit-drag" onPointerDown={(e) => dragControls.start(e)}>
-          <List size={ICON_SIZE} />
+          <GripVertical size={ICON_SIZE} />
         </span>
       </span>
       <div style={{ flex: 1, minWidth: 0 }}>
@@ -53,9 +53,9 @@ function HabitRow({ row, editMode, onToggle, onSelect, onDelete, isSelected }: {
         className="task-edit-delete"
         onClick={onDelete}
         title="Delete habit"
-        style={{ width: editMode ? 24 : 0, opacity: editMode ? 1 : 0, overflow: 'hidden', transition: 'width 0.15s, opacity 0.15s' }}
+        style={{ width: editMode ? 44 : 0, opacity: editMode ? 1 : 0, overflow: 'hidden', transition: 'width 0.15s, opacity 0.15s' }}
       >
-        <Trash2 size={14} />
+        <Trash2 size={ICON_SIZE} />
       </button>
     </Reorder.Item>
   );

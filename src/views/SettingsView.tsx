@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Trash2, List as ListIcon, CircleUser, Paintbrush, Volume2, Pin, TriangleAlert, Settings } from 'lucide-react';
+import { Trash2, List as ListIcon, CircleUser, Paintbrush, Volume2, Pin, TriangleAlert, Settings, GripVertical } from 'lucide-react';
 import { ICON_SIZE } from '../config/constants';
 import { Reorder, useDragControls } from 'framer-motion';
 import { useSettings } from '../contexts/SettingsContext';
@@ -24,7 +24,7 @@ function SortableSettingsRow({ list, checked, onChange }: { list: List; checked:
   return (
     <Reorder.Item as="div" value={list} dragListener={false} dragControls={dragControls} className="settings-row-sortable">
       <div className="settings-drag-handle" onPointerDown={(e) => dragControls.start(e)}>
-        <ListIcon size={ICON_SIZE} />
+        <GripVertical size={ICON_SIZE} />
       </div>
       <SettingsRow label={list.name} sublabel={LIST_TYPE_LABELS[list.type]} checked={checked} onChange={onChange} />
     </Reorder.Item>
@@ -36,7 +36,7 @@ function SortableMyDaySettingsRow({ checked, onChange }: { checked: boolean; onC
   return (
     <Reorder.Item as="div" value={MY_DAY_SENTINEL} dragListener={false} dragControls={dragControls} className="settings-row-sortable">
       <div className="settings-drag-handle" onPointerDown={(e) => dragControls.start(e)}>
-        <ListIcon size={ICON_SIZE} />
+        <GripVertical size={ICON_SIZE} />
       </div>
       <SettingsRow label="My Day" sublabel="built-in" checked={checked} onChange={onChange} />
     </Reorder.Item>

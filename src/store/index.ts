@@ -107,7 +107,7 @@ interface AppStore {
   // Task mutations
   addTask: (listId: string, title: string, group?: string | null) => Promise<Task>;
   renameTask: (id: string, listId: string, title: string) => Promise<Task>;
-  updateTaskFields: (id: string, listId: string, fields: Partial<Pick<Task, 'due_date' | 'rrule'>>) => Promise<Task>;
+  updateTaskFields: (id: string, listId: string, fields: Partial<Pick<Task, 'due_date' | 'due_time' | 'rrule'>>) => Promise<Task>;
   moveTaskToGroup: (id: string, listId: string, group: string | null) => Promise<Task>;
   renameGroup: (listId: string, oldName: string, newName: string) => Promise<void>;
   deleteGroup: (listId: string, name: string) => Promise<void>;

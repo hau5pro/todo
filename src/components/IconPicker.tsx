@@ -1,6 +1,7 @@
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import { ICON_MAP, PICKABLE_ICONS } from '../config/listIcons';
+import { ICON_SIZE } from '../config/constants';
 
 interface IconPickerProps {
   currentIcon: string | null;
@@ -44,7 +45,7 @@ export function IconPicker({ currentIcon, anchorRect, onSelect, onClose }: IconP
                 aria-label={name}
                 aria-pressed={currentIcon === name}
               >
-                <IconComp size={18} />
+                <IconComp size={ICON_SIZE} />
               </button>
             );
           })}

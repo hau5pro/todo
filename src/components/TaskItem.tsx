@@ -4,26 +4,31 @@ import { motion } from 'framer-motion';
 import { AnimatedCheckbox } from './AnimatedCheckbox';
 import { useSettings } from '../contexts/SettingsContext';
 import { playComplete } from '../utils/sound';
+import { formatTime } from '../utils/date';
 
 interface Props {
   title: string;
   completed: boolean;
   dueDate?: string | null;
+  dueTime?: string | null;
   today: string;
   onToggle?: () => void;
   onSelect?: () => void;
   isSelected?: boolean;
 }
 
-export function TaskItem({ title, completed, dueDate, today, onToggle, onSelect, isSelected }: Props) {
+export function TaskItem({ title, completed, dueDate, dueTime, today, onToggle, onSelect, isSelected }: Props) {
   const isOverdue  = dueDate && dueDate < today;
   const isTomorrow = dueDate === dayjs(today).add(1, 'day').format('YYYY-MM-DD');
 
   function dueDateLabel(): string {
     if (!dueDate) return '';
-    if (dueDate === today) return 'today';
-    if (isTomorrow) return 'tomorrow';
-    return dayjs(dueDate).format('MMM D, YYYY');
+    let label = '';
+    if (dueDate === today) label = 'today';
+    else if (isTomorrow) label = 'tomorrow';
+    else label = dayjs(dueDate).format('MMM D, YYYY');
+    if (dueTime) label += ` · ${formatTime(dueTime)}`;
+    return label;
   }
   const { soundEnabled, soundStyle } = useSettings();
   const [flashing, setFlashing] = useState(false);
