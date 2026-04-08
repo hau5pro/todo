@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Outlet, useLocation, NavLink } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { HelpCircle, Menu } from 'lucide-react';
@@ -40,6 +40,15 @@ export function AppShell() {
   , []);
 
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const closeDrawer = useCallback(() => setDrawerOpen(false), []);
+
+  // Reset drawer when viewport leaves mobile breakpoint
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 639px)');
+    const handler = (e: MediaQueryListEvent) => { if (!e.matches) setDrawerOpen(false); };
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
 
   useEffect(() => {
     loadLists();
@@ -69,6 +78,7 @@ export function AppShell() {
             className="header-hamburger"
             onClick={() => setDrawerOpen(true)}
             aria-label="Open navigation"
+            aria-expanded={drawerOpen}
           >
             <Menu size={22} />
           </button>
@@ -98,9 +108,9 @@ export function AppShell() {
         <div className="app-body">
           <div
             className={`sidebar-backdrop${drawerOpen ? ' sidebar-backdrop--visible' : ''}`}
-            onClick={() => setDrawerOpen(false)}
+            onClick={closeDrawer}
           />
-          <Sidebar isDrawerOpen={drawerOpen} onClose={() => setDrawerOpen(false)} />
+          <Sidebar isDrawerOpen={drawerOpen} onClose={closeDrawer} />
           <main className="app-main">
             <motion.div
               key={pathname}

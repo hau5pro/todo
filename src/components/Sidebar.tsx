@@ -472,7 +472,7 @@ export function Sidebar({ isDrawerOpen = false, onClose }: { isDrawerOpen?: bool
   // Close drawer when navigating on mobile
   useEffect(() => {
     if (isMobile) onClose?.();
-  }, [pathname]);
+  }, [pathname, isMobile, onClose]);
 
   // Pinned
   const pinnedItems: PinnedItem[] = pinnedOrder
