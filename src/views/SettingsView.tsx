@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Trash2, List as ListIcon, CircleUser, Paintbrush, Volume2, Pin, TriangleAlert, Settings, GripVertical } from 'lucide-react';
+import { Trash2, CircleUser, Paintbrush, Volume2, Pin, TriangleAlert, Settings, GripVertical } from 'lucide-react';
 import { ICON_SIZE } from '../config/constants';
 import { Reorder, useDragControls } from 'framer-motion';
 import { useSettings } from '../contexts/SettingsContext';
