@@ -173,6 +173,12 @@ body {
   min-width: 208px;
 }
 
+.sidebar-toolbar__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .sidebar--collapsed {
   display: flex;
   flex-direction: column;
@@ -201,9 +207,6 @@ body {
   padding: 0 2px 6px;
   margin-bottom: 4px;
   border-bottom: 1px solid var(--border);
-}
-.sidebar-toolbar > .view-title-actions {
-  align-self: flex-end;
 }
 
 .sidebar-collapse-btn {
@@ -1893,10 +1896,7 @@ button.nav-section-label--button:hover { color: var(--fg); }
     padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
   }
 
-  .sidebar__inner {
-    min-width: 160px;
-    padding: 0.75rem 0.5rem;
-  }
+  .sidebar__inner { min-width: 160px; padding: 0.75rem 0.5rem; }
 }
 
 /* ── Touch target enforcement ───────────────────────────── */

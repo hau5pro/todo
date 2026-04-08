@@ -737,26 +737,28 @@ export function Sidebar() {
             animate={{ opacity: 1, transition: { duration: 0.14, delay: 0.1 } }}
             exit={{ opacity: 0, transition: { duration: 0.08 } }}
           >
-            {/* Top toolbar: add + edit + collapse */}
+            {/* Toolbar: actions left, toggle right */}
             <div className="sidebar-toolbar">
-              <span className="view-title-actions">
-                <button
-                  className="sidebar-collapse-btn"
-                  onClick={() => setShowAddMenu((p) => !p)}
-                  title="New list or folder"
-                  aria-expanded={showAddMenu}
-                >
-                  <Plus size={ICON_SIZE} />
-                </button>
-                <button
-                  className="sidebar-collapse-btn"
-                  onClick={() => setEditMode((e) => !e)}
-                  title={editMode ? 'Done reordering' : 'Reorder lists'}
-                >
-                  {editMode
-                    ? <CheckCircle size={ICON_SIZE} style={{ color: 'var(--success)' }} />
-                    : <Pencil size={ICON_SIZE} />}
-                </button>
+              <div className="sidebar-toolbar__row">
+                <span className="view-title-actions">
+                  <button
+                    className="sidebar-collapse-btn"
+                    onClick={() => setShowAddMenu((p) => !p)}
+                    title="New list or folder"
+                    aria-expanded={showAddMenu}
+                  >
+                    <Plus size={ICON_SIZE} />
+                  </button>
+                  <button
+                    className="sidebar-collapse-btn"
+                    onClick={() => setEditMode((e) => !e)}
+                    title={editMode ? 'Done reordering' : 'Reorder lists'}
+                  >
+                    {editMode
+                      ? <CheckCircle size={ICON_SIZE} style={{ color: 'var(--success)' }} />
+                      : <Pencil size={ICON_SIZE} />}
+                  </button>
+                </span>
                 <button
                   className="sidebar-collapse-btn sidebar-collapse-btn--toggle"
                   onClick={() => setSidebarCollapsed(true)}
@@ -764,7 +766,7 @@ export function Sidebar() {
                 >
                   <Menu size={ICON_SIZE} />
                 </button>
-              </span>
+              </div>
               <AnimatePresence initial={false}>
                 {showAddMenu && (
                   <motion.div
