@@ -1,4 +1,4 @@
-import { NavLink, useNavigate, useMatch } from 'react-router-dom';
+import { NavLink, useNavigate, useMatch, useLocation } from 'react-router-dom';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Reorder, useDragControls, motion, AnimatePresence } from 'framer-motion';
@@ -408,10 +408,9 @@ function FolderRow({
 // ── Sidebar ───────────────────────────────────────────────────────────────────
 
 const SIDEBAR_W = window.innerWidth >= 1024 ? 256 : 208;
-const SIDEBAR_W_MOBILE = 160;
 const COLLAPSED_W = 40;
 
-export function Sidebar() {
+export function Sidebar({ isDrawerOpen = false, onClose }: { isDrawerOpen?: boolean; onClose?: () => void }) {
   const lists = useAppStore((s) => s.lists);
   const folders = useAppStore((s) => s.folders);
   const createList = useAppStore((s) => s.createList);
@@ -429,11 +428,6 @@ export function Sidebar() {
   const addInputRef = useRef<HTMLInputElement>(null);
   const addFolderInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
-
-  // Collapse sidebar by default on mobile
-  useEffect(() => {
-    if (window.innerWidth < 640) setSidebarCollapsed(true);
-  }, []);
 
   // Track any list drag for drop zone highlight
   useEffect(() => {
@@ -464,6 +458,21 @@ export function Sidebar() {
     localOnly,
     setLocalOnly,
   } = useSettings();
+
+  const { pathname } = useLocation();
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 640);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 639px)');
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
+  // Close drawer when navigating on mobile
+  useEffect(() => {
+    if (isMobile) onClose?.();
+  }, [pathname]);
 
   // Pinned
   const pinnedItems: PinnedItem[] = pinnedOrder
@@ -608,13 +617,13 @@ export function Sidebar() {
 
   return (
     <motion.nav
-      className="sidebar"
-      animate={{ width: sidebarCollapsed ? COLLAPSED_W : (window.innerWidth < 640 ? SIDEBAR_W_MOBILE : SIDEBAR_W) }}
+      className={`sidebar${isMobile && isDrawerOpen ? ' sidebar--drawer-open' : ''}`}
+      animate={isMobile ? {} : { width: sidebarCollapsed ? COLLAPSED_W : SIDEBAR_W }}
       initial={false}
       transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
     >
       <AnimatePresence mode="wait" initial={false}>
-        {sidebarCollapsed ? (
+        {(!isMobile && sidebarCollapsed) ? (
           <motion.div
             key="collapsed"
             className="sidebar--collapsed"
@@ -867,6 +876,7 @@ export function Sidebar() {
                         ref={addFolderInputRef}
                         className="nav-inline-input"
                         placeholder="Folder name"
+                        inputMode="text"
                         value={newFolderName}
                         onChange={(e) => setNewFolderName(e.target.value)}
                         onKeyDown={(e) => {
@@ -887,6 +897,7 @@ export function Sidebar() {
                         ref={addInputRef}
                         className="nav-inline-input"
                         placeholder="List name"
+                        inputMode="text"
                         value={newListName}
                         onChange={(e) => setNewListName(e.target.value)}
                         onKeyDown={(e) => {

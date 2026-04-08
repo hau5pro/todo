@@ -1,7 +1,7 @@
-import { useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Outlet, useLocation, NavLink } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { HelpCircle } from 'lucide-react';
+import { HelpCircle, Menu } from 'lucide-react';
 import { ease } from '../utils/easing';
 import { Sidebar } from './Sidebar';
 import { SyncDot } from './SyncDot';
@@ -39,6 +39,8 @@ export function AppShell() {
     new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).toUpperCase()
   , []);
 
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
   useEffect(() => {
     loadLists();
     loadFolders();
@@ -63,6 +65,13 @@ export function AppShell() {
       <KeyboardNavController />
       <div className="app-shell">
         <header className="app-header">
+          <button
+            className="header-hamburger"
+            onClick={() => setDrawerOpen(true)}
+            aria-label="Open navigation"
+          >
+            <Menu size={22} />
+          </button>
           <NavLink to="/my-day" className="app-logo">
             <div className="app-logo__mark">
               <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
@@ -87,7 +96,11 @@ export function AppShell() {
           </div>
         </header>
         <div className="app-body">
-          <Sidebar />
+          <div
+            className={`sidebar-backdrop${drawerOpen ? ' sidebar-backdrop--visible' : ''}`}
+            onClick={() => setDrawerOpen(false)}
+          />
+          <Sidebar isDrawerOpen={drawerOpen} onClose={() => setDrawerOpen(false)} />
           <main className="app-main">
             <motion.div
               key={pathname}
