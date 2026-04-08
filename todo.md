@@ -6,10 +6,6 @@
 
 ## Improvements
 
-- supabase url on auth is non-profesh
-
-- due time?
-
 - should muted colors pop even more?
 - wierd swipe left go back bhvr
 - pwa default app name from manifest
