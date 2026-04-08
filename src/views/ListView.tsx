@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { Pencil, Trash2, ChevronDown, ChevronRight, Copy, List, CheckCircle, MoreHorizontal } from 'lucide-react';
+import { Pencil, Trash2, ChevronDown, ChevronRight, Copy, List, CheckCircle, MoreHorizontal, GripVertical } from 'lucide-react';
 import { AnimatePresence, motion, Reorder, useDragControls } from 'framer-motion';
 import { ease } from '../utils/easing';
 import { focusLater } from '../utils/dom';
@@ -68,9 +68,9 @@ function TaskRow({
       style={{ cursor: editMode ? 'grab' : 'default', opacity: dragging ? 0.4 : 1 }}
       transition={{ layout: { duration: 0.08, ease: 'easeOut' } }}
     >
-      <span style={{ width: editMode ? 26 : 0, opacity: editMode ? 1 : 0, overflow: 'hidden', flexShrink: 0, display: 'flex', transition: 'width 0.15s, opacity 0.15s' }}>
+      <span style={{ width: editMode ? 44 : 0, opacity: editMode ? 1 : 0, overflow: 'hidden', flexShrink: 0, display: 'flex', transition: 'width 0.15s, opacity 0.15s' }}>
         <span className="task-edit-drag" title="Drag to reorder" onPointerDown={(e) => dragControls.start(e)}>
-          <List size={ICON_SIZE} />
+          <GripVertical size={ICON_SIZE} />
         </span>
       </span>
       {/* Wrap content in a draggable div so it doesn't conflict with FM's onDragStart typing */}
@@ -93,6 +93,7 @@ function TaskRow({
           title={task.title}
           completed={task.completed}
           dueDate={task.due_date}
+          dueTime={task.due_time}
           today={today}
           onToggle={editMode ? undefined : onToggle}
           onSelect={editMode ? undefined : onSelect}
@@ -103,9 +104,9 @@ function TaskRow({
         className="task-edit-delete"
         onClick={onDelete}
         title="Delete task"
-        style={{ width: editMode ? 24 : 0, opacity: editMode ? 1 : 0, overflow: 'hidden', transition: 'width 0.15s, opacity 0.15s' }}
+        style={{ width: editMode ? 44 : 0, opacity: editMode ? 1 : 0, overflow: 'hidden', transition: 'width 0.15s, opacity 0.15s' }}
       >
-        <Trash2 size={14} />
+        <Trash2 size={ICON_SIZE} />
       </button>
     </Reorder.Item>
   );
@@ -206,17 +207,17 @@ function GroupSection({
       onDrop={handleDrop}
     >
       <div className="group-header">
-        <span style={{ width: editMode ? 26 : 0, opacity: editMode ? 1 : 0, overflow: 'hidden', flexShrink: 0, display: 'flex', transition: 'width 0.15s, opacity 0.15s' }}>
+        <span style={{ width: editMode ? 44 : 0, opacity: editMode ? 1 : 0, overflow: 'hidden', flexShrink: 0, display: 'flex', transition: 'width 0.15s, opacity 0.15s' }}>
           <span className="task-edit-drag" onPointerDown={(e) => dragControls.start(e)}>
-            <List size={ICON_SIZE} />
+            <GripVertical size={ICON_SIZE} />
           </span>
         </span>
         <button
-          className="group-header-collapse"
+          className={`group-header-collapse${!collapsed ? ' group-header-collapse--expanded' : ''}`}
           onClick={() => setCollapsed((p) => !p)}
           aria-label={collapsed ? 'Expand group' : 'Collapse group'}
         >
-          {collapsed ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
+          {collapsed ? <ChevronRight size={ICON_SIZE} /> : <ChevronDown size={ICON_SIZE} />}
         </button>
 
         {editingName ? (
@@ -241,7 +242,7 @@ function GroupSection({
             onClick={() => setMenuOpen((p) => !p)}
             aria-label="Group actions"
           >
-            <MoreHorizontal size={16} />
+            <MoreHorizontal size={ICON_SIZE} />
           </button>
           <AnimatePresence>
             {menuOpen && (
@@ -253,13 +254,13 @@ function GroupSection({
                 transition={{ duration: 0.1 }}
               >
                 <button className="group-header-dropdown-item" onClick={startEditName}>
-                  <Pencil size={13} /> Rename
+                  <Pencil size={ICON_SIZE} /> Rename
                 </button>
                 <button
                   className="group-header-dropdown-item group-header-dropdown-item--danger"
                   onClick={() => { setConfirmDelete(true); setMenuOpen(false); }}
                 >
-                  <Trash2 size={13} /> Delete group
+                  <Trash2 size={ICON_SIZE} /> Delete group
                 </button>
               </motion.div>
             )}
@@ -269,9 +270,9 @@ function GroupSection({
           className="task-edit-delete"
           onClick={() => setConfirmDelete(true)}
           title="Delete group"
-          style={{ width: editMode ? 24 : 0, opacity: editMode ? 1 : 0, overflow: 'hidden', transition: 'width 0.15s, opacity 0.15s' }}
+          style={{ width: editMode ? 44 : 0, opacity: editMode ? 1 : 0, overflow: 'hidden', transition: 'width 0.15s, opacity 0.15s' }}
         >
-          <Trash2 size={14} />
+          <Trash2 size={ICON_SIZE} />
         </button>
       </div>
 
@@ -712,6 +713,7 @@ export function ListView() {
                         title={task.title}
                         completed={true}
                         dueDate={task.due_date}
+                        dueTime={task.due_time}
                         today={today}
                         onToggle={() => handleToggle(task)}
                         onSelect={() => handleSelectTask(task)}

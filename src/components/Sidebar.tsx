@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import { Reorder, useDragControls, motion, AnimatePresence } from 'framer-motion';
 import {
   Sun, Settings, LogOut, ChevronDown, ChevronRight,
-  List, Plus, CheckCircle, Pencil, Menu,
+  List, Plus, CheckCircle, Pencil, Menu, GripVertical,
   FolderPlus, Folder, Trash2, CornerDownLeft, MoreHorizontal, HelpCircle,
 } from 'lucide-react';
 import { logOut } from '../supabase/auth';
@@ -20,7 +20,6 @@ const MY_DAY_SENTINEL = { id: 'my-day' as const };
 type PinnedItem = ListType | typeof MY_DAY_SENTINEL;
 
 
-const COLLAPSED_ICON_SIZE = 20;
 
 // ── Portal tooltip for overflow-clipped containers ────────────────────────────
 
@@ -49,8 +48,8 @@ function NavTooltip({ label, children }: { label: string; children: React.ReactN
 }
 
 function pinnedIcon(item: PinnedItem): React.ReactNode {
-  if (item.id === 'my-day') return <Sun size={COLLAPSED_ICON_SIZE} />;
-  return getListIcon(item as ListType, COLLAPSED_ICON_SIZE) ?? <List size={COLLAPSED_ICON_SIZE} />;
+  if (item.id === 'my-day') return <Sun size={ICON_SIZE} />;
+  return getListIcon(item as ListType, ICON_SIZE) ?? <List size={ICON_SIZE} />;
 }
 
 // ── Sortable list item ────────────────────────────────────────────────────────
@@ -109,7 +108,7 @@ function SortableItem({
               title="Drag to reorder"
               onPointerDown={(e) => dragControls.start(e)}
             >
-              <List size={ICON_SIZE} />
+              <GripVertical size={ICON_SIZE} />
             </span>
           </motion.span>
         )}
@@ -147,7 +146,7 @@ function SortableItem({
             transition={{ duration: 0.15 }}
             title="Delete list"
           >
-            <Trash2 size={14} />
+            <Trash2 size={ICON_SIZE} />
           </motion.button>
         )}
       </AnimatePresence>
@@ -176,7 +175,7 @@ function SortableMyDayItem({ editMode }: { editMode: boolean }) {
             transition={{ duration: 0.15 }}
           >
             <span className="nav-drag-icon" title="Drag to reorder" onPointerDown={(e) => dragControls.start(e)}>
-              <List size={ICON_SIZE} />
+              <GripVertical size={ICON_SIZE} />
             </span>
           </motion.span>
         )}
@@ -308,7 +307,7 @@ function FolderRow({
               transition={{ duration: 0.15 }}
             >
               <span className="nav-drag-icon" title="Drag to reorder" onPointerDown={(e) => dragControls.start(e)}>
-                <List size={ICON_SIZE} />
+                <GripVertical size={ICON_SIZE} />
               </span>
             </motion.span>
           )}
@@ -320,7 +319,7 @@ function FolderRow({
             onClick={() => setFolderCollapsed(folder.id, !isCollapsed)}
             aria-label={isCollapsed ? 'Expand folder' : 'Collapse folder'}
           >
-            {isCollapsed ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
+            {isCollapsed ? <ChevronRight size={ICON_SIZE} /> : <ChevronDown size={ICON_SIZE} />}
           </button>
         )}
 
@@ -362,11 +361,11 @@ function FolderRow({
             <div className="folder-picker-backdrop" onClick={closeMenu} />
             <div className="folder-picker" style={{ position: 'fixed', top: menuPos.top, left: menuPos.left }}>
               <button onClick={startRename}>
-                <Pencil size={13} />
+                <Pencil size={ICON_SIZE} />
                 Rename
               </button>
               <button className="folder-picker-danger" onClick={handleDelete}>
-                <Trash2 size={13} />
+                <Trash2 size={ICON_SIZE} />
                 Delete
               </button>
             </div>
@@ -653,7 +652,7 @@ export function Sidebar() {
                 onClick={() => setSidebarCollapsed(false)}
                 title="Expand sidebar"
               >
-                <Menu size={COLLAPSED_ICON_SIZE} />
+                <Menu size={ICON_SIZE} />
               </button>
             </div>
 
@@ -683,7 +682,7 @@ export function Sidebar() {
                   className={({ isActive }) => isActive ? 'nav-icon-btn nav-icon-btn--active' : 'nav-icon-btn'}
                   aria-label={list.name}
                 >
-                  {getListIcon(list, COLLAPSED_ICON_SIZE) ?? <List size={COLLAPSED_ICON_SIZE} />}
+                  {getListIcon(list, ICON_SIZE) ?? <List size={ICON_SIZE} />}
                 </NavLink>
               </NavTooltip>
             ))}
@@ -695,7 +694,7 @@ export function Sidebar() {
                   className={({ isActive }) => isActive ? 'nav-icon-btn nav-icon-btn--active' : 'nav-icon-btn'}
                   aria-label={folder.name}
                 >
-                  <Folder size={COLLAPSED_ICON_SIZE} />
+                  <Folder size={ICON_SIZE} />
                 </NavLink>
               </NavTooltip>
             ))}
@@ -708,7 +707,7 @@ export function Sidebar() {
                 className={({ isActive }) => isActive ? 'nav-icon-btn nav-icon-btn--active' : 'nav-icon-btn'}
                 aria-label="Help"
               >
-                <HelpCircle size={20} />
+                <HelpCircle size={ICON_SIZE} />
               </NavLink>
             </NavTooltip>
             <NavTooltip label="Settings">
@@ -717,7 +716,7 @@ export function Sidebar() {
                 className={({ isActive }) => isActive ? 'nav-icon-btn nav-icon-btn--active' : 'nav-icon-btn'}
                 aria-label="Settings"
               >
-                <Settings size={20} />
+                <Settings size={ICON_SIZE} />
               </NavLink>
             </NavTooltip>
             <NavTooltip label="Sign out">
@@ -726,7 +725,7 @@ export function Sidebar() {
                 onClick={() => logOut(localOnly, setLocalOnly).catch(console.error)}
                 aria-label="Sign out"
               >
-                <LogOut size={20} />
+                <LogOut size={ICON_SIZE} />
               </button>
             </NavTooltip>
           </motion.div>
@@ -779,11 +778,11 @@ export function Sidebar() {
                     style={{ overflow: 'hidden' }}
                   >
                     <button className="nav-add-option" onClick={startAddList}>
-                      <List size={13} />
+                      <List size={ICON_SIZE} />
                       New list
                     </button>
                     <button className="nav-add-option" onClick={startAddFolder}>
-                      <FolderPlus size={13} />
+                      <FolderPlus size={ICON_SIZE} />
                       New folder
                     </button>
                   </motion.div>
@@ -824,8 +823,8 @@ export function Sidebar() {
                 onClick={() => setListsOpen(!listsOpen)}
               >
                 {listsOpen
-                  ? <ChevronDown size={10} />
-                  : <ChevronRight size={10} />}
+                  ? <ChevronDown size={ICON_SIZE} />
+                  : <ChevronRight size={ICON_SIZE} />}
                 Lists
               </button>
             </div>

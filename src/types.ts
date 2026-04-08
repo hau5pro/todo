@@ -33,6 +33,7 @@ export interface Task {
   completed: boolean;
   completed_at: string | null;         // ISO timestamp set when completed, cleared on uncomplete
   due_date: string | null;             // 'YYYY-MM-DD'
+  due_time: string | null;             // 'HH:MM' (24-hour)
   recurrence_interval: number | null;
   recurrence_unit: RecurrenceUnit | null;
   rrule: string | null;                // task-level recurrence, e.g. 'FREQ=WEEKLY;INTERVAL=1;BYDAY=MO'
