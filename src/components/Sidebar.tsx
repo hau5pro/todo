@@ -5,7 +5,7 @@ import { Reorder, useDragControls, motion, AnimatePresence } from 'framer-motion
 import {
   Sun, Settings, LogOut, ChevronDown, ChevronRight,
   List, Plus, CheckCircle, Pencil, PanelLeft,
-  FolderPlus, Folder, Trash2, CornerDownLeft, MoreHorizontal,
+  FolderPlus, Folder, Trash2, CornerDownLeft, MoreHorizontal, HelpCircle,
 } from 'lucide-react';
 import { logOut } from '../supabase/auth';
 import { useSettings } from '../contexts/SettingsContext';
@@ -695,6 +695,15 @@ export function Sidebar() {
 
             <div className="sidebar-spacer" />
 
+            <NavTooltip label="Help">
+              <NavLink
+                to="/docs"
+                className={({ isActive }) => isActive ? 'nav-icon-btn nav-icon-btn--active' : 'nav-icon-btn'}
+                aria-label="Help"
+              >
+                <HelpCircle size={20} />
+              </NavLink>
+            </NavTooltip>
             <NavTooltip label="Settings">
               <NavLink
                 to="/settings"
@@ -925,6 +934,10 @@ export function Sidebar() {
 
             <div className="sidebar-spacer" />
 
+            <NavLink to="/docs" className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'}>
+              <HelpCircle size={ICON_SIZE} />
+              Help
+            </NavLink>
             <NavLink to="/settings" className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'}>
               <Settings size={ICON_SIZE} />
               Settings
