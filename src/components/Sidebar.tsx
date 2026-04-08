@@ -29,6 +29,7 @@ function NavTooltip({ label, children }: { label: string; children: React.ReactN
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
 
   const show = useCallback(() => {
+    if (window.matchMedia('(hover: none)').matches) return;
     if (ref.current) {
       const r = ref.current.getBoundingClientRect();
       setPos({ top: r.top + r.height / 2, left: r.right + 8 });
