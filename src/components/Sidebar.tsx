@@ -1,11 +1,11 @@
-import { NavLink, useNavigate, useMatch } from 'react-router-dom';
+import { NavLink, useNavigate, useMatch, useLocation } from 'react-router-dom';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Reorder, useDragControls, motion, AnimatePresence } from 'framer-motion';
 import {
   Sun, Settings, LogOut, ChevronDown, ChevronRight,
-  List, Plus, CheckCircle, Pencil, PanelLeft,
-  FolderPlus, Folder, Trash2, CornerDownLeft, MoreHorizontal,
+  List, Plus, CheckCircle, Pencil, Menu,
+  FolderPlus, Folder, Trash2, CornerDownLeft, MoreHorizontal, HelpCircle,
 } from 'lucide-react';
 import { logOut } from '../supabase/auth';
 import { useSettings } from '../contexts/SettingsContext';
@@ -29,6 +29,7 @@ function NavTooltip({ label, children }: { label: string; children: React.ReactN
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
 
   const show = useCallback(() => {
+    if (window.matchMedia('(hover: none)').matches) return;
     if (ref.current) {
       const r = ref.current.getBoundingClientRect();
       setPos({ top: r.top + r.height / 2, left: r.right + 8 });
@@ -329,6 +330,7 @@ function FolderRow({
           <input
             ref={inputRef}
             className="nav-inline-input"
+            inputMode="text"
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
             onKeyDown={(e) => {
@@ -408,8 +410,7 @@ function FolderRow({
 // ── Sidebar ───────────────────────────────────────────────────────────────────
 
 const SIDEBAR_W = window.innerWidth >= 1024 ? 256 : 208;
-const SIDEBAR_W_MOBILE = 160;
-const COLLAPSED_W = 40;
+const COLLAPSED_W = 48;
 
 export function Sidebar() {
   const lists = useAppStore((s) => s.lists);
@@ -429,11 +430,6 @@ export function Sidebar() {
   const addInputRef = useRef<HTMLInputElement>(null);
   const addFolderInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
-
-  // Collapse sidebar by default on mobile
-  useEffect(() => {
-    if (window.innerWidth < 640) setSidebarCollapsed(true);
-  }, []);
 
   // Track any list drag for drop zone highlight
   useEffect(() => {
@@ -464,6 +460,21 @@ export function Sidebar() {
     localOnly,
     setLocalOnly,
   } = useSettings();
+
+  const { pathname } = useLocation();
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 640);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 640px)');
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
+  // Collapse sidebar when navigating on mobile
+  useEffect(() => {
+    if (isMobile) setSidebarCollapsed(true);
+  }, [pathname]);
 
   // Pinned
   const pinnedItems: PinnedItem[] = pinnedOrder
@@ -530,6 +541,9 @@ export function Sidebar() {
 
   function startAddList() {
     setShowAddMenu(false);
+    setListsOpen(true);
+    setAddingFolder(false);
+    setNewFolderName('');
     setNewListName('');
     setAddingList(true);
     focusLater(addInputRef);
@@ -537,6 +551,9 @@ export function Sidebar() {
 
   function startAddFolder() {
     setShowAddMenu(false);
+    setListsOpen(true);
+    setAddingList(false);
+    setNewListName('');
     setNewFolderName('');
     setAddingFolder(true);
     focusLater(addFolderInputRef);
@@ -607,9 +624,17 @@ export function Sidebar() {
 
 
   return (
+    <>
+    {isMobile && !sidebarCollapsed && createPortal(
+      <div
+        className="sidebar-backdrop sidebar-backdrop--visible"
+        onClick={() => setSidebarCollapsed(true)}
+      />,
+      document.body
+    )}
     <motion.nav
       className="sidebar"
-      animate={{ width: sidebarCollapsed ? COLLAPSED_W : (window.innerWidth < 640 ? SIDEBAR_W_MOBILE : SIDEBAR_W) }}
+      animate={{ width: sidebarCollapsed ? COLLAPSED_W : (isMobile ? 280 : SIDEBAR_W) }}
       initial={false}
       transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
     >
@@ -622,13 +647,13 @@ export function Sidebar() {
             animate={{ opacity: 1, transition: { duration: 0.12, delay: 0.1 } }}
             exit={{ opacity: 0, transition: { duration: 0.08 } }}
           >
-            <div className="sidebar-toolbar">
+            <div className="sidebar-toggle-section">
               <button
-                className="sidebar-collapse-btn sidebar-collapse-btn--toggle sidebar-collapse-btn--dark"
+                className="sidebar-collapse-btn"
                 onClick={() => setSidebarCollapsed(false)}
                 title="Expand sidebar"
               >
-                <PanelLeft size={COLLAPSED_ICON_SIZE} />
+                <Menu size={COLLAPSED_ICON_SIZE} />
               </button>
             </div>
 
@@ -677,6 +702,15 @@ export function Sidebar() {
 
             <div className="sidebar-spacer" />
 
+            <NavTooltip label="Help">
+              <NavLink
+                to="/docs"
+                className={({ isActive }) => isActive ? 'nav-icon-btn nav-icon-btn--active' : 'nav-icon-btn'}
+                aria-label="Help"
+              >
+                <HelpCircle size={20} />
+              </NavLink>
+            </NavTooltip>
             <NavTooltip label="Settings">
               <NavLink
                 to="/settings"
@@ -704,34 +738,36 @@ export function Sidebar() {
             animate={{ opacity: 1, transition: { duration: 0.14, delay: 0.1 } }}
             exit={{ opacity: 0, transition: { duration: 0.08 } }}
           >
-            {/* Top toolbar: add + edit + collapse */}
+            {/* Toolbar: actions left, toggle right */}
             <div className="sidebar-toolbar">
-              <span className="view-title-actions">
-                <button
-                  className="sidebar-collapse-btn"
-                  onClick={() => setShowAddMenu((p) => !p)}
-                  title="New list or folder"
-                  aria-expanded={showAddMenu}
-                >
-                  <Plus size={ICON_SIZE} />
-                </button>
-                <button
-                  className="sidebar-collapse-btn"
-                  onClick={() => setEditMode((e) => !e)}
-                  title={editMode ? 'Done reordering' : 'Reorder lists'}
-                >
-                  {editMode
-                    ? <CheckCircle size={ICON_SIZE} style={{ color: 'var(--success)' }} />
-                    : <Pencil size={ICON_SIZE} />}
-                </button>
+              <div className="sidebar-toolbar__row">
+                <span className="view-title-actions">
+                  <button
+                    className="sidebar-collapse-btn"
+                    onClick={() => setShowAddMenu((p) => !p)}
+                    title="New list or folder"
+                    aria-expanded={showAddMenu}
+                  >
+                    <Plus size={ICON_SIZE} />
+                  </button>
+                  <button
+                    className="sidebar-collapse-btn"
+                    onClick={() => setEditMode((e) => !e)}
+                    title={editMode ? 'Done reordering' : 'Reorder lists'}
+                  >
+                    {editMode
+                      ? <CheckCircle size={ICON_SIZE} style={{ color: 'var(--success)' }} />
+                      : <Pencil size={ICON_SIZE} />}
+                  </button>
+                </span>
                 <button
                   className="sidebar-collapse-btn sidebar-collapse-btn--toggle"
                   onClick={() => setSidebarCollapsed(true)}
                   title="Collapse sidebar"
                 >
-                  <PanelLeft size={ICON_SIZE} />
+                  <Menu size={ICON_SIZE} />
                 </button>
-              </span>
+              </div>
               <AnimatePresence initial={false}>
                 {showAddMenu && (
                   <motion.div
@@ -867,6 +903,7 @@ export function Sidebar() {
                         ref={addFolderInputRef}
                         className="nav-inline-input"
                         placeholder="Folder name"
+                        inputMode="text"
                         value={newFolderName}
                         onChange={(e) => setNewFolderName(e.target.value)}
                         onKeyDown={(e) => {
@@ -887,6 +924,7 @@ export function Sidebar() {
                         ref={addInputRef}
                         className="nav-inline-input"
                         placeholder="List name"
+                        inputMode="text"
                         value={newListName}
                         onChange={(e) => setNewListName(e.target.value)}
                         onKeyDown={(e) => {
@@ -905,6 +943,10 @@ export function Sidebar() {
 
             <div className="sidebar-spacer" />
 
+            <NavLink to="/docs" className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'}>
+              <HelpCircle size={ICON_SIZE} />
+              Help
+            </NavLink>
             <NavLink to="/settings" className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'}>
               <Settings size={ICON_SIZE} />
               Settings
@@ -918,5 +960,6 @@ export function Sidebar() {
         )}
       </AnimatePresence>
     </motion.nav>
+    </>
   );
 }
