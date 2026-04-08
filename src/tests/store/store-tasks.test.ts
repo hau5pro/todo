@@ -1,0 +1,178 @@
+import { describe, it, expect, beforeEach } from 'vitest';
+import { useAppStore } from '../../store/index';
+import { createList as dbCreateList } from '../../db/lists';
+import { createTask as dbCreateTask } from '../../db/tasks';
+import { getTasksByList } from '../../db/tasks';
+
+beforeEach(() => {
+  useAppStore.getState().reset();
+});
+
+describe('store: addTask', () => {
+  it('adds a task to tasksByList in the store', async () => {
+    const list = await dbCreateList('Inbox', 'general');
+    const task = await useAppStore.getState().addTask(list.id, 'Buy oat milk');
+    const tasks = useAppStore.getState().tasksByList[list.id] ?? [];
+    expect(tasks.find((t) => t.id === task.id)).toBeDefined();
+    expect(task.title).toBe('Buy oat milk');
+  });
+
+  it('adds task with a group', async () => {
+    const list = await dbCreateList('Inbox', 'general');
+    const task = await useAppStore.getState().addTask(list.id, 'Meeting', 'Work');
+    expect(task.group).toBe('Work');
+  });
+
+  it('persists the task in the DB', async () => {
+    const list = await dbCreateList('Inbox', 'general');
+    const task = await useAppStore.getState().addTask(list.id, 'Groceries');
+    const dbTasks = await getTasksByList(list.id);
+    expect(dbTasks.find((t) => t.id === task.id)).toBeDefined();
+  });
+});
+
+describe('store: renameTask', () => {
+  it('updates the task title in the store', async () => {
+    const list = await dbCreateList('Tasks', 'general');
+    const task = await dbCreateTask(list.id, 'Old title');
+    await useAppStore.getState().loadTasks(list.id);
+
+    const updated = await useAppStore.getState().renameTask(task.id, list.id, 'New title');
+
+    expect(updated.title).toBe('New title');
+    const tasks = useAppStore.getState().tasksByList[list.id] ?? [];
+    expect(tasks.find((t) => t.id === task.id)?.title).toBe('New title');
+  });
+});
+
+describe('store: updateTaskFields', () => {
+  it('updates due_date in the store', async () => {
+    const list = await dbCreateList('Tasks', 'general');
+    const task = await dbCreateTask(list.id, 'Do taxes');
+    await useAppStore.getState().loadTasks(list.id);
+
+    await useAppStore.getState().updateTaskFields(task.id, list.id, { due_date: '2026-05-01' });
+
+    const tasks = useAppStore.getState().tasksByList[list.id] ?? [];
+    expect(tasks.find((t) => t.id === task.id)?.due_date).toBe('2026-05-01');
+  });
+
+  it('updates rrule in the store', async () => {
+    const list = await dbCreateList('Tasks', 'general');
+    const task = await dbCreateTask(list.id, 'Weekly review', { due_date: '2026-04-10' });
+    await useAppStore.getState().loadTasks(list.id);
+
+    await useAppStore.getState().updateTaskFields(task.id, list.id, { rrule: 'FREQ=WEEKLY;INTERVAL=1' });
+
+    const tasks = useAppStore.getState().tasksByList[list.id] ?? [];
+    expect(tasks.find((t) => t.id === task.id)?.rrule).toBe('FREQ=WEEKLY;INTERVAL=1');
+  });
+});
+
+describe('store: moveTaskToGroup', () => {
+  it('assigns a task to a group', async () => {
+    const list = await dbCreateList('Tasks', 'general');
+    const task = await dbCreateTask(list.id, 'Plan sprint');
+    await useAppStore.getState().loadTasks(list.id);
+
+    const updated = await useAppStore.getState().moveTaskToGroup(task.id, list.id, 'Work');
+
+    expect(updated.group).toBe('Work');
+    const tasks = useAppStore.getState().tasksByList[list.id] ?? [];
+    expect(tasks.find((t) => t.id === task.id)?.group).toBe('Work');
+  });
+
+  it('removes a task from a group when null is passed', async () => {
+    const list = await dbCreateList('Tasks', 'general');
+    const task = await dbCreateTask(list.id, 'Plan sprint', { group: 'Work' });
+    await useAppStore.getState().loadTasks(list.id);
+
+    const updated = await useAppStore.getState().moveTaskToGroup(task.id, list.id, null);
+
+    expect(updated.group).toBeNull();
+  });
+});
+
+describe('store: renameGroup', () => {
+  it('renames all tasks in a group in the store', async () => {
+    const list = await dbCreateList('Tasks', 'general');
+    await dbCreateTask(list.id, 'T1', { group: 'alpha' });
+    await dbCreateTask(list.id, 'T2', { group: 'alpha' });
+    await dbCreateTask(list.id, 'T3', { group: 'beta' });
+    await useAppStore.getState().loadTasks(list.id);
+
+    await useAppStore.getState().renameGroup(list.id, 'alpha', 'gamma');
+
+    const tasks = useAppStore.getState().tasksByList[list.id] ?? [];
+    expect(tasks.filter((t) => t.group === 'gamma')).toHaveLength(2);
+    expect(tasks.filter((t) => t.group === 'alpha')).toHaveLength(0);
+    expect(tasks.find((t) => t.title === 'T3')?.group).toBe('beta');
+  });
+});
+
+describe('store: deleteGroup', () => {
+  it('sets group to null for all tasks in the group', async () => {
+    const list = await dbCreateList('Tasks', 'general');
+    await dbCreateTask(list.id, 'T1', { group: 'alpha' });
+    await dbCreateTask(list.id, 'T2', { group: 'alpha' });
+    await dbCreateTask(list.id, 'T3', { group: 'beta' });
+    await useAppStore.getState().loadTasks(list.id);
+
+    await useAppStore.getState().deleteGroup(list.id, 'alpha');
+
+    const tasks = useAppStore.getState().tasksByList[list.id] ?? [];
+    expect(tasks.filter((t) => t.group === null && (t.title === 'T1' || t.title === 'T2'))).toHaveLength(2);
+    expect(tasks.find((t) => t.title === 'T3')?.group).toBe('beta');
+  });
+});
+
+describe('store: removeTask', () => {
+  it('removes the task from tasksByList in the store', async () => {
+    const list = await dbCreateList('Tasks', 'general');
+    const task = await dbCreateTask(list.id, 'Temp task');
+    await useAppStore.getState().loadTasks(list.id);
+
+    await useAppStore.getState().removeTask(task.id, list.id);
+
+    const tasks = useAppStore.getState().tasksByList[list.id] ?? [];
+    expect(tasks.find((t) => t.id === task.id)).toBeUndefined();
+  });
+
+  it('soft-deletes the task in the DB (excluded from normal queries)', async () => {
+    const list = await dbCreateList('Tasks', 'general');
+    const task = await dbCreateTask(list.id, 'Temp task');
+    await useAppStore.getState().loadTasks(list.id);
+
+    await useAppStore.getState().removeTask(task.id, list.id);
+
+    const dbTasks = await getTasksByList(list.id);
+    expect(dbTasks.find((t) => t.id === task.id)).toBeUndefined();
+  });
+
+  it('removes the task from myDayOverdue if present', async () => {
+    const list = await dbCreateList('Tasks', 'general');
+    const task = await dbCreateTask(list.id, 'Overdue task', { due_date: '2026-04-01' });
+    await useAppStore.getState().loadMyDay();
+
+    await useAppStore.getState().removeTask(task.id, list.id);
+
+    expect(useAppStore.getState().myDayOverdue.find((t) => t.id === task.id)).toBeUndefined();
+  });
+});
+
+describe('store: loadTasks', () => {
+  it('loads tasks for a list including soft-deleted', async () => {
+    const list = await dbCreateList('Test', 'general');
+    await dbCreateTask(list.id, 'Active');
+    const deleted = await dbCreateTask(list.id, 'Deleted');
+    // soft-delete via store removeTask
+    const { softDeleteTask } = await import('../../db/tasks');
+    await softDeleteTask(deleted.id);
+
+    await useAppStore.getState().loadTasks(list.id);
+
+    const tasks = useAppStore.getState().tasksByList[list.id] ?? [];
+    // includeDeleted: true — both should be present
+    expect(tasks).toHaveLength(2);
+  });
+});
