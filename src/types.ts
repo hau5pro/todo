@@ -31,6 +31,7 @@ export interface Task {
   list_id: string;
   title: string;
   completed: boolean;
+  completed_at: string | null;         // ISO timestamp set when completed, cleared on uncomplete
   due_date: string | null;             // 'YYYY-MM-DD'
   recurrence_interval: number | null;
   recurrence_unit: RecurrenceUnit | null;
