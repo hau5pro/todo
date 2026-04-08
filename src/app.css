@@ -92,6 +92,7 @@ body {
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+  overscroll-behavior-x: none;
 }
 
 /* ── Scrollbar ───────────────────────────────────────────── */
