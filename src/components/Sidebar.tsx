@@ -770,7 +770,7 @@ export function Sidebar() {
                 {listsOpen
                   ? <ChevronDown size={ICON_SIZE} />
                   : <ChevronRight size={ICON_SIZE} />}
-                Lists
+                My Lists
               </button>
             </div>
 
