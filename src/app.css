@@ -111,8 +111,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 1.25rem;
-  height: 3.25rem;
+  padding: env(safe-area-inset-top) 1.25rem 0;
+  min-height: calc(3.25rem + env(safe-area-inset-top));
   border-bottom: 1px solid var(--border);
   background: var(--surface);
   flex-shrink: 0;
