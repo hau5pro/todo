@@ -372,7 +372,19 @@ export function Sidebar() {
   const [isDraggingList, setIsDraggingList] = useState(false);
   const addInputRef = useRef<HTMLInputElement>(null);
   const addFolderInputRef = useRef<HTMLInputElement>(null);
+  const collapsedScrollRef = useRef<HTMLDivElement>(null);
+  const collapsedScrollTimer = useRef<ReturnType<typeof setTimeout>>();
   const navigate = useNavigate();
+
+  function handleCollapsedScroll() {
+    const el = collapsedScrollRef.current;
+    if (!el) return;
+    el.classList.add('is-scrolling');
+    clearTimeout(collapsedScrollTimer.current);
+    collapsedScrollTimer.current = setTimeout(() => {
+      el.classList.remove('is-scrolling');
+    }, 600);
+  }
 
   // Track any list drag for drop zone highlight
   useEffect(() => {
@@ -590,88 +602,92 @@ export function Sidebar() {
             animate={{ opacity: 1, transition: { duration: 0.12, delay: 0.1 } }}
             exit={{ opacity: 0, transition: { duration: 0.08 } }}
           >
-            <div className="sidebar-toggle-section">
-              <button
-                className="sidebar-collapse-btn"
-                onClick={() => setSidebarCollapsed(false)}
-                title="Expand sidebar"
-              >
-                <Menu size={COLLAPSED_ICON_SIZE} />
-              </button>
+            <div className="sidebar-collapsed-top">
+              <div className="sidebar-toggle-section">
+                <button
+                  className="sidebar-collapse-btn"
+                  onClick={() => setSidebarCollapsed(false)}
+                  title="Expand sidebar"
+                >
+                  <Menu size={COLLAPSED_ICON_SIZE} />
+                </button>
+              </div>
+
+              {pinnedItems.map((item) => {
+                const label = item.id === 'my-day' ? 'My Day' : (item as ListType).name;
+                return (
+                  <NavTooltip key={item.id} label={label}>
+                    <NavLink
+                      to={item.id === 'my-day' ? '/my-day' : `/list/${item.id}`}
+                      className={({ isActive }) => isActive ? 'nav-icon-btn nav-icon-btn--active' : 'nav-icon-btn'}
+                      aria-label={label}
+                    >
+                      {pinnedIcon(item, COLLAPSED_ICON_SIZE)}
+                    </NavLink>
+                  </NavTooltip>
+                );
+              })}
+
+              {(orderedUngrouped.length > 0 || orderedFolders.length > 0) && (
+                <div className="sidebar-collapsed-divider" />
+              )}
             </div>
 
-            {pinnedItems.map((item) => {
-              const label = item.id === 'my-day' ? 'My Day' : (item as ListType).name;
-              return (
-                <NavTooltip key={item.id} label={label}>
+            <div className="sidebar-collapsed-scroll" ref={collapsedScrollRef} onScroll={handleCollapsedScroll}>
+              {orderedUngrouped.map((list) => (
+                <NavTooltip key={list.id} label={list.name}>
                   <NavLink
-                    to={item.id === 'my-day' ? '/my-day' : `/list/${item.id}`}
+                    to={`/list/${list.id}`}
                     className={({ isActive }) => isActive ? 'nav-icon-btn nav-icon-btn--active' : 'nav-icon-btn'}
-                    aria-label={label}
+                    aria-label={list.name}
                   >
-                    {pinnedIcon(item, COLLAPSED_ICON_SIZE)}
+                    {getListIcon(list, COLLAPSED_ICON_SIZE) ?? <List size={COLLAPSED_ICON_SIZE} />}
                   </NavLink>
                 </NavTooltip>
-              );
-            })}
+              ))}
 
-            {(orderedUngrouped.length > 0 || orderedFolders.length > 0) && (
-              <div className="sidebar-collapsed-divider" />
-            )}
+              {orderedFolders.map((folder) => (
+                <NavTooltip key={folder.id} label={folder.name}>
+                  <NavLink
+                    to={`/folder/${folder.id}`}
+                    className={({ isActive }) => isActive ? 'nav-icon-btn nav-icon-btn--active' : 'nav-icon-btn'}
+                    aria-label={folder.name}
+                  >
+                    <Folder size={COLLAPSED_ICON_SIZE} />
+                  </NavLink>
+                </NavTooltip>
+              ))}
+            </div>
 
-            {orderedUngrouped.map((list) => (
-              <NavTooltip key={list.id} label={list.name}>
+            <div className="sidebar-collapsed-bottom">
+              <NavTooltip label="Help">
                 <NavLink
-                  to={`/list/${list.id}`}
+                  to="/docs"
                   className={({ isActive }) => isActive ? 'nav-icon-btn nav-icon-btn--active' : 'nav-icon-btn'}
-                  aria-label={list.name}
+                  aria-label="Help"
                 >
-                  {getListIcon(list, COLLAPSED_ICON_SIZE) ?? <List size={COLLAPSED_ICON_SIZE} />}
+                  <HelpCircle size={COLLAPSED_ICON_SIZE} />
                 </NavLink>
               </NavTooltip>
-            ))}
-
-            {orderedFolders.map((folder) => (
-              <NavTooltip key={folder.id} label={folder.name}>
+              <NavTooltip label="Settings">
                 <NavLink
-                  to={`/folder/${folder.id}`}
+                  to="/settings"
                   className={({ isActive }) => isActive ? 'nav-icon-btn nav-icon-btn--active' : 'nav-icon-btn'}
-                  aria-label={folder.name}
+                  aria-label="Settings"
                 >
-                  <Folder size={COLLAPSED_ICON_SIZE} />
+                  <Settings size={COLLAPSED_ICON_SIZE} />
                 </NavLink>
               </NavTooltip>
-            ))}
-
-            <div className="sidebar-spacer" />
-
-            <NavTooltip label="Help">
-              <NavLink
-                to="/docs"
-                className={({ isActive }) => isActive ? 'nav-icon-btn nav-icon-btn--active' : 'nav-icon-btn'}
-                aria-label="Help"
-              >
-                <HelpCircle size={COLLAPSED_ICON_SIZE} />
-              </NavLink>
-            </NavTooltip>
-            <NavTooltip label="Settings">
-              <NavLink
-                to="/settings"
-                className={({ isActive }) => isActive ? 'nav-icon-btn nav-icon-btn--active' : 'nav-icon-btn'}
-                aria-label="Settings"
-              >
-                <Settings size={COLLAPSED_ICON_SIZE} />
-              </NavLink>
-            </NavTooltip>
-            <NavTooltip label="Sign out">
-              <button
-                className="nav-icon-btn"
-                onClick={() => logOut(localOnly, setLocalOnly).catch(console.error)}
-                aria-label="Sign out"
-              >
-                <LogOut size={COLLAPSED_ICON_SIZE} />
-              </button>
-            </NavTooltip>
+              <NavTooltip label="Sign out">
+                <button
+                  className="nav-icon-btn"
+                  onClick={() => logOut(localOnly, setLocalOnly).catch(console.error)}
+                  aria-label="Sign out"
+                >
+                  <LogOut size={COLLAPSED_ICON_SIZE} />
+                </button>
+              </NavTooltip>
+            </div>
           </motion.div>
         ) : (
           <motion.div
@@ -884,6 +900,7 @@ export function Sidebar() {
 
             <div className="sidebar-spacer" />
 
+            <div className="sidebar-expanded-bottom">
             <NavLink to="/docs" className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'}>
               <HelpCircle size={ICON_SIZE} />
               Help
@@ -897,6 +914,7 @@ export function Sidebar() {
               <LogOut size={ICON_SIZE} />
               Sign out
             </button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
