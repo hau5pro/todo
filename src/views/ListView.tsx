@@ -455,12 +455,16 @@ export function ListView() {
     }
   }
 
-  async function handleAdd(e: React.FormEvent) {
-    e.preventDefault();
+  async function commitAdd() {
     if (!newTitle.trim()) return;
     await addTask(listId!, newTitle.trim());
     setNewTitle('');
     closeDetail();
+  }
+
+  async function handleAdd(e: React.FormEvent) {
+    e.preventDefault();
+    await commitAdd();
   }
 
   function startEditListName() {
@@ -632,6 +636,7 @@ export function ListView() {
             aria-label="Add task"
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
+            onBlur={commitAdd}
             data-add-task
           />
         </motion.form>

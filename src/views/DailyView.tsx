@@ -96,13 +96,17 @@ export function DailyView() {
     requestSync();
   }
 
-  async function handleAdd(e: React.FormEvent) {
-    e.preventDefault();
+  async function commitAdd() {
     if (!newTitle.trim()) return;
     await addTask(listId!, newTitle.trim());
     setNewTitle('');
     reload();
     closeDetail();
+  }
+
+  async function handleAdd(e: React.FormEvent) {
+    e.preventDefault();
+    await commitAdd();
   }
 
   return (
@@ -130,6 +134,7 @@ export function DailyView() {
           placeholder="+ Add habit"
           value={newTitle}
           onChange={(e) => setNewTitle(e.target.value)}
+          onBlur={commitAdd}
         />
       </form>
       <Reorder.Group as="div" axis="y" values={orderedRows} onReorder={handleReorder}
