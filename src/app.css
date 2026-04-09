@@ -80,7 +80,7 @@
 input, textarea, select { font-size: max(16px, 1rem); }
 
 /* ── Base ────────────────────────────────────────────────── */
-html { font-size: 16px; }
+html { font-size: 16px; overscroll-behavior-x: none; }
 @media (min-width: 768px)  { html { font-size: 17px; } }
 @media (min-width: 1280px) { html { font-size: 18px; } }
 @media (min-width: 1600px) { html { font-size: 19px; } }
