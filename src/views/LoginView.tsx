@@ -8,8 +8,21 @@ import { ICON_SIZE } from '../config/constants';
 
 type Mode = 'signin' | 'signup';
 
-const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-const isAndroid = /Android/.test(navigator.userAgent);
+type InstallContext = 'ios-safari' | 'ios-other' | 'android-chrome' | 'android-samsung' | 'desktop';
+
+function getInstallContext(): InstallContext {
+  const ua = navigator.userAgent;
+  const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isAndroid = /Android/.test(ua);
+  const isSafari = /Safari/.test(ua) && !/Chrome|CriOS|FxiOS|EdgiOS|OPiOS|GSA/.test(ua);
+  const isSamsungBrowser = /SamsungBrowser/.test(ua);
+
+  if (isIOS) return isSafari ? 'ios-safari' : 'ios-other';
+  if (isAndroid) return isSamsungBrowser ? 'android-samsung' : 'android-chrome';
+  return 'desktop';
+}
+
+const installContext = getInstallContext();
 
 function friendlyError(err: unknown, mode: Mode): string {
   if (!(err instanceof Error)) return 'Something went wrong.';
@@ -63,15 +76,24 @@ function PWAAccordion() {
               <p style={{ marginBottom: '0.75rem' }}>
                 Add TO DO to your home screen — works offline, no app store needed.
               </p>
-              {isIOS ? (
+              {installContext === 'ios-safari' ? (
                 <ol className="install-steps">
-                  <li>Open in <strong>Safari</strong></li>
                   <li>Tap the <span className="install-inline-icon"><Share2 size={ICON_SIZE} /></span> <strong>Share</strong> button at the bottom</li>
                   <li>Tap <strong>"Add to Home Screen"</strong></li>
                 </ol>
-              ) : isAndroid ? (
+              ) : installContext === 'ios-other' ? (
                 <ol className="install-steps">
-                  <li>Open in <strong>Chrome</strong></li>
+                  <li>Tap the <span className="install-inline-icon"><Share2 size={ICON_SIZE} /></span> <strong>Share</strong> button (in the toolbar or menu)</li>
+                  <li>Tap <strong>"Add to Home Screen"</strong></li>
+                </ol>
+              ) : installContext === 'android-samsung' ? (
+                <ol className="install-steps">
+                  <li>Tap <span className="install-inline-icon"><MoreVertical size={ICON_SIZE} /></span> in the top right</li>
+                  <li>Tap <strong>"Add page to"</strong></li>
+                  <li>Tap <strong>"Home screen"</strong></li>
+                </ol>
+              ) : installContext === 'android-chrome' ? (
+                <ol className="install-steps">
                   <li>Tap <span className="install-inline-icon"><MoreVertical size={ICON_SIZE} /></span> in the top right</li>
                   <li>Tap <strong>"Add to Home Screen"</strong></li>
                 </ol>
