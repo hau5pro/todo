@@ -2832,12 +2832,14 @@ button.nav-section-label--button:hover { color: var(--fg); }
 .rrule-day-chips {
   display: flex;
   gap: 4px;
+  align-items: center;
 }
 
 .rrule-chip {
   flex: 1;
   aspect-ratio: 1;
   min-width: 0;
+  min-height: 0;
   padding: 0;
   background: none;
   border: 1px solid var(--border);
