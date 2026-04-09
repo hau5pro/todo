@@ -41,22 +41,22 @@ function updateTaskInSlices(
   updater: (t: Task) => Task
 ) {
   const patchList = (arr: Task[]) => arr.map((t) => (t.list_id === listId ? updater(t) : t));
+  const existingList = s.tasksByList[listId];
   return {
-    tasksByList: {
-      ...s.tasksByList,
-      [listId]: (s.tasksByList[listId] ?? []).map(updater),
-    },
+    tasksByList: existingList !== undefined
+      ? { ...s.tasksByList, [listId]: existingList.map(updater) }
+      : s.tasksByList,
     myDayOverdue: patchList(s.myDayOverdue),
     myDayToday: patchList(s.myDayToday),
   };
 }
 
 function removeTaskFromSlices(s: AppStore, listId: string, taskId: string) {
+  const existingList = s.tasksByList[listId];
   return {
-    tasksByList: {
-      ...s.tasksByList,
-      [listId]: (s.tasksByList[listId] ?? []).filter((t) => t.id !== taskId),
-    },
+    tasksByList: existingList !== undefined
+      ? { ...s.tasksByList, [listId]: existingList.filter((t) => t.id !== taskId) }
+      : s.tasksByList,
     myDayOverdue: s.myDayOverdue.filter((t) => t.id !== taskId),
     myDayToday: s.myDayToday.filter((t) => t.id !== taskId),
   };
