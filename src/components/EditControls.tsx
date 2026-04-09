@@ -3,7 +3,16 @@ import type { DragControls } from 'framer-motion';
 import { GripVertical, Trash2 } from 'lucide-react';
 import { ICON_SIZE } from '../config/constants';
 
-export function DragHandle({ show, dragControls }: { show: boolean; dragControls: DragControls }) {
+export function DragHandle({
+  show,
+  dragControls,
+  onPointerDown,
+}: {
+  show: boolean;
+  dragControls?: DragControls;
+  onPointerDown?: (e: React.PointerEvent<HTMLSpanElement>) => void;
+}) {
+  const handler = onPointerDown ?? (dragControls ? (e: React.PointerEvent<HTMLSpanElement>) => dragControls.start(e) : undefined);
   return (
     <AnimatePresence initial={false}>
       {show && (
@@ -14,7 +23,7 @@ export function DragHandle({ show, dragControls }: { show: boolean; dragControls
           exit={{ width: 0, opacity: 0 }}
           transition={{ duration: 0.15 }}
         >
-          <span className="task-edit-drag" title="Drag to reorder" onPointerDown={(e) => dragControls.start(e)}>
+          <span className="task-edit-drag" title="Drag to reorder" onPointerDown={handler}>
             <GripVertical size={ICON_SIZE} />
           </span>
         </motion.span>

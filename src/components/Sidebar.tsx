@@ -1,11 +1,11 @@
 import { NavLink, useNavigate, useMatch, useLocation } from 'react-router-dom';
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo, memo } from 'react';
 import { createPortal } from 'react-dom';
-import { Reorder, useDragControls, motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Sun, Settings, LogOut, ChevronDown, ChevronRight,
   List, Plus, CheckCircle, Pencil, Menu,
-  FolderPlus, Folder, Trash2, CornerDownLeft, MoreHorizontal, HelpCircle,
+  FolderPlus, Folder, FolderInput, Trash2, CornerDownLeft, MoreHorizontal, HelpCircle,
 } from 'lucide-react';
 import { DragHandle, DeleteButton } from './EditControls';
 import { logOut } from '../supabase/auth';
@@ -16,6 +16,14 @@ import { getListIcon } from '../config/listIcons';
 import type { List as ListType, ListFolder } from '../types';
 
 const COLLAPSED_ICON_SIZE = 26;
+
+function reinsert(ids: string[], dragId: string, insertAfter: string | null): string[] {
+  const without = ids.filter((id) => id !== dragId);
+  if (!insertAfter || insertAfter === '__start__') return [dragId, ...without];
+  const idx = without.indexOf(insertAfter);
+  if (idx === -1) return [...without, dragId];
+  return [...without.slice(0, idx + 1), dragId, ...without.slice(idx + 1)];
+}
 
 const MY_DAY_SENTINEL = { id: 'my-day' as const };
 type PinnedItem = ListType | typeof MY_DAY_SENTINEL;
@@ -55,31 +63,24 @@ function pinnedIcon(item: PinnedItem, size = ICON_SIZE): React.ReactNode {
 
 // ── Sortable list item ────────────────────────────────────────────────────────
 
-function SortableItem({
+const SortableItem = memo(function SortableItem({
   list,
   editMode,
   allowFolderDrag = true,
   pinned = false,
+  onFolderDragStart,
+  onReorderDragStart,
 }: {
   list: ListType;
   editMode: boolean;
   allowFolderDrag?: boolean;
   pinned?: boolean;
+  onFolderDragStart?: (listId: string) => void;
+  onReorderDragStart?: (e: React.PointerEvent, itemId: string) => void;
 }) {
-  const dragControls = useDragControls();
   const deleteList = useAppStore((s) => s.deleteList);
   const navigate = useNavigate();
   const match = useMatch(`/list/${list.id}`);
-  function handleDragStart(e: React.DragEvent) {
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', JSON.stringify({ listId: list.id, folderId: list.folder_id }));
-    const ghost = document.createElement('div');
-    ghost.className = 'task-drag-ghost';
-    ghost.textContent = list.name;
-    document.body.appendChild(ghost);
-    e.dataTransfer.setDragImage(ghost, 0, 0);
-    requestAnimationFrame(() => document.body.removeChild(ghost));
-  }
 
   async function handleDelete() {
     await deleteList(list.id);
@@ -87,23 +88,36 @@ function SortableItem({
   }
 
   return (
-    <Reorder.Item
-      as="div"
-      value={list}
-      dragListener={false}
-      dragControls={dragControls}
+    <div
       className={`nav-item-row${editMode ? ' nav-item-row--editing' : ''}`}
+      data-reorder-id={list.id}
     >
-      <DragHandle show={editMode} dragControls={dragControls} />
-      {/* List content — draggable in edit mode only for non-pinned lists */}
+      <div className="nav-item-drag-zone">
+        <DragHandle
+          show={editMode}
+          onPointerDown={onReorderDragStart ? (e) => onReorderDragStart(e, list.id) : undefined}
+        />
+        {editMode && allowFolderDrag && onFolderDragStart && (
+          <span className="nav-item-drag-zone-divider" />
+        )}
+        {editMode && allowFolderDrag && onFolderDragStart && (
+          <span
+            className="task-edit-drag"
+            title="Drag to move to folder"
+            style={{ cursor: 'grab' }}
+            onPointerDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onFolderDragStart(list.id);
+            }}
+          >
+            <FolderInput size={ICON_SIZE} />
+          </span>
+        )}
+      </div>
+      {/* List content */}
       {editMode ? (
-        <div
-          className="nav-item"
-          draggable={allowFolderDrag}
-          onDragStart={allowFolderDrag ? handleDragStart : undefined}
-          style={allowFolderDrag ? { cursor: 'grab' } : undefined}
-          title={allowFolderDrag ? 'Drag to move to folder' : undefined}
-        >
+        <div className="nav-item">
           {getListIcon(list) ?? <List size={ICON_SIZE} />}
           <span className="nav-item__name">{list.name}</span>
         </div>
@@ -118,22 +132,28 @@ function SortableItem({
         </NavLink>
       )}
       <DeleteButton show={editMode && !pinned} onClick={handleDelete} title="Delete list" />
-    </Reorder.Item>
+    </div>
   );
-}
+});
 
-function SortableMyDayItem({ editMode }: { editMode: boolean }) {
-  const dragControls = useDragControls();
-
+function SortableMyDayItem({
+  editMode,
+  onReorderDragStart,
+}: {
+  editMode: boolean;
+  onReorderDragStart?: (e: React.PointerEvent, itemId: string) => void;
+}) {
   return (
-    <Reorder.Item
-      as="div"
-      value={MY_DAY_SENTINEL}
-      dragListener={false}
-      dragControls={dragControls}
+    <div
       className={`nav-item-row${editMode ? ' nav-item-row--editing' : ''}`}
+      data-reorder-id="my-day"
     >
-      <DragHandle show={editMode} dragControls={dragControls} />
+      <div className="nav-item-drag-zone">
+        <DragHandle
+          show={editMode}
+          onPointerDown={onReorderDragStart ? (e) => onReorderDragStart(e, 'my-day') : undefined}
+        />
+      </div>
       {editMode ? (
         <div className="nav-item">
           <Sun size={ICON_SIZE} />
@@ -149,30 +169,38 @@ function SortableMyDayItem({ editMode }: { editMode: boolean }) {
           My Day
         </NavLink>
       )}
-    </Reorder.Item>
+    </div>
   );
 }
 
 // ── Folder row ────────────────────────────────────────────────────────────────
 
-function FolderRow({
+const FolderRow = memo(function FolderRow({
   folder,
   listsInFolder,
   editMode,
-  onDropList,
+  onMoveToFolder,
+  onFolderDragStart,
+  startReorder,
 }: {
   folder: ListFolder;
   listsInFolder: ListType[];
   editMode: boolean;
-  onDropList: (listId: string) => void;
+  onMoveToFolder: (listId: string | null, folderId: string | null) => void;
+  onFolderDragStart?: (listId: string) => void;
+  startReorder?: (e: React.PointerEvent, itemId: string, context: string) => void;
 }) {
-  const dragControls = useDragControls();
-  const { folderCollapsed, setFolderCollapsed, setFolderOrder } = useSettings();
+  const { folderCollapsed, setFolderCollapsed } = useSettings();
   const renameFolder = useAppStore((s) => s.renameFolder);
   const deleteFolder = useAppStore((s) => s.deleteFolder);
   const { customOrder, setCustomOrder } = useSettings();
 
   const isCollapsed = folderCollapsed[folder.id] ?? false;
+
+  const handleListReorderDragStart = useCallback((e: React.PointerEvent, listId: string) => {
+    startReorder?.(e, listId, folder.id);
+  }, [startReorder, folder.id]);
+
   const [editingName, setEditingName] = useState(false);
   const [newName, setNewName] = useState(folder.name);
   const [showMenu, setShowMenu] = useState(false);
@@ -228,34 +256,29 @@ function FolderRow({
     setIsDragOver(false);
     try {
       const { listId } = JSON.parse(e.dataTransfer.getData('text/plain'));
-      if (listId) onDropList(listId);
+      if (listId) onMoveToFolder(listId, folder.id);
     } catch {}
   }
 
   return (
-    <Reorder.Item
-      as="div"
-      value={folder}
-      dragListener={false}
-      dragControls={dragControls}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
-      className={`nav-folder${isDragOver ? ' nav-folder--drag-over' : ''}`}
-    >
+    <div data-reorder-id={folder.id} className={editMode ? 'nav-item-row--editing' : undefined}>
+      <div
+        data-folder-id={folder.id}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        className={`nav-folder${isDragOver ? ' nav-folder--drag-over' : ''}`}
+      >
       {/* Folder header */}
       <div className={`nav-folder-header${editMode ? ' nav-item-row--editing' : ''}`}>
-        <DragHandle show={editMode && !editingName} dragControls={dragControls} />
-
-        {!editMode && (
-          <button
-            className="nav-folder-chevron"
-            onClick={() => setFolderCollapsed(folder.id, !isCollapsed)}
-            aria-label={isCollapsed ? 'Expand folder' : 'Collapse folder'}
-          >
-            {isCollapsed ? <ChevronRight size={ICON_SIZE} /> : <ChevronDown size={ICON_SIZE} />}
-          </button>
-        )}
+        <div className="nav-item-drag-zone">
+          <DragHandle
+            show={editMode && !editingName}
+            onPointerDown={startReorder && !editingName
+              ? (e) => startReorder(e, folder.id, 'folders')
+              : undefined}
+          />
+        </div>
 
         {/* Always-mounted rename input so focus() works synchronously on iOS PWA */}
         <Folder size={ICON_SIZE} className="nav-folder-icon" style={editingName ? undefined : { position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0, overflow: 'hidden' }} />
@@ -293,6 +316,16 @@ function FolderRow({
             <MoreHorizontal size={ICON_SIZE} />
           </button>
         )}
+
+        {!editingName && !editMode && (
+          <button
+            className="nav-folder-chevron"
+            onClick={() => setFolderCollapsed(folder.id, !isCollapsed)}
+            aria-label={isCollapsed ? 'Expand folder' : 'Collapse folder'}
+          >
+            {isCollapsed ? <ChevronRight size={ICON_SIZE} /> : <ChevronDown size={ICON_SIZE} />}
+          </button>
+        )}
       </div>
 
       {/* Folder options menu */}
@@ -328,27 +361,24 @@ function FolderRow({
             transition={{ duration: 0.18 }}
             style={{ overflow: 'hidden' }}
           >
-            <Reorder.Group
-              as="div"
-              axis="y"
-              values={listsInFolder}
-              onReorder={(newOrder) => setFolderOrder(folder.id, newOrder.map((l) => l.id))}
-              className="nav-folder-lists"
-            >
+            <div className="nav-folder-lists" data-reorder-context={folder.id}>
               {listsInFolder.map((l) => (
                 <SortableItem
                   key={l.id}
                   list={l}
                   editMode={editMode}
+                  onFolderDragStart={onFolderDragStart}
+                  onReorderDragStart={startReorder ? handleListReorderDragStart : undefined}
                 />
               ))}
-            </Reorder.Group>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </Reorder.Item>
+      </div>
+    </div>
   );
-}
+});
 
 // ── Sidebar ───────────────────────────────────────────────────────────────────
 
@@ -363,6 +393,17 @@ export function Sidebar() {
   const moveListToFolder = useAppStore((s) => s.moveListToFolder);
 
   const [editMode, setEditMode] = useState(false);
+  const [folderDragListId, setFolderDragListId] = useState<string | null>(null);
+  const folderDragTargetRef = useRef<string | null>(null);
+  const ghostRef = useRef<HTMLDivElement>(null);
+  const dragPointerYRef = useRef<number>(0);
+  const [reorderDragId, setReorderDragId] = useState<string | null>(null);
+  const reorderContextRef = useRef<string | null>(null);
+  const reorderInsertAfterRef = useRef<string | null>(null);
+  const reorderItemsRef = useRef<{ id: string; el: HTMLElement }[]>([]);
+  const reorderGhostRef = useRef<HTMLDivElement>(null);
+  const reorderLineRef = useRef<HTMLDivElement>(null);
+  const commitReorderRef = useRef<(dragId: string, context: string) => void>(() => {});
   const [addingList, setAddingList] = useState(false);
   const [addingFolder, setAddingFolder] = useState(false);
   const [showAddMenu, setShowAddMenu] = useState(false);
@@ -373,7 +414,9 @@ export function Sidebar() {
   const addInputRef = useRef<HTMLInputElement>(null);
   const addFolderInputRef = useRef<HTMLInputElement>(null);
   const collapsedScrollRef = useRef<HTMLDivElement>(null);
-  const collapsedScrollTimer = useRef<ReturnType<typeof setTimeout>>();
+  const collapsedScrollTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const expandedScrollRef = useRef<HTMLDivElement>(null);
+  const expandedScrollTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const navigate = useNavigate();
 
   function handleCollapsedScroll() {
@@ -382,6 +425,16 @@ export function Sidebar() {
     el.classList.add('is-scrolling');
     clearTimeout(collapsedScrollTimer.current);
     collapsedScrollTimer.current = setTimeout(() => {
+      el.classList.remove('is-scrolling');
+    }, 600);
+  }
+
+  function handleExpandedScroll() {
+    const el = expandedScrollRef.current;
+    if (!el) return;
+    el.classList.add('is-scrolling');
+    clearTimeout(expandedScrollTimer.current);
+    expandedScrollTimer.current = setTimeout(() => {
       el.classList.remove('is-scrolling');
     }, 600);
   }
@@ -398,6 +451,173 @@ export function Sidebar() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!folderDragListId) return;
+
+    function highlightTarget(target: string | null) {
+      const el = target ? document.querySelector(`[data-folder-id="${target}"]`) : null;
+      if (!el) return;
+      if (target === '__ungrouped__') el.classList.add('nav-drop-zone--active');
+      else el.classList.add('nav-folder--drag-over');
+    }
+
+    function unhighlightTarget(target: string | null) {
+      const el = target ? document.querySelector(`[data-folder-id="${target}"]`) : null;
+      if (!el) return;
+      if (target === '__ungrouped__') el.classList.remove('nav-drop-zone--active');
+      else el.classList.remove('nav-folder--drag-over');
+    }
+
+    const rafId = { current: 0 };
+    function edgeScrollLoop() {
+      const scrollEl = expandedScrollRef.current;
+      if (scrollEl) {
+        const { top, bottom } = scrollEl.getBoundingClientRect();
+        const y = dragPointerYRef.current;
+        const ZONE = 64, MAX = 14;
+        if (y > top && y < top + ZONE)
+          scrollEl.scrollTop -= MAX * (1 - (y - top) / ZONE);
+        else if (y > bottom - ZONE && y < bottom)
+          scrollEl.scrollTop += MAX * (1 - (bottom - y) / ZONE);
+      }
+      rafId.current = requestAnimationFrame(edgeScrollLoop);
+    }
+    rafId.current = requestAnimationFrame(edgeScrollLoop);
+
+    function onMove(e: PointerEvent) {
+      dragPointerYRef.current = e.clientY;
+      if (ghostRef.current) {
+        ghostRef.current.style.display = 'flex';
+        ghostRef.current.style.left = `${e.clientX + 12}px`;
+        ghostRef.current.style.top = `${e.clientY + 12}px`;
+      }
+      const el = document.elementFromPoint(e.clientX, e.clientY);
+      const folderEl = el?.closest('[data-folder-id]');
+      const newTarget = folderEl?.getAttribute('data-folder-id') ?? null;
+      if (newTarget !== folderDragTargetRef.current) {
+        unhighlightTarget(folderDragTargetRef.current);
+        highlightTarget(newTarget);
+        folderDragTargetRef.current = newTarget;
+      }
+    }
+
+    function onUp() {
+      const target = folderDragTargetRef.current;
+      unhighlightTarget(target);
+      if (target === '__ungrouped__') handleMoveToFolderRef.current(folderDragListId, null);
+      else if (target) handleMoveToFolderRef.current(folderDragListId, target);
+      folderDragTargetRef.current = null;
+      setFolderDragListId(null);
+    }
+
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    return () => {
+      cancelAnimationFrame(rafId.current);
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      unhighlightTarget(folderDragTargetRef.current);
+      folderDragTargetRef.current = null;
+    };
+  }, [folderDragListId]);
+
+  useEffect(() => {
+    if (!reorderDragId) return;
+    const context = reorderContextRef.current;
+    if (!context) return;
+
+    const group = document.querySelector(`[data-reorder-context="${context}"]`);
+    if (!group) return;
+
+    reorderItemsRef.current = Array.from(group.children)
+      .filter((el): el is HTMLElement => el instanceof HTMLElement && el.hasAttribute('data-reorder-id'))
+      .map((el) => ({ id: el.getAttribute('data-reorder-id')!, el }));
+
+    const draggedEl = group.querySelector<HTMLElement>(`[data-reorder-id="${reorderDragId}"]`);
+    draggedEl?.classList.add('nav-item-row--dragging');
+
+    const rafId = { current: 0 };
+    function edgeScrollLoop() {
+      const scrollEl = expandedScrollRef.current;
+      if (scrollEl) {
+        const { top, bottom } = scrollEl.getBoundingClientRect();
+        const y = dragPointerYRef.current;
+        const ZONE = 64, MAX = 14;
+        if (y > top && y < top + ZONE)
+          scrollEl.scrollTop -= MAX * (1 - (y - top) / ZONE);
+        else if (y > bottom - ZONE && y < bottom)
+          scrollEl.scrollTop += MAX * (1 - (bottom - y) / ZONE);
+      }
+      rafId.current = requestAnimationFrame(edgeScrollLoop);
+    }
+    rafId.current = requestAnimationFrame(edgeScrollLoop);
+
+    function onMove(e: PointerEvent) {
+      dragPointerYRef.current = e.clientY;
+      if (reorderGhostRef.current) {
+        reorderGhostRef.current.style.display = 'flex';
+        reorderGhostRef.current.style.left = `${e.clientX + 14}px`;
+        reorderGhostRef.current.style.top = `${e.clientY + 10}px`;
+      }
+
+      const items = reorderItemsRef.current;
+      let insertAfter: string | null = '__start__';
+      for (const { id, el } of items) {
+        if (id === reorderDragId) continue;
+        const rect = el.getBoundingClientRect();
+        if (e.clientY > rect.top + rect.height / 2) insertAfter = id;
+      }
+      reorderInsertAfterRef.current = insertAfter;
+
+      if (reorderLineRef.current && items.length > 1) {
+        let lineY: number | null = null;
+        if (insertAfter === '__start__') {
+          const first = items.find(({ id }) => id !== reorderDragId);
+          if (first) lineY = first.el.getBoundingClientRect().top;
+        } else {
+          const after = items.find(({ id }) => id === insertAfter);
+          if (after) lineY = after.el.getBoundingClientRect().bottom;
+        }
+        if (lineY !== null) {
+          const groupRect = group!.getBoundingClientRect();
+          reorderLineRef.current.style.opacity = '1';
+          reorderLineRef.current.style.top = `${lineY}px`;
+          reorderLineRef.current.style.left = `${groupRect.left + 4}px`;
+          reorderLineRef.current.style.width = `${groupRect.width - 8}px`;
+        }
+      }
+    }
+
+    function cleanup() {
+      draggedEl?.classList.remove('nav-item-row--dragging');
+      if (reorderGhostRef.current) reorderGhostRef.current.style.display = 'none';
+      if (reorderLineRef.current) reorderLineRef.current.style.opacity = '0';
+      reorderItemsRef.current = [];
+      reorderInsertAfterRef.current = null;
+    }
+
+    function onUp() {
+      commitReorderRef.current(reorderDragId!, context!);
+      cleanup();
+      setReorderDragId(null);
+    }
+
+    function onCancel() {
+      cleanup();
+      setReorderDragId(null);
+    }
+
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onCancel);
+    return () => {
+      cancelAnimationFrame(rafId.current);
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onCancel);
+      cleanup();
+    };
+  }, [reorderDragId]);
 
   const {
     hiddenListIds,
@@ -432,48 +652,46 @@ export function Sidebar() {
   }, [pathname]);
 
   // Pinned
-  const pinnedItems: PinnedItem[] = pinnedOrder
+  const pinnedItems = useMemo<PinnedItem[]>(() => pinnedOrder
     .map((id): PinnedItem | undefined =>
       id === 'my-day' ? MY_DAY_SENTINEL : lists.find((l) => l.id === id)
     )
     .filter((item): item is PinnedItem => item !== undefined)
-    .filter((item) => !hiddenListIds.includes(item.id));
+    .filter((item) => !hiddenListIds.includes(item.id)),
+  [pinnedOrder, lists, hiddenListIds]);
 
   // Non-pinned, non-daily lists (excluding hidden)
-  const pinnedSet = new Set(pinnedOrder);
-  const nonPinnedLists = lists.filter(
-    (l) => l.type !== 'daily' && !pinnedSet.has(l.id) && !hiddenListIds.includes(l.id)
-  );
+  const nonPinnedLists = useMemo(() => {
+    const pinnedSet = new Set(pinnedOrder);
+    return lists.filter(
+      (l) => l.type !== 'daily' && !pinnedSet.has(l.id) && !hiddenListIds.includes(l.id)
+    );
+  }, [lists, pinnedOrder, hiddenListIds]);
 
   // Ungrouped lists (no folder)
-  const ungroupedLists = nonPinnedLists.filter((l) => !l.folder_id);
+  const ungroupedLists = useMemo(() =>
+    nonPinnedLists.filter((l) => !l.folder_id),
+  [nonPinnedLists]);
 
   // Build ordered ungrouped list
-  const customOrderedIds = customOrder.filter((id) => ungroupedLists.some((l) => l.id === id));
-  const remainderLists = ungroupedLists.filter((l) => !customOrder.includes(l.id));
-  const orderedUngrouped: ListType[] = [
-    ...customOrderedIds.map((id) => ungroupedLists.find((l) => l.id === id)!),
-    ...remainderLists,
-  ];
+  const orderedUngrouped = useMemo<ListType[]>(() => {
+    const customOrderedIds = customOrder.filter((id) => ungroupedLists.some((l) => l.id === id));
+    const remainderLists = ungroupedLists.filter((l) => !customOrder.includes(l.id));
+    return [
+      ...customOrderedIds.map((id) => ungroupedLists.find((l) => l.id === id)!),
+      ...remainderLists,
+    ];
+  }, [customOrder, ungroupedLists]);
 
   // Build ordered folders
-  const customOrderedFolderIds = customOrder.filter((id) => folders.some((f) => f.id === id));
-  const remainderFolders = folders.filter((f) => !customOrder.includes(f.id));
-  const orderedFolders: ListFolder[] = [
-    ...customOrderedFolderIds.map((id) => folders.find((f) => f.id === id)!),
-    ...remainderFolders,
-  ];
-
-  function getFolderLists(folderId: string): ListType[] {
-    const order = folderOrders[folderId] ?? [];
-    const listsIn = nonPinnedLists.filter((l) => l.folder_id === folderId);
-    const ordered = order.flatMap((id) => {
-      const l = listsIn.find((x) => x.id === id);
-      return l ? [l] : [];
-    });
-    const rest = listsIn.filter((l) => !order.includes(l.id));
-    return [...ordered, ...rest];
-  }
+  const orderedFolders = useMemo<ListFolder[]>(() => {
+    const customOrderedFolderIds = customOrder.filter((id) => folders.some((f) => f.id === id));
+    const remainderFolders = folders.filter((f) => !customOrder.includes(f.id));
+    return [
+      ...customOrderedFolderIds.map((id) => folders.find((f) => f.id === id)!),
+      ...remainderFolders,
+    ];
+  }, [customOrder, folders]);
 
   async function commitAddList() {
     const name = newListName.trim();
@@ -533,7 +751,10 @@ export function Sidebar() {
     setNewFolderName('');
   }
 
-  async function handleMoveToFolder(listId: string, folderId: string | null) {
+  const handleMoveToFolderRef = useRef<(listId: string | null, folderId: string | null) => void>(() => {});
+
+  const handleMoveToFolder = useCallback(async (listId: string | null, folderId: string | null) => {
+    if (!listId) return;
     await moveListToFolder(listId, folderId);
     if (folderId) {
       setCustomOrder(customOrder.filter((id) => id !== listId));
@@ -552,7 +773,66 @@ export function Sidebar() {
         }
       });
     }
+  }, [moveListToFolder, customOrder, folderOrders, setCustomOrder, setFolderOrder, setFolderCollapsed]);
+
+  handleMoveToFolderRef.current = handleMoveToFolder;
+
+  const stableHandleMoveToFolder = useCallback((listId: string | null, folderId: string | null) => {
+    handleMoveToFolderRef.current(listId, folderId);
+  }, []);
+
+  const handleFolderDragStart = useCallback((listId: string) => {
+    setFolderDragListId(listId);
+  }, []);
+
+  const startReorder = useCallback((e: React.PointerEvent, itemId: string, context: string) => {
+    e.preventDefault();
+    reorderContextRef.current = context;
+    setReorderDragId(itemId);
+  }, []);
+
+  const handlePinnedReorderDragStart = useCallback((e: React.PointerEvent, id: string) => {
+    startReorder(e, id, 'pinned');
+  }, [startReorder]);
+
+  const handleUngroupedReorderDragStart = useCallback((e: React.PointerEvent, id: string) => {
+    startReorder(e, id, 'ungrouped');
+  }, [startReorder]);
+
+  const folderListsMap = useMemo(() => {
+    const map: Record<string, ListType[]> = {};
+    for (const folder of orderedFolders) {
+      const order = folderOrders[folder.id] ?? [];
+      const listsIn = nonPinnedLists.filter((l) => l.folder_id === folder.id);
+      const ordered = order.flatMap((id) => { const l = listsIn.find((x) => x.id === id); return l ? [l] : []; });
+      const rest = listsIn.filter((l) => !order.includes(l.id));
+      map[folder.id] = [...ordered, ...rest];
+    }
+    return map;
+  }, [orderedFolders, nonPinnedLists, folderOrders]);
+
+  function commitReorder(dragId: string, context: string) {
+    const insertAfter = reorderInsertAfterRef.current;
+    if (context === 'pinned') {
+      setPinnedOrder(reinsert(pinnedItems.map((i) => i.id), dragId, insertAfter));
+    } else if (context === 'ungrouped') {
+      const newUngrouped = reinsert(orderedUngrouped.map((l) => l.id), dragId, insertAfter);
+      setCustomOrder([
+        ...newUngrouped,
+        ...customOrder.filter((id) => folders.some((f) => f.id === id)),
+      ]);
+    } else if (context === 'folders') {
+      const newFolders = reinsert(orderedFolders.map((f) => f.id), dragId, insertAfter);
+      setCustomOrder([
+        ...customOrder.filter((id) => ungroupedLists.some((l) => l.id === id)),
+        ...newFolders,
+      ]);
+    } else {
+      setFolderOrder(context, reinsert((folderListsMap[context] ?? []).map((l) => l.id), dragId, insertAfter));
+    }
   }
+
+  commitReorderRef.current = commitReorder;
 
   function handleUngroupedDragOver(e: React.DragEvent) {
     if (!editMode) return;
@@ -578,8 +858,38 @@ export function Sidebar() {
   }
 
 
+  const folderDragList = folderDragListId ? lists.find(l => l.id === folderDragListId) : null;
+
+  const reorderDragItem = useMemo(() => {
+    if (!reorderDragId) return null;
+    if (reorderDragId === 'my-day') return { name: 'My Day', icon: <Sun size={ICON_SIZE} /> };
+    const list = lists.find((l) => l.id === reorderDragId);
+    if (list) return { name: list.name, icon: getListIcon(list, ICON_SIZE) ?? <List size={ICON_SIZE} /> };
+    const folder = folders.find((f) => f.id === reorderDragId);
+    if (folder) return { name: folder.name, icon: <Folder size={ICON_SIZE} /> };
+    return null;
+  }, [reorderDragId, lists, folders]);
+
   return (
     <>
+    {folderDragList && createPortal(
+      <div ref={ghostRef} className="folder-drag-ghost" style={{ display: 'none' }}>
+        {getListIcon(folderDragList, ICON_SIZE) ?? <List size={ICON_SIZE} />}
+        {folderDragList.name}
+      </div>,
+      document.body
+    )}
+    {reorderDragItem && createPortal(
+      <div ref={reorderGhostRef} className="folder-drag-ghost" style={{ display: 'none' }}>
+        {reorderDragItem.icon}
+        {reorderDragItem.name}
+      </div>,
+      document.body
+    )}
+    {createPortal(
+      <div ref={reorderLineRef} className="nav-reorder-line" style={{ opacity: 0 }} />,
+      document.body
+    )}
     {isMobile && !sidebarCollapsed && createPortal(
       <div
         className="sidebar-backdrop sidebar-backdrop--visible"
@@ -697,6 +1007,7 @@ export function Sidebar() {
             animate={{ opacity: 1, transition: { duration: 0.14, delay: 0.1 } }}
             exit={{ opacity: 0, transition: { duration: 0.08 } }}
           >
+            <div className="sidebar-expanded-top">
             {/* Toolbar: actions left, toggle right */}
             <div className="sidebar-toolbar">
               <div className="sidebar-toolbar__row">
@@ -752,26 +1063,24 @@ export function Sidebar() {
 
             {/* Pinned section */}
             {pinnedItems.length > 0 && (
-              <Reorder.Group
-                as="div"
-                axis="y"
-                values={pinnedItems}
-                onReorder={(newOrder) => setPinnedOrder(newOrder.map((item) => item.id))}
-                className="nav-reorder-group"
-                initial={false}
-              >
+              <div className="nav-reorder-group" data-reorder-context="pinned">
                 {pinnedItems.map((item) =>
                   item.id === 'my-day'
-                    ? <SortableMyDayItem key="my-day" editMode={editMode} />
+                    ? <SortableMyDayItem
+                        key="my-day"
+                        editMode={editMode}
+                        onReorderDragStart={editMode ? handlePinnedReorderDragStart : undefined}
+                      />
                     : <SortableItem
                         key={item.id}
                         list={item as ListType}
                         editMode={editMode}
                         allowFolderDrag={false}
                         pinned
+                        onReorderDragStart={editMode ? handlePinnedReorderDragStart : undefined}
                       />
                 )}
-              </Reorder.Group>
+              </div>
             )}
 
             {pinnedItems.length > 0 && <div className="nav-divider" />}
@@ -782,13 +1091,15 @@ export function Sidebar() {
                 className="nav-section-toggle"
                 onClick={() => setListsOpen(!listsOpen)}
               >
+                My Lists
                 {listsOpen
                   ? <ChevronDown size={ICON_SIZE} />
                   : <ChevronRight size={ICON_SIZE} />}
-                My Lists
               </button>
             </div>
+            </div>{/* end sidebar-expanded-top */}
 
+            <div className="sidebar-expanded-scroll" ref={expandedScrollRef} onScroll={handleExpandedScroll}>
             {/* Lists section content */}
             <AnimatePresence initial={false}>
               {listsOpen && (
@@ -805,54 +1116,39 @@ export function Sidebar() {
                     onDragOver={handleUngroupedDragOver}
                     onDragLeave={handleUngroupedDragLeave}
                     onDrop={handleUngroupedDrop}
-                    className={['nav-drop-zone', editMode && orderedUngrouped.length === 0 && 'nav-drop-zone--empty', editMode && isDraggingList && 'nav-drop-zone--dragging', ungroupedDragOver && 'nav-drop-zone--active'].filter(Boolean).join(' ')}
+                    data-folder-id="__ungrouped__"
+                    className={['nav-drop-zone', editMode && orderedUngrouped.length === 0 && 'nav-drop-zone--empty', editMode && (isDraggingList || folderDragListId) && 'nav-drop-zone--dragging', ungroupedDragOver && 'nav-drop-zone--active'].filter(Boolean).join(' ')}
                   >
                     {editMode && orderedUngrouped.length === 0 && (
                       <span className="nav-remove-zone__label">Drop to ungroup</span>
                     )}
-                    <Reorder.Group
-                      as="div"
-                      axis="y"
-                      values={orderedUngrouped}
-                      onReorder={(newOrder) => setCustomOrder([
-                        ...newOrder.map((l) => l.id),
-                        ...customOrder.filter((id) => folders.some((f) => f.id === id)),
-                      ])}
-                      className="nav-reorder-group"
-                      initial={false}
-                    >
+                    <div className="nav-reorder-group" data-reorder-context="ungrouped">
                       {orderedUngrouped.map((l) => (
                         <SortableItem
                           key={l.id}
                           list={l}
                           editMode={editMode}
+                          onFolderDragStart={handleFolderDragStart}
+                          onReorderDragStart={editMode ? handleUngroupedReorderDragStart : undefined}
                         />
                       ))}
-                    </Reorder.Group>
+                    </div>
                   </div>
 
                   {/* Folders */}
-                  <Reorder.Group
-                    as="div"
-                    axis="y"
-                    values={orderedFolders}
-                    onReorder={(newFolderOrder) => setCustomOrder([
-                      ...customOrder.filter((id) => ungroupedLists.some((l) => l.id === id)),
-                      ...newFolderOrder.map((f) => f.id),
-                    ])}
-                    className="nav-reorder-group"
-                    initial={false}
-                  >
+                  <div className="nav-reorder-group" data-reorder-context="folders">
                     {orderedFolders.map((folder) => (
                       <FolderRow
                         key={folder.id}
                         folder={folder}
-                        listsInFolder={getFolderLists(folder.id)}
+                        listsInFolder={folderListsMap[folder.id] ?? []}
                         editMode={editMode}
-                        onDropList={(listId) => handleMoveToFolder(listId, folder.id)}
+                        onMoveToFolder={stableHandleMoveToFolder}
+                        onFolderDragStart={handleFolderDragStart}
+                        startReorder={editMode ? startReorder : undefined}
                       />
                     ))}
-                  </Reorder.Group>
+                  </div>
 
                   {/* Add folder inline — always mounted so focus() works synchronously on iOS PWA */}
                   <div className="nav-item nav-item--editing" style={addingFolder ? undefined : { position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0, overflow: 'hidden' }}>
@@ -897,8 +1193,7 @@ export function Sidebar() {
                 </motion.div>
               )}
             </AnimatePresence>
-
-            <div className="sidebar-spacer" />
+            </div>{/* end sidebar-expanded-scroll */}
 
             <div className="sidebar-expanded-bottom">
             <NavLink to="/docs" className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'}>
