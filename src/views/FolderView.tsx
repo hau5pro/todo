@@ -1,8 +1,10 @@
 import { useParams, NavLink, Navigate, useNavigate, useMatch } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Folder, List, Pencil, CheckCircle } from 'lucide-react';
-import { motion, Reorder, useDragControls } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { DragHandle, DeleteButton } from '../components/EditControls';
+import { useLineDrag } from '../hooks/useLineDrag';
 import { useAppStore } from '../store';
 import { useSettings } from '../contexts/SettingsContext';
 import { applyOrder } from '../utils/order';
@@ -18,20 +20,18 @@ const itemVariants = {
   hidden: { opacity: 0, y: 5 },
   show:   { opacity: 1, y: 0, transition: { duration: 0.2, ease: ease.out } },
 };
-const listVariants = {
-  show: { transition: { staggerChildren: 0.04, delayChildren: 0.1 } },
-};
 
 function SortableListItem({
   list,
   editMode,
   folderId,
+  onReorderStart,
 }: {
   list: ListType;
   editMode: boolean;
   folderId: string;
+  onReorderStart?: (e: React.PointerEvent) => void;
 }) {
-  const dragControls = useDragControls();
   const deleteList = useAppStore((s) => s.deleteList);
   const { folderOrders, setFolderOrder } = useSettings();
   const navigate = useNavigate();
@@ -45,17 +45,12 @@ function SortableListItem({
   }
 
   return (
-    <Reorder.Item
-      as="div"
-      value={list}
-      dragListener={false}
-      dragControls={dragControls}
-      variants={itemVariants}
+    <div
+      data-reorder-id={list.id}
       className={`folder-view-list-item-row${editMode ? ' folder-view-list-item-row--editing' : ''}`}
-      transition={{ layout: { duration: 0.08, ease: 'easeOut' } }}
     >
       <div className="nav-item-drag-zone">
-        <DragHandle show={editMode} dragControls={dragControls} />
+        <DragHandle show={editMode} onPointerDown={onReorderStart} />
       </div>
 
       {editMode ? (
@@ -75,7 +70,7 @@ function SortableListItem({
       )}
 
       <DeleteButton show={editMode} onClick={handleDelete} title="Delete list" />
-    </Reorder.Item>
+    </div>
   );
 }
 
@@ -90,54 +85,69 @@ export function FolderView() {
   const rawFolderLists = lists.filter((l) => l.folder_id === folderId && !l.deleted_at);
   const folderLists = applyOrder(rawFolderLists, folderOrders[folderId!] ?? [], (l) => l.id);
 
+  const scrollRef = useRef<HTMLElement>(null);
+  const { dragId, startDrag, ghostRef, lineRef } = useLineDrag({
+    scrollRef,
+    onCommit: (_dragId, _context, newIds) => {
+      setFolderOrder(folderId!, newIds);
+    },
+  });
+
+  const ghostList = dragId ? folderLists.find((l) => l.id === dragId) : null;
+
   if (!folder) return <Navigate to="/" replace />;
 
   return (
-    <div>
-      <motion.div variants={headerVariants} initial="hidden" animate="show">
-        <motion.div variants={itemVariants} className="view-header">
-          <span className="view-title-icon"><Folder size={20} /></span>
-          <div className="view-title-row">
-            <h1 className="view-title">{folder.name}</h1>
-            <span className="view-title-actions">
-              <button
-                className="view-title-action-btn"
-                onClick={() => setEditMode((m) => !m)}
-                title={editMode ? 'Done editing' : 'Edit lists'}
-                style={editMode ? { color: 'var(--success)' } : undefined}
-              >
-                {editMode ? <CheckCircle size={ICON_SIZE} /> : <Pencil size={ICON_SIZE} />}
-              </button>
-            </span>
-          </div>
-          <p className="view-subtitle">{folderLists.length} {folderLists.length === 1 ? 'list' : 'lists'}</p>
+    <>
+      {ghostList && createPortal(
+        <div ref={ghostRef} className="folder-drag-ghost" style={{ display: 'none' }}>
+          {getListIcon(ghostList, ICON_SIZE) ?? <List size={ICON_SIZE} />}
+          {ghostList.name}
+        </div>,
+        document.body
+      )}
+      {createPortal(
+        <div ref={lineRef} className="nav-reorder-line" style={{ opacity: 0 }} />,
+        document.body
+      )}
+      <div>
+        <motion.div variants={headerVariants} initial="hidden" animate="show">
+          <motion.div variants={itemVariants} className="view-header">
+            <span className="view-title-icon"><Folder size={20} /></span>
+            <div className="view-title-row">
+              <h1 className="view-title">{folder.name}</h1>
+              <span className="view-title-actions">
+                <button
+                  className="view-title-action-btn"
+                  onClick={() => setEditMode((m) => !m)}
+                  title={editMode ? 'Done editing' : 'Edit lists'}
+                  style={editMode ? { color: 'var(--success)' } : undefined}
+                >
+                  {editMode ? <CheckCircle size={ICON_SIZE} /> : <Pencil size={ICON_SIZE} />}
+                </button>
+              </span>
+            </div>
+            <p className="view-subtitle">{folderLists.length} {folderLists.length === 1 ? 'list' : 'lists'}</p>
+          </motion.div>
         </motion.div>
-      </motion.div>
 
-      <Reorder.Group
-        as="div"
-        axis="y"
-        values={folderLists}
-        onReorder={(newOrder) => setFolderOrder(folderId!, newOrder.map((l) => l.id))}
-        className="folder-view-lists view-body"
-        variants={listVariants}
-        initial="hidden"
-        animate="show"
-      >
-        {folderLists.map((list) => (
-          <SortableListItem
-            key={list.id}
-            list={list}
-            editMode={editMode}
-            folderId={folderId!}
-          />
-        ))}
-        {folderLists.length === 0 && (
-          <motion.p variants={itemVariants} className="empty-state">
-            No lists in this folder.
-          </motion.p>
-        )}
-      </Reorder.Group>
-    </div>
+        <div className="folder-view-lists view-body" data-reorder-context="folder-lists">
+          {folderLists.map((list) => (
+            <SortableListItem
+              key={list.id}
+              list={list}
+              editMode={editMode}
+              folderId={folderId!}
+              onReorderStart={(e) => startDrag(e, list.id, 'folder-lists', 'folder-view-list-item-row--dragging')}
+            />
+          ))}
+          {folderLists.length === 0 && (
+            <motion.p variants={itemVariants} className="empty-state">
+              No lists in this folder.
+            </motion.p>
+          )}
+        </div>
+      </div>
+    </>
   );
 }
