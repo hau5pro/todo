@@ -11,7 +11,7 @@ import { useTaskDetail } from '../contexts/TaskDetailContext';
 import { useSettings } from '../contexts/SettingsContext';
 import { TaskItem } from '../components/TaskItem';
 import { IconPicker } from '../components/IconPicker';
-import { ICON_SIZE, COMPLETED_PAGE_SIZE, ADD_TASK_PLACEHOLDER } from '../config/constants';
+import { ICON_SIZE, COMPLETED_PAGE_SIZE, ADD_TASK_PLACEHOLDER, PINNED_LIST_SUBTITLES } from '../config/constants';
 import { LIST_TYPE_LABELS } from '../types';
 import { getListIcon } from '../config/listIcons';
 import type { Task } from '../types';
@@ -609,7 +609,7 @@ export function ListView() {
           )}
         </motion.div>
         <motion.p variants={headerItemVariants} className="view-subtitle">
-          {list.type === 'general' ? 'tasks' : LIST_TYPE_LABELS[list.type]}
+          {PINNED_LIST_SUBTITLES[list.name] ?? (list.type === 'general' ? 'tasks' : LIST_TYPE_LABELS[list.type])}
         </motion.p>
       </motion.div>
 
