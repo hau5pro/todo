@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { AnimatedCheckbox } from './AnimatedCheckbox';
 import { useSettings } from '../contexts/SettingsContext';
-import { playComplete } from '../utils/sound';
+import { playComplete, hapticComplete } from '../utils/sound';
 
 interface Props {
   title: string;
@@ -13,13 +13,14 @@ interface Props {
 }
 
 export function HabitItem({ title, completedToday, streak, onToggle, onSelect, isSelected }: Props) {
-  const { soundEnabled, soundStyle } = useSettings();
+  const { soundEnabled, soundStyle, hapticEnabled } = useSettings();
   const [flashing, setFlashing] = useState(false);
   const [popping, setPopping] = useState(false);
 
   function handleToggle() {
     if (!completedToday) {
       if (soundEnabled) playComplete(soundStyle);
+      if (hapticEnabled) hapticComplete();
       setFlashing(true);
       setPopping(true);
       setTimeout(() => { setFlashing(false); setPopping(false); }, 650);

@@ -31,6 +31,7 @@ export interface Settings {
   listOrders: Record<string, string[]>;
   soundEnabled: boolean;
   soundStyle: SoundStyle;
+  hapticEnabled: boolean;
   sidebarCollapsed: boolean;
   listsOpen: boolean;
   folderCollapsed: Record<string, boolean>;
@@ -51,6 +52,7 @@ interface SettingsContextValue extends Settings {
   setListOrder: (listId: string, ids: string[]) => void;
   setSoundEnabled: (v: boolean) => void;
   setSoundStyle: (s: SoundStyle) => void;
+  setHapticEnabled: (v: boolean) => void;
   setSidebarCollapsed: (v: boolean) => void;
   setListsOpen: (v: boolean) => void;
   setFolderCollapsed: (folderId: string, collapsed: boolean) => void;
@@ -75,6 +77,7 @@ const DEFAULTS: Settings = {
   listOrders: {},
   soundEnabled: true,
   soundStyle: 'pop',
+  hapticEnabled: true,
   sidebarCollapsed: false,
   listsOpen: true,
   folderCollapsed: {},
@@ -278,6 +281,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       update((prev) => ({ ...prev, listOrders: { ...prev.listOrders, [listId]: ids } })),
     setSoundEnabled: (soundEnabled) => update({ soundEnabled }),
     setSoundStyle: (soundStyle) => update({ soundStyle }),
+    setHapticEnabled: (hapticEnabled) => update({ hapticEnabled }),
     setSidebarCollapsed: (sidebarCollapsed) => update({ sidebarCollapsed }),
     setListsOpen: (listsOpen) => update({ listsOpen }),
     setFolderCollapsed: (folderId, collapsed) =>

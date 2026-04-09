@@ -130,6 +130,11 @@ function getDataUri(style: SoundStyle): string {
   return _cache[style]!;
 }
 
+export function hapticComplete(): void {
+  if (!navigator.vibrate) return;
+  navigator.vibrate(10);
+}
+
 let _lastPlay = 0;
 
 export function playComplete(style: SoundStyle = 'pop'): void {

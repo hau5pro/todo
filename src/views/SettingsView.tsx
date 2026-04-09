@@ -53,6 +53,7 @@ export function SettingsView() {
     pinnedOrder, setPinnedOrder,
     soundEnabled, setSoundEnabled,
     soundStyle, setSoundStyle,
+    hapticEnabled, setHapticEnabled,
     syncEnabled, setSyncEnabled,
     localOnly,
   } = useSettings();
@@ -157,6 +158,12 @@ export function SettingsView() {
             setSoundEnabled(next);
             if (next) playComplete(soundStyle);
           }}
+        />
+        <SettingsRow
+          label="Haptic feedback"
+          sublabel="vibrate on completion"
+          checked={hapticEnabled}
+          onChange={() => setHapticEnabled(!hapticEnabled)}
         />
         {soundEnabled && (
           <div className="theme-btn-group theme-btn-group--vertical" style={{ marginTop: '0.625rem' }}>

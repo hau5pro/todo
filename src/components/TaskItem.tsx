@@ -3,7 +3,7 @@ import dayjs from 'dayjs';
 import { motion } from 'framer-motion';
 import { AnimatedCheckbox } from './AnimatedCheckbox';
 import { useSettings } from '../contexts/SettingsContext';
-import { playComplete } from '../utils/sound';
+import { playComplete, hapticComplete } from '../utils/sound';
 import { formatTime } from '../utils/date';
 
 interface Props {
@@ -30,7 +30,7 @@ export function TaskItem({ title, completed, dueDate, dueTime, today, onToggle, 
     if (dueTime) label += ` · ${formatTime(dueTime)}`;
     return label;
   }
-  const { soundEnabled, soundStyle } = useSettings();
+  const { soundEnabled, soundStyle, hapticEnabled } = useSettings();
   const [flashing, setFlashing] = useState(false);
   const [popping, setPopping] = useState(false);
 
@@ -38,6 +38,7 @@ export function TaskItem({ title, completed, dueDate, dueTime, today, onToggle, 
     if (!onToggle) return;
     if (!completed) {
       if (soundEnabled) playComplete(soundStyle);
+      if (hapticEnabled) hapticComplete();
       setFlashing(true);
       setPopping(true);
       setTimeout(() => { setFlashing(false); setPopping(false); }, 250);
