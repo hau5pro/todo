@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { HelpCircle, Keyboard, List, Sun, Repeat, ShoppingCart, Folder, WifiOff, Cloud } from 'lucide-react';
+import { Keyboard, List, Sun, Repeat, ShoppingCart, Folder, WifiOff, Cloud } from 'lucide-react';
 
 interface ShortcutRow {
   keys: string[];
@@ -102,7 +102,6 @@ export function DocsView() {
   return (
     <div style={{ maxWidth: 480, margin: '0 auto' }}>
       <div className="view-title-row" style={{ marginBottom: '2rem' }}>
-        <span className="view-title-icon"><HelpCircle size={18} /></span>
         <h1 className="view-title">Help</h1>
       </div>
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Trash2, CircleUser, Paintbrush, Volume2, Pin, TriangleAlert, Settings, GripVertical } from 'lucide-react';
+import { Trash2, CircleUser, Paintbrush, Volume2, Pin, TriangleAlert, GripVertical } from 'lucide-react';
 import { ICON_SIZE } from '../config/constants';
 import { Reorder, useDragControls } from 'framer-motion';
 import { useSettings } from '../contexts/SettingsContext';
@@ -92,7 +92,6 @@ export function SettingsView() {
   return (
     <div style={{ maxWidth: 480, margin: '0 auto' }}>
       <div className="view-title-row" style={{ marginBottom: '2rem' }}>
-        <span className="view-title-icon"><Settings size={20} /></span>
         <h1 className="view-title">Settings</h1>
       </div>
 
