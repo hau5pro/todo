@@ -9,6 +9,7 @@ import { TaskDetailProvider, useTaskDetail } from '../contexts/TaskDetailContext
 import { useSync } from '../hooks/useSync';
 import { useAppStore } from '../store';
 import { useKeyboardNav } from '../hooks/useKeyboardNav';
+import { useBlockEdgeSwipe } from '../hooks/useBlockEdgeSwipe';
 
 function DetailSlot() {
   const { detail, close } = useTaskDetail();
@@ -25,6 +26,7 @@ function DetailSlot() {
 
 function KeyboardNavController() {
   useKeyboardNav();
+  useBlockEdgeSwipe();
   return null;
 }
 
