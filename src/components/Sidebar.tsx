@@ -15,6 +15,7 @@ import { ICON_SIZE } from '../config/constants';
 import { getListIcon } from '../config/listIcons';
 import type { List as ListType, ListFolder } from '../types';
 
+const COLLAPSED_ICON_SIZE = 26;
 
 const MY_DAY_SENTINEL = { id: 'my-day' as const };
 type PinnedItem = ListType | typeof MY_DAY_SENTINEL;
@@ -47,9 +48,9 @@ function NavTooltip({ label, children }: { label: string; children: React.ReactN
   );
 }
 
-function pinnedIcon(item: PinnedItem): React.ReactNode {
-  if (item.id === 'my-day') return <Sun size={ICON_SIZE} />;
-  return getListIcon(item as ListType, ICON_SIZE) ?? <List size={ICON_SIZE} />;
+function pinnedIcon(item: PinnedItem, size = ICON_SIZE): React.ReactNode {
+  if (item.id === 'my-day') return <Sun size={size} />;
+  return getListIcon(item as ListType, size) ?? <List size={size} />;
 }
 
 // ── Sortable list item ────────────────────────────────────────────────────────
@@ -352,7 +353,7 @@ function FolderRow({
 // ── Sidebar ───────────────────────────────────────────────────────────────────
 
 const SIDEBAR_W = window.innerWidth >= 1024 ? 256 : 208;
-const COLLAPSED_W = 48;
+const COLLAPSED_W = 56;
 
 export function Sidebar() {
   const lists = useAppStore((s) => s.lists);
@@ -595,7 +596,7 @@ export function Sidebar() {
                 onClick={() => setSidebarCollapsed(false)}
                 title="Expand sidebar"
               >
-                <Menu size={ICON_SIZE} />
+                <Menu size={COLLAPSED_ICON_SIZE} />
               </button>
             </div>
 
@@ -608,7 +609,7 @@ export function Sidebar() {
                     className={({ isActive }) => isActive ? 'nav-icon-btn nav-icon-btn--active' : 'nav-icon-btn'}
                     aria-label={label}
                   >
-                    {pinnedIcon(item)}
+                    {pinnedIcon(item, COLLAPSED_ICON_SIZE)}
                   </NavLink>
                 </NavTooltip>
               );
@@ -625,7 +626,7 @@ export function Sidebar() {
                   className={({ isActive }) => isActive ? 'nav-icon-btn nav-icon-btn--active' : 'nav-icon-btn'}
                   aria-label={list.name}
                 >
-                  {getListIcon(list, ICON_SIZE) ?? <List size={ICON_SIZE} />}
+                  {getListIcon(list, COLLAPSED_ICON_SIZE) ?? <List size={COLLAPSED_ICON_SIZE} />}
                 </NavLink>
               </NavTooltip>
             ))}
@@ -637,7 +638,7 @@ export function Sidebar() {
                   className={({ isActive }) => isActive ? 'nav-icon-btn nav-icon-btn--active' : 'nav-icon-btn'}
                   aria-label={folder.name}
                 >
-                  <Folder size={ICON_SIZE} />
+                  <Folder size={COLLAPSED_ICON_SIZE} />
                 </NavLink>
               </NavTooltip>
             ))}
@@ -650,7 +651,7 @@ export function Sidebar() {
                 className={({ isActive }) => isActive ? 'nav-icon-btn nav-icon-btn--active' : 'nav-icon-btn'}
                 aria-label="Help"
               >
-                <HelpCircle size={ICON_SIZE} />
+                <HelpCircle size={COLLAPSED_ICON_SIZE} />
               </NavLink>
             </NavTooltip>
             <NavTooltip label="Settings">
@@ -659,7 +660,7 @@ export function Sidebar() {
                 className={({ isActive }) => isActive ? 'nav-icon-btn nav-icon-btn--active' : 'nav-icon-btn'}
                 aria-label="Settings"
               >
-                <Settings size={ICON_SIZE} />
+                <Settings size={COLLAPSED_ICON_SIZE} />
               </NavLink>
             </NavTooltip>
             <NavTooltip label="Sign out">
@@ -668,7 +669,7 @@ export function Sidebar() {
                 onClick={() => logOut(localOnly, setLocalOnly).catch(console.error)}
                 aria-label="Sign out"
               >
-                <LogOut size={ICON_SIZE} />
+                <LogOut size={COLLAPSED_ICON_SIZE} />
               </button>
             </NavTooltip>
           </motion.div>
