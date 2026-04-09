@@ -263,29 +263,34 @@ function FolderRow({
           </button>
         )}
 
-        <Folder size={ICON_SIZE} className="nav-folder-icon" />
-
         {editingName ? (
-          <input
-            ref={inputRef}
-            className="nav-inline-input"
-            inputMode="text"
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') commitRename();
-              if (e.key === 'Escape') setEditingName(false);
-            }}
-            onBlur={commitRename}
-          />
+          <>
+            <Folder size={ICON_SIZE} className="nav-folder-icon" />
+            <input
+              ref={inputRef}
+              className="nav-inline-input"
+              inputMode="text"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') commitRename();
+                if (e.key === 'Escape') setEditingName(false);
+              }}
+              onBlur={commitRename}
+            />
+          </>
         ) : editMode ? (
-          <span className="nav-folder-name">{folder.name}</span>
+          <>
+            <Folder size={ICON_SIZE} className="nav-folder-icon" />
+            <span className="nav-folder-name">{folder.name}</span>
+          </>
         ) : (
           <NavLink
             to={`/folder/${folder.id}`}
             className={({ isActive }) => isActive ? 'nav-folder-name nav-folder-name--active' : 'nav-folder-name'}
             data-nav-item
           >
+            <Folder size={ICON_SIZE} className="nav-folder-icon" />
             {folder.name}
           </NavLink>
         )}
