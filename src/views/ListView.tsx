@@ -2,7 +2,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { Pencil, Trash2, ChevronDown, ChevronRight, Copy, List, CheckCircle, MoreHorizontal } from 'lucide-react';
 import { DragHandle, DeleteButton } from '../components/EditControls';
-import { AnimatePresence, motion, Reorder, useDragControls } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
+import { createPortal } from 'react-dom';
+import { useLineDrag } from '../hooks/useLineDrag';
 import { ease } from '../utils/easing';
 import { focusLater } from '../utils/dom';
 import { applyOrder } from '../utils/order';
@@ -24,15 +26,6 @@ const headerItemVariants = {
   hidden: { opacity: 0, y: 5 },
   show:   { opacity: 1, y: 0, transition: { duration: 0.2, ease: 'easeOut' as const } },
 };
-const taskListVariants = {
-  show: { transition: { staggerChildren: 0.04, delayChildren: 0.16 } },
-};
-const taskItemVariants = {
-  hidden: { opacity: 0, y: -10 },
-  show:   { opacity: 1, y: 0, transition: { duration: 0.2, ease: 'easeOut' as const, delay: 0.05 } },
-  exit:   { opacity: 0, transition: { duration: 0.15, ease: 'easeIn' as const } },
-};
-
 
 function reorderGroupInGlobal(globalOrder: string[], newGroupOrder: string[]): string[] {
   const groupSet = new Set(newGroupOrder);
@@ -50,27 +43,22 @@ function reorderGroupInGlobal(globalOrder: string[], newGroupOrder: string[]): s
 
 function TaskRow({
   task, editMode, today, dragging, onDragStart, onDragEnd,
-  onToggle, onSelect, onDelete, isSelected,
+  onToggle, onSelect, onDelete, isSelected, onReorderStart,
 }: {
   task: Task; editMode: boolean; today: string; dragging: boolean;
   onDragStart: (e: React.DragEvent) => void;
   onDragEnd: () => void;
   onToggle: () => void; onSelect: () => void; onDelete: () => void; isSelected: boolean;
+  onReorderStart?: (e: React.PointerEvent) => void;
 }) {
-  const dragControls = useDragControls();
   return (
-    <Reorder.Item
-      as="div"
-      value={task}
-      dragListener={false}
-      dragControls={dragControls}
-      variants={taskItemVariants}
+    <div
+      data-reorder-id={task.id}
       className={`task-row${editMode ? ' task-row--editing' : ''}`}
       style={{ cursor: editMode ? 'grab' : 'default', opacity: dragging ? 0.4 : 1 }}
-      transition={{ layout: { duration: 0.08, ease: 'easeOut' } }}
     >
       <div className="nav-item-drag-zone">
-        <DragHandle show={editMode} dragControls={dragControls} />
+        <DragHandle show={editMode} onPointerDown={onReorderStart} />
       </div>
       {/* Wrap content in a draggable div so it doesn't conflict with FM's onDragStart typing */}
       <div
@@ -100,22 +88,21 @@ function TaskRow({
         />
       </div>
       <DeleteButton show={editMode} onClick={onDelete} title="Delete task" />
-    </Reorder.Item>
+    </div>
   );
 }
 
 function GroupSection({
-  groupName, tasks, editMode, today, listId, globalOrder, draggingTaskId,
-  onReorder, onToggle, onSelect, onDelete, onRename, onDeleteGroup, onTaskDragStart, onTaskDragEnd, selectedTaskId,
+  groupName, tasks, editMode, today, listId, draggingTaskId,
+  startDrag, onToggle, onSelect, onDelete, onRename, onDeleteGroup, onTaskDragStart, onTaskDragEnd, selectedTaskId,
 }: {
   groupName: string;
   tasks: Task[];
   editMode: boolean;
   today: string;
   listId: string;
-  globalOrder: string[];
   draggingTaskId: string | null;
-  onReorder: (newGlobalOrder: string[]) => void;
+  startDrag: (e: React.PointerEvent, id: string, context: string, cls?: string) => void;
   onToggle: (task: Task) => void;
   onSelect: (task: Task) => void;
   onDelete: (task: Task) => void;
@@ -126,7 +113,6 @@ function GroupSection({
   selectedTaskId: string | undefined;
 }) {
   const { moveTaskToGroup } = useAppStore();
-  const dragControls = useDragControls();
   const [collapsed, setCollapsed] = useState(false);
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState(groupName);
@@ -159,10 +145,6 @@ function GroupSection({
     setEditingName(false);
   }
 
-  function handleGroupReorder(reordered: Task[]) {
-    onReorder(reorderGroupInGlobal(globalOrder, reordered.map((t) => t.id)));
-  }
-
   function handleDragOver(e: React.DragEvent) {
     if (!draggingTaskId) return;
     e.preventDefault();
@@ -184,11 +166,8 @@ function GroupSection({
   }
 
   return (
-    <Reorder.Item
-      as="div"
-      value={groupName}
-      dragListener={false}
-      dragControls={dragControls}
+    <div
+      data-reorder-id={groupName}
       className={[
         'group-section',
         draggingTaskId ? 'group-section--dragging' : '',
@@ -200,7 +179,7 @@ function GroupSection({
     >
       <div className={`group-header${editMode ? ' group-header--editing' : ''}`}>
         <div className="nav-item-drag-zone">
-          <DragHandle show={editMode && !editingName} dragControls={dragControls} />
+          <DragHandle show={editMode && !editingName} onPointerDown={(e) => startDrag(e, groupName, 'groups', 'group-section--dragging')} />
         </div>
         <button
           className={`group-header-collapse${!collapsed ? ' group-header-collapse--expanded' : ''}`}
@@ -269,31 +248,28 @@ function GroupSection({
             transition={{ duration: 0.2, ease: ease.out }}
             style={{ overflow: 'hidden' }}
           >
-            <Reorder.Group as="div" axis="y" values={tasks} onReorder={handleGroupReorder}
-              variants={taskListVariants} initial="hidden" animate="show"
-            >
-              <AnimatePresence>
-                {tasks.map((task) => (
-                  <TaskRow
-                    key={task.id}
-                    task={task}
-                    editMode={editMode}
-                    today={today}
-                    dragging={task.id === draggingTaskId}
-                    onDragStart={(e) => {
-                      e.dataTransfer.effectAllowed = 'move';
-                      e.dataTransfer.setData('text/plain', task.id);
-                      onTaskDragStart(task.id);
-                    }}
-                    onDragEnd={onTaskDragEnd}
-                    onToggle={() => onToggle(task)}
-                    onSelect={() => onSelect(task)}
-                    onDelete={() => onDelete(task)}
-                    isSelected={selectedTaskId === task.id}
-                  />
-                ))}
-              </AnimatePresence>
-            </Reorder.Group>
+            <div data-reorder-context={groupName}>
+              {tasks.map((task) => (
+                <TaskRow
+                  key={task.id}
+                  task={task}
+                  editMode={editMode}
+                  today={today}
+                  dragging={task.id === draggingTaskId}
+                  onDragStart={(e) => {
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/plain', task.id);
+                    onTaskDragStart(task.id);
+                  }}
+                  onDragEnd={onTaskDragEnd}
+                  onToggle={() => onToggle(task)}
+                  onSelect={() => onSelect(task)}
+                  onDelete={() => onDelete(task)}
+                  isSelected={selectedTaskId === task.id}
+                  onReorderStart={(e) => startDrag(e, task.id, groupName, 'task-row--dragging')}
+                />
+              ))}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -326,7 +302,7 @@ function GroupSection({
           </motion.div>
         )}
       </AnimatePresence>
-    </Reorder.Item>
+    </div>
   );
 }
 
@@ -356,6 +332,19 @@ export function ListView() {
   const [ungroupedDragOver, setUngroupedDragOver] = useState(false);
   const listNameInputRef = useRef<HTMLInputElement>(null);
   const iconBtnRef = useRef<HTMLButtonElement>(null);
+  const scrollRef = useRef<HTMLElement>(null);
+  const { dragId, startDrag, ghostRef, lineRef } = useLineDrag({
+    scrollRef,
+    onCommit: (_id, context, newIds) => {
+      if (context === 'ungrouped') {
+        setListOrder(listId!, newIds);
+      } else if (context === 'groups') {
+        setListGroupOrder(listId!, newIds);
+      } else {
+        setListOrder(listId!, reorderGroupInGlobal(globalOrder, newIds));
+      }
+    },
+  });
 
   useEffect(() => {
     if (tasks === undefined) loadTasks(listId!);
@@ -403,7 +392,8 @@ export function ListView() {
     .filter((t) => t.completed && t.deleted_at === null)
     .sort((a, b) => b.updated_at.localeCompare(a.updated_at));
   const visibleCompleted = completedTasks.slice(0, completedVisible);
-  const orderedActive = applyOrder(activeTasks, listOrders[listId!] ?? [], (t) => t.id);
+  const globalOrder = listOrders[listId!] ?? [];
+  const orderedActive = applyOrder(activeTasks, globalOrder, (t) => t.id);
 
   const ungroupedTasks = orderedActive.filter((t) => !t.group);
   const groupMap = new Map<string, Task[]>();
@@ -420,15 +410,8 @@ export function ListView() {
     ...Array.from(groupMap.keys()).filter((g) => !savedGroupOrder.includes(g)),
   ];
 
-  const globalOrder = listOrders[listId!] ?? [];
-
-  function handleReorder(reordered: Task[]) {
-    setListOrder(listId!, reordered.map((t) => t.id));
-  }
-
-  function handleGroupReorder(newGlobalOrder: string[]) {
-    setListOrder(listId!, newGlobalOrder);
-  }
+  const ghostTask = dragId ? activeTasks.find((t) => t.id === dragId) : null;
+  const ghostLabel = ghostTask?.title ?? (dragId && allGroupNames.includes(dragId) ? dragId : null);
 
   async function handleToggle(task: typeof tasks[0]) {
     if (task.recurrence_interval) {
@@ -523,6 +506,17 @@ export function ListView() {
   }
 
   return (
+    <>
+      {ghostLabel !== null && createPortal(
+        <div ref={ghostRef} className="folder-drag-ghost" style={{ display: 'none' }}>
+          {ghostLabel}
+        </div>,
+        document.body
+      )}
+      {createPortal(
+        <div ref={lineRef} className="nav-reorder-line" style={{ opacity: 0 }} />,
+        document.body
+      )}
     <div>
       <motion.div variants={headerVariants} initial="hidden" animate="show" className="view-header">
         <motion.div variants={headerItemVariants}>
@@ -630,31 +624,28 @@ export function ListView() {
             data-add-task
           />
         </motion.form>
-        <Reorder.Group as="div" axis="y" values={ungroupedTasks} onReorder={handleReorder}
-          variants={taskListVariants} initial="hidden" animate="show"
-        >
-          <AnimatePresence>
-            {ungroupedTasks.map((task) => (
-              <TaskRow
-                key={task.id}
-                task={task}
-                editMode={taskEditMode}
-                today={today}
-                dragging={task.id === draggingTaskId}
-                onDragStart={(e) => handleTaskDragStart(e, task.id)}
-                onDragEnd={() => setDraggingTaskId(null)}
-                onToggle={() => handleToggle(task)}
-                onSelect={() => handleSelectTask(task)}
-                onDelete={() => removeTask(task.id, listId!)}
-                isSelected={detail?.task.id === task.id}
-              />
-            ))}
-          </AnimatePresence>
-        </Reorder.Group>
+        <div data-reorder-context="ungrouped">
+          {ungroupedTasks.map((task) => (
+            <TaskRow
+              key={task.id}
+              task={task}
+              editMode={taskEditMode}
+              today={today}
+              dragging={task.id === draggingTaskId}
+              onDragStart={(e) => handleTaskDragStart(e, task.id)}
+              onDragEnd={() => setDraggingTaskId(null)}
+              onToggle={() => handleToggle(task)}
+              onSelect={() => handleSelectTask(task)}
+              onDelete={() => removeTask(task.id, listId!)}
+              isSelected={detail?.task.id === task.id}
+              onReorderStart={(e) => startDrag(e, task.id, 'ungrouped', 'task-row--dragging')}
+            />
+          ))}
+        </div>
       </div>
 
       {/* Group sections */}
-      <Reorder.Group as="div" axis="y" values={allGroupNames} onReorder={(names) => setListGroupOrder(listId!, names)}>
+      <div data-reorder-context="groups">
         {allGroupNames.map((groupName) => (
           <GroupSection
             key={groupName}
@@ -663,9 +654,7 @@ export function ListView() {
             editMode={taskEditMode}
             today={today}
             listId={listId!}
-            globalOrder={globalOrder}
             draggingTaskId={draggingTaskId}
-            onReorder={handleGroupReorder}
             onToggle={handleToggle}
             onSelect={handleSelectTask}
             onDelete={(task) => removeTask(task.id, listId!)}
@@ -674,9 +663,10 @@ export function ListView() {
             onTaskDragStart={(taskId) => setDraggingTaskId(taskId)}
             onTaskDragEnd={() => setDraggingTaskId(null)}
             selectedTaskId={detail?.task.id}
+            startDrag={startDrag}
           />
         ))}
-      </Reorder.Group>
+      </div>
 
       {!taskEditMode && (
         <section>
@@ -756,5 +746,6 @@ export function ListView() {
         )}
       </AnimatePresence>
     </div>
+    </>
   );
 }
