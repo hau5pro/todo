@@ -11,7 +11,6 @@ import { DragHandle, DeleteButton } from './EditControls';
 import { logOut } from '../supabase/auth';
 import { useSettings } from '../contexts/SettingsContext';
 import { useAppStore } from '../store';
-import { focusLater } from '../utils/dom';
 import { ICON_SIZE } from '../config/constants';
 import { getListIcon } from '../config/listIcons';
 import type { List as ListType, ListFolder } from '../types';
@@ -176,17 +175,11 @@ function FolderRow({
   const [editingName, setEditingName] = useState(false);
   const [newName, setNewName] = useState(folder.name);
   const [showMenu, setShowMenu] = useState(false);
-  const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const menuBtnRef = useRef<HTMLButtonElement>(null);
 
   function openMenu() {
-    if (menuBtnRef.current) {
-      const rect = menuBtnRef.current.getBoundingClientRect();
-      setMenuPos({ top: rect.bottom + 4, left: rect.left });
-    }
-    setShowMenu(true);
+    setShowMenu((p) => !p);
   }
 
   function closeMenu() {
@@ -197,7 +190,7 @@ function FolderRow({
     closeMenu();
     setNewName(folder.name);
     setEditingName(true);
-    focusLater(inputRef);
+    inputRef.current?.focus();
   }
 
   async function commitRename() {
@@ -251,7 +244,7 @@ function FolderRow({
     >
       {/* Folder header */}
       <div className={`nav-folder-header${editMode ? ' nav-item-row--editing' : ''}`}>
-        <DragHandle show={editMode} dragControls={dragControls} />
+        <DragHandle show={editMode && !editingName} dragControls={dragControls} />
 
         {!editMode && (
           <button
@@ -263,56 +256,66 @@ function FolderRow({
           </button>
         )}
 
-        <Folder size={ICON_SIZE} className="nav-folder-icon" />
-
-        {editingName ? (
-          <input
-            ref={inputRef}
-            className="nav-inline-input"
-            inputMode="text"
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') commitRename();
-              if (e.key === 'Escape') setEditingName(false);
-            }}
-            onBlur={commitRename}
-          />
-        ) : editMode ? (
-          <span className="nav-folder-name">{folder.name}</span>
+        {/* Always-mounted rename input so focus() works synchronously on iOS PWA */}
+        <Folder size={ICON_SIZE} className="nav-folder-icon" style={editingName ? undefined : { position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0, overflow: 'hidden' }} />
+        <input
+          ref={inputRef}
+          className="nav-inline-input"
+          inputMode="text"
+          value={newName}
+          onChange={(e) => setNewName(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') commitRename();
+            if (e.key === 'Escape') setEditingName(false);
+          }}
+          onBlur={commitRename}
+          style={editingName ? undefined : { position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0, overflow: 'hidden' }}
+        />
+        {!editingName && (editMode ? (
+          <>
+            <Folder size={ICON_SIZE} className="nav-folder-icon" />
+            <span className="nav-folder-name">{folder.name}</span>
+          </>
         ) : (
           <NavLink
             to={`/folder/${folder.id}`}
             className={({ isActive }) => isActive ? 'nav-folder-name nav-folder-name--active' : 'nav-folder-name'}
             data-nav-item
           >
+            <Folder size={ICON_SIZE} className="nav-folder-icon" />
             {folder.name}
           </NavLink>
-        )}
+        ))}
 
         {!editingName && (
-          <button ref={menuBtnRef} className="nav-folder-menu-btn" onClick={openMenu} title="Folder options">
+          <button className="nav-folder-menu-btn" onClick={openMenu} title="Folder options" aria-expanded={showMenu}>
             <MoreHorizontal size={ICON_SIZE} />
           </button>
         )}
-
-        {showMenu && menuPos && createPortal(
-          <>
-            <div className="folder-picker-backdrop" onClick={closeMenu} />
-            <div className="folder-picker" style={{ position: 'fixed', top: menuPos.top, left: menuPos.left }}>
-              <button onClick={startRename}>
-                <Pencil size={ICON_SIZE} />
-                Rename
-              </button>
-              <button className="folder-picker-danger" onClick={handleDelete}>
-                <Trash2 size={ICON_SIZE} />
-                Delete
-              </button>
-            </div>
-          </>,
-          document.body
-        )}
       </div>
+
+      {/* Folder options menu */}
+      <AnimatePresence initial={false}>
+        {showMenu && (
+          <motion.div
+            className="nav-folder-options"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            style={{ overflow: 'hidden' }}
+          >
+            <button className="nav-folder-option" onClick={startRename}>
+              <Pencil size={ICON_SIZE} />
+              Rename
+            </button>
+            <button className="nav-folder-option nav-folder-option--danger" onClick={handleDelete}>
+              <Trash2 size={ICON_SIZE} />
+              Delete
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Lists inside folder */}
       <AnimatePresence initial={false}>
@@ -485,7 +488,7 @@ export function Sidebar() {
     setNewFolderName('');
     setNewListName('');
     setAddingList(true);
-    focusLater(addInputRef);
+    addInputRef.current?.focus();
   }
 
   function startAddFolder() {
@@ -495,7 +498,7 @@ export function Sidebar() {
     setNewListName('');
     setNewFolderName('');
     setAddingFolder(true);
-    focusLater(addFolderInputRef);
+    addFolderInputRef.current?.focus();
   }
 
   async function commitAddFolder() {
@@ -692,7 +695,7 @@ export function Sidebar() {
                   <button
                     className="sidebar-collapse-btn"
                     onClick={() => setEditMode((e) => !e)}
-                    title={editMode ? 'Done reordering' : 'Reorder lists'}
+                    title={editMode ? 'Done editing' : 'Edit lists'}
                   >
                     {editMode
                       ? <CheckCircle size={ICON_SIZE} style={{ color: 'var(--success)' }} />
@@ -765,7 +768,7 @@ export function Sidebar() {
                 {listsOpen
                   ? <ChevronDown size={ICON_SIZE} />
                   : <ChevronRight size={ICON_SIZE} />}
-                Lists
+                My Lists
               </button>
             </div>
 
@@ -834,50 +837,46 @@ export function Sidebar() {
                     ))}
                   </Reorder.Group>
 
-                  {/* Add folder inline */}
-                  {addingFolder && (
-                    <div className="nav-item nav-item--editing">
-                      <Folder size={ICON_SIZE} style={{ color: 'var(--fg-muted)', flexShrink: 0 }} />
-                      <input
-                        ref={addFolderInputRef}
-                        className="nav-inline-input"
-                        placeholder="Folder name"
-                        inputMode="text"
-                        value={newFolderName}
-                        onChange={(e) => setNewFolderName(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') commitAddFolder();
-                          if (e.key === 'Escape') cancelAddFolder();
-                        }}
-                        onBlur={commitAddFolder}
-                      />
-                      <button className="nav-action-btn" onClick={commitAddFolder} title="Create">
-                        <CornerDownLeft size={ICON_SIZE} />
-                      </button>
-                    </div>
-                  )}
+                  {/* Add folder inline — always mounted so focus() works synchronously on iOS PWA */}
+                  <div className="nav-item nav-item--editing" style={addingFolder ? undefined : { position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0, overflow: 'hidden' }}>
+                    <Folder size={ICON_SIZE} style={{ color: 'var(--fg-muted)', flexShrink: 0 }} />
+                    <input
+                      ref={addFolderInputRef}
+                      className="nav-inline-input"
+                      placeholder="Folder name"
+                      inputMode="text"
+                      value={newFolderName}
+                      onChange={(e) => setNewFolderName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') commitAddFolder();
+                        if (e.key === 'Escape') cancelAddFolder();
+                      }}
+                      onBlur={commitAddFolder}
+                    />
+                    <button className="nav-action-btn" onClick={commitAddFolder} title="Create">
+                      <CornerDownLeft size={ICON_SIZE} />
+                    </button>
+                  </div>
 
-                  {/* Add list inline */}
-                  {addingList && (
-                    <div className="nav-item nav-item--editing">
-                      <input
-                        ref={addInputRef}
-                        className="nav-inline-input"
-                        placeholder="List name"
-                        inputMode="text"
-                        value={newListName}
-                        onChange={(e) => setNewListName(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') commitAddList();
-                          if (e.key === 'Escape') cancelAddList();
-                        }}
-                        onBlur={commitAddList}
-                      />
-                      <button className="nav-action-btn" onClick={commitAddList} title="Create">
-                        <CornerDownLeft size={ICON_SIZE} />
-                      </button>
-                    </div>
-                  )}
+                  {/* Add list inline — always mounted so focus() works synchronously on iOS PWA */}
+                  <div className="nav-item nav-item--editing" style={addingList ? undefined : { position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0, overflow: 'hidden' }}>
+                    <input
+                      ref={addInputRef}
+                      className="nav-inline-input"
+                      placeholder="List name"
+                      inputMode="text"
+                      value={newListName}
+                      onChange={(e) => setNewListName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') commitAddList();
+                        if (e.key === 'Escape') cancelAddList();
+                      }}
+                      onBlur={commitAddList}
+                    />
+                    <button className="nav-action-btn" onClick={commitAddList} title="Create">
+                      <CornerDownLeft size={ICON_SIZE} />
+                    </button>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>

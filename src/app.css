@@ -32,7 +32,7 @@
     --border:     #252535;
     --divider:    #1c1c2c;
     --fg:         #f0f0ff;
-    --fg-muted:   #8888b0;
+    --fg-muted:   #a0a0c8;
     --accent:     #63b3ed;
     --accent-dim: rgba(96, 165, 250, 0.12);
     --danger:     #f87171;
@@ -50,7 +50,7 @@
   --border:     #252535;
   --divider:    #1c1c2c;
   --fg:         #f0f0ff;
-  --fg-muted:   #8888b0;
+  --fg-muted:   #a0a0c8;
   --accent:     #63b3ed;
   --accent-dim: rgba(96, 165, 250, 0.12);
   --danger:     #f87171;
@@ -80,7 +80,7 @@
 input, textarea, select { font-size: max(16px, 1rem); }
 
 /* ── Base ────────────────────────────────────────────────── */
-html { font-size: 16px; }
+html { font-size: 16px; overscroll-behavior-x: none; }
 @media (min-width: 768px)  { html { font-size: 17px; } }
 @media (min-width: 1280px) { html { font-size: 18px; } }
 @media (min-width: 1600px) { html { font-size: 19px; } }
@@ -464,7 +464,7 @@ button.nav-section-label--button:hover { color: var(--fg); }
 .nav-section-header {
   display: flex;
   align-items: center;
-  padding: 14px 6px 5px 10px;
+  padding: 8px 6px 2px 10px;
 }
 
 .nav-section-toggle {
@@ -527,6 +527,9 @@ button.nav-section-label--button:hover { color: var(--fg); }
 
 .nav-folder-name {
   flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 4px;
   font-size: 0.8125rem;
   color: var(--fg-muted);
   opacity: 0.8;
@@ -582,6 +585,35 @@ button.nav-section-label--button:hover { color: var(--fg); }
   text-align: left;
 }
 .nav-add-option:hover { background: var(--hover); color: var(--fg); }
+
+/* ── Folder inline options ───────────────────────────────── */
+.nav-folder-options {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 2px 4px 6px;
+  background: var(--hover);
+  border-radius: 6px;
+  margin: 2px 0 4px;
+}
+
+.nav-folder-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 5px;
+  font-size: 0.8125rem;
+  color: var(--fg-muted);
+  transition: background 0.12s, color 0.12s;
+  text-align: left;
+}
+.nav-folder-option:hover { background: var(--hover); color: var(--fg); }
+.nav-folder-option--danger:hover { color: var(--danger, #e53e3e); }
 
 /* ── Folder picker popover ───────────────────────────────── */
 .folder-picker-backdrop {
@@ -732,10 +764,11 @@ button.nav-section-label--button:hover { color: var(--fg); }
 .folder-view-list-item-row--editing .folder-view-list-item { flex: 1; pointer-events: none; }
 
 .folder-view-list-item {
+  flex: 1;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 9px 10px 9px 0;
+  padding: 9px 10px;
   border-radius: 7px;
   color: var(--fg);
   text-decoration: none;
@@ -1929,6 +1962,7 @@ button.nav-section-label--button:hover { color: var(--fg); }
 .nav-icon-btn,
 .nav-item-delete-btn,
 .nav-add-option,
+.nav-folder-option,
 .nav-section-toggle,
 .view-title-icon-btn,
 .icon-picker-btn,
