@@ -503,6 +503,9 @@ button.nav-section-label--button:hover { color: var(--fg); }
 .nav-folder--drag-over .nav-folder-header:hover { background: transparent; }
 .nav-folder-header.nav-item-row--editing { cursor: default; }
 .nav-folder-header.nav-item-row--editing .nav-folder-icon { color: var(--fg); }
+.nav-folder-header:has(.nav-folder-name--active) { background: var(--accent-dim); }
+.nav-folder-header:has(.nav-folder-name--active):hover { background: var(--accent-dim); }
+.nav-folder-header:has(.nav-folder-name--active) .nav-folder-icon { color: var(--accent); }
 
 .nav-folder-chevron {
   background: none;
@@ -720,6 +723,13 @@ button.nav-section-label--button:hover { color: var(--fg); }
   gap: 3px;
   margin-top: 0.25rem;
 }
+
+.folder-view-list-item-row {
+  display: flex;
+  align-items: center;
+}
+.folder-view-list-item-row--editing { cursor: grab; user-select: none; }
+.folder-view-list-item-row--editing .folder-view-list-item { flex: 1; pointer-events: none; }
 
 .folder-view-list-item {
   display: flex;
@@ -959,6 +969,7 @@ button.nav-section-label--button:hover { color: var(--fg); }
   color: var(--danger);
   cursor: pointer;
   flex-shrink: 0;
+  overflow: hidden;
 }
 .task-edit-delete:hover { color: var(--danger); filter: brightness(1.15); }
 
@@ -2103,7 +2114,7 @@ button.nav-section-label--button:hover { color: var(--fg); }
   transition: color 0.15s, background 0.15s;
 }
 .group-header-collapse:hover { color: var(--fg); }
-.group-header-collapse--expanded { background: var(--hover); color: var(--fg); }
+.group-header-collapse--expanded { color: var(--fg); }
 
 .group-header-name {
   font-size: 0.72rem;

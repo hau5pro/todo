@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { Pencil, Trash2, ChevronDown, ChevronRight, Copy, List, CheckCircle, MoreHorizontal, GripVertical } from 'lucide-react';
+import { Pencil, Trash2, ChevronDown, ChevronRight, Copy, List, CheckCircle, MoreHorizontal } from 'lucide-react';
+import { DragHandle, DeleteButton } from '../components/EditControls';
 import { AnimatePresence, motion, Reorder, useDragControls } from 'framer-motion';
 import { ease } from '../utils/easing';
 import { focusLater } from '../utils/dom';
@@ -68,11 +69,7 @@ function TaskRow({
       style={{ cursor: editMode ? 'grab' : 'default', opacity: dragging ? 0.4 : 1 }}
       transition={{ layout: { duration: 0.08, ease: 'easeOut' } }}
     >
-      <span style={{ width: editMode ? 44 : 0, opacity: editMode ? 1 : 0, overflow: 'hidden', flexShrink: 0, display: 'flex', transition: 'width 0.15s, opacity 0.15s' }}>
-        <span className="task-edit-drag" title="Drag to reorder" onPointerDown={(e) => dragControls.start(e)}>
-          <GripVertical size={ICON_SIZE} />
-        </span>
-      </span>
+      <DragHandle show={editMode} dragControls={dragControls} />
       {/* Wrap content in a draggable div so it doesn't conflict with FM's onDragStart typing */}
       <div
         style={{ flex: 1, minWidth: 0 }}
@@ -100,14 +97,7 @@ function TaskRow({
           isSelected={!editMode && isSelected}
         />
       </div>
-      <button
-        className="task-edit-delete"
-        onClick={onDelete}
-        title="Delete task"
-        style={{ width: editMode ? 44 : 0, opacity: editMode ? 1 : 0, overflow: 'hidden', transition: 'width 0.15s, opacity 0.15s' }}
-      >
-        <Trash2 size={ICON_SIZE} />
-      </button>
+      <DeleteButton show={editMode} onClick={onDelete} title="Delete task" />
     </Reorder.Item>
   );
 }
@@ -207,11 +197,7 @@ function GroupSection({
       onDrop={handleDrop}
     >
       <div className="group-header">
-        <span style={{ width: editMode ? 44 : 0, opacity: editMode ? 1 : 0, overflow: 'hidden', flexShrink: 0, display: 'flex', transition: 'width 0.15s, opacity 0.15s' }}>
-          <span className="task-edit-drag" onPointerDown={(e) => dragControls.start(e)}>
-            <GripVertical size={ICON_SIZE} />
-          </span>
-        </span>
+        <DragHandle show={editMode} dragControls={dragControls} />
         <button
           className={`group-header-collapse${!collapsed ? ' group-header-collapse--expanded' : ''}`}
           onClick={() => setCollapsed((p) => !p)}
@@ -266,14 +252,7 @@ function GroupSection({
             )}
           </AnimatePresence>
         </div>
-        <button
-          className="task-edit-delete"
-          onClick={() => setConfirmDelete(true)}
-          title="Delete group"
-          style={{ width: editMode ? 44 : 0, opacity: editMode ? 1 : 0, overflow: 'hidden', transition: 'width 0.15s, opacity 0.15s' }}
-        >
-          <Trash2 size={ICON_SIZE} />
-        </button>
+        <DeleteButton show={editMode} onClick={() => setConfirmDelete(true)} title="Delete group" />
       </div>
 
       <AnimatePresence>

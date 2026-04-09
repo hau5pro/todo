@@ -4,9 +4,10 @@ import { createPortal } from 'react-dom';
 import { Reorder, useDragControls, motion, AnimatePresence } from 'framer-motion';
 import {
   Sun, Settings, LogOut, ChevronDown, ChevronRight,
-  List, Plus, CheckCircle, Pencil, Menu, GripVertical,
+  List, Plus, CheckCircle, Pencil, Menu,
   FolderPlus, Folder, Trash2, CornerDownLeft, MoreHorizontal, HelpCircle,
 } from 'lucide-react';
+import { DragHandle, DeleteButton } from './EditControls';
 import { logOut } from '../supabase/auth';
 import { useSettings } from '../contexts/SettingsContext';
 import { useAppStore } from '../store';
@@ -93,26 +94,7 @@ function SortableItem({
       dragControls={dragControls}
       className={`nav-item-row${editMode ? ' nav-item-row--editing' : ''}`}
     >
-      <AnimatePresence initial={false}>
-        {editMode && (
-          <motion.span
-            style={{ overflow: 'hidden', flexShrink: 0, display: 'flex' }}
-            initial={{ width: 0, opacity: 0 }}
-            animate={{ width: 26, opacity: 1 }}
-            exit={{ width: 0, opacity: 0 }}
-            transition={{ duration: 0.15 }}
-          >
-            {/* ≡ handle — triggers FM reorder only */}
-            <span
-              className="nav-drag-icon"
-              title="Drag to reorder"
-              onPointerDown={(e) => dragControls.start(e)}
-            >
-              <GripVertical size={ICON_SIZE} />
-            </span>
-          </motion.span>
-        )}
-      </AnimatePresence>
+      <DragHandle show={editMode} dragControls={dragControls} />
       {/* List content — draggable in edit mode only for non-pinned lists */}
       {editMode ? (
         <div
@@ -135,21 +117,7 @@ function SortableItem({
           <span className="nav-item__name">{list.name}</span>
         </NavLink>
       )}
-      <AnimatePresence initial={false}>
-        {editMode && !pinned && (
-          <motion.button
-            className="nav-item-delete-btn"
-            onClick={handleDelete}
-            initial={{ width: 0, opacity: 0 }}
-            animate={{ width: 24, opacity: 1 }}
-            exit={{ width: 0, opacity: 0 }}
-            transition={{ duration: 0.15 }}
-            title="Delete list"
-          >
-            <Trash2 size={ICON_SIZE} />
-          </motion.button>
-        )}
-      </AnimatePresence>
+      <DeleteButton show={editMode && !pinned} onClick={handleDelete} title="Delete list" />
     </Reorder.Item>
   );
 }
@@ -165,21 +133,7 @@ function SortableMyDayItem({ editMode }: { editMode: boolean }) {
       dragControls={dragControls}
       className={`nav-item-row${editMode ? ' nav-item-row--editing' : ''}`}
     >
-      <AnimatePresence initial={false}>
-        {editMode && (
-          <motion.span
-            style={{ overflow: 'hidden', flexShrink: 0, display: 'flex' }}
-            initial={{ width: 0, opacity: 0 }}
-            animate={{ width: 26, opacity: 1 }}
-            exit={{ width: 0, opacity: 0 }}
-            transition={{ duration: 0.15 }}
-          >
-            <span className="nav-drag-icon" title="Drag to reorder" onPointerDown={(e) => dragControls.start(e)}>
-              <GripVertical size={ICON_SIZE} />
-            </span>
-          </motion.span>
-        )}
-      </AnimatePresence>
+      <DragHandle show={editMode} dragControls={dragControls} />
       {editMode ? (
         <div className="nav-item">
           <Sun size={ICON_SIZE} />
@@ -297,21 +251,7 @@ function FolderRow({
     >
       {/* Folder header */}
       <div className={`nav-folder-header${editMode ? ' nav-item-row--editing' : ''}`}>
-        <AnimatePresence initial={false}>
-          {editMode && (
-            <motion.span
-              style={{ overflow: 'hidden', flexShrink: 0, display: 'flex' }}
-              initial={{ width: 0, opacity: 0 }}
-              animate={{ width: 26, opacity: 1 }}
-              exit={{ width: 0, opacity: 0 }}
-              transition={{ duration: 0.15 }}
-            >
-              <span className="nav-drag-icon" title="Drag to reorder" onPointerDown={(e) => dragControls.start(e)}>
-                <GripVertical size={ICON_SIZE} />
-              </span>
-            </motion.span>
-          )}
-        </AnimatePresence>
+        <DragHandle show={editMode} dragControls={dragControls} />
 
         {!editMode && (
           <button
