@@ -540,79 +540,80 @@ export function ListView() {
 
   return (
     <div>
-      <motion.div variants={headerVariants} initial="hidden" animate="show">
-      <motion.div variants={headerItemVariants} className="view-title-row">
-        {editingListName ? (
-          <>
-            <input
-              ref={listNameInputRef}
-              className="view-title-input"
-              value={newListName}
-              onChange={(e) => setNewListName(e.target.value)}
-              onBlur={commitEditListName}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') commitEditListName();
-                if (e.key === 'Escape') setEditingListName(false);
-              }}
-            />
-            <button className="view-title-action-btn" onClick={commitEditListName} title="Save"><CheckCircle size={ICON_SIZE} /></button>
-          </>
-        ) : (
-          <>
-            {isPinned ? (
-              <span className="view-title-icon">
-                {getListIcon(list, 20) ?? <List size={20} />}
-              </span>
-            ) : (
-              <button
-                ref={iconBtnRef}
-                className={`view-title-icon-btn${iconPickerAnchor ? ' view-title-icon-btn--open' : ''}`}
-                onClick={() => iconPickerAnchor
-                  ? setIconPickerAnchor(null)
-                  : setIconPickerAnchor(iconBtnRef.current!.getBoundingClientRect())
-                }
-                title="Change icon"
-                aria-label="Change icon"
-                aria-expanded={!!iconPickerAnchor}
-              >
-                {getListIcon(list, 20) ?? <List size={20} />}
-              </button>
-            )}
-            <h1 className="view-title" onClick={!isPinned ? startEditListName : undefined} style={!isPinned ? { cursor: 'text' } : undefined}>{list.name}</h1>
-            <span className="view-title-actions">
-              <button
-                className="view-title-action-btn"
-                onClick={() => setTaskEditMode((m) => !m)}
-                title={taskEditMode ? 'Done editing' : 'Edit tasks'}
-                style={taskEditMode ? { color: 'var(--success)' } : undefined}
-              >
-                {taskEditMode
-                  ? <CheckCircle size={ICON_SIZE} />
-                  : <Pencil size={ICON_SIZE} />}
-              </button>
-              {!isPinned && (<>
-                <button className="view-title-action-btn" onClick={handleDuplicate} title="Duplicate list"><Copy size={ICON_SIZE} /></button>
-                <button className="view-title-action-btn view-title-action-btn--danger" onClick={() => setConfirmDeleteList(true)} title="Delete list"><Trash2 size={ICON_SIZE} /></button>
-              </>)}
-            </span>
-            <AnimatePresence>
-              {iconPickerAnchor && (
-                <IconPicker
-                  currentIcon={list.icon}
-                  anchorRect={iconPickerAnchor}
-                  onSelect={(icon) => updateListIcon(listId!, icon)}
-                  onClose={() => setIconPickerAnchor(null)}
-                />
+      <motion.div variants={headerVariants} initial="hidden" animate="show" className="view-header">
+        <motion.div variants={headerItemVariants} className="view-title-row">
+          {editingListName ? (
+            <>
+              <input
+                ref={listNameInputRef}
+                className="view-title-input"
+                value={newListName}
+                onChange={(e) => setNewListName(e.target.value)}
+                onBlur={commitEditListName}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') commitEditListName();
+                  if (e.key === 'Escape') setEditingListName(false);
+                }}
+              />
+              <button className="view-title-action-btn" onClick={commitEditListName} title="Save"><CheckCircle size={ICON_SIZE} /></button>
+            </>
+          ) : (
+            <>
+              {isPinned ? (
+                <span className="view-title-icon">
+                  {getListIcon(list, 20) ?? <List size={20} />}
+                </span>
+              ) : (
+                <button
+                  ref={iconBtnRef}
+                  className={`view-title-icon-btn${iconPickerAnchor ? ' view-title-icon-btn--open' : ''}`}
+                  onClick={() => iconPickerAnchor
+                    ? setIconPickerAnchor(null)
+                    : setIconPickerAnchor(iconBtnRef.current!.getBoundingClientRect())
+                  }
+                  title="Change icon"
+                  aria-label="Change icon"
+                  aria-expanded={!!iconPickerAnchor}
+                >
+                  {getListIcon(list, 20) ?? <List size={20} />}
+                </button>
               )}
-            </AnimatePresence>
-          </>
-        )}
-      </motion.div>
-      <motion.p variants={headerItemVariants} className="view-subtitle">
-        {list.type === 'general' ? 'tasks' : LIST_TYPE_LABELS[list.type]}
-      </motion.p>
+              <h1 className="view-title" onClick={!isPinned ? startEditListName : undefined} style={!isPinned ? { cursor: 'text' } : undefined}>{list.name}</h1>
+              <span className="view-title-actions">
+                <button
+                  className="view-title-action-btn"
+                  onClick={() => setTaskEditMode((m) => !m)}
+                  title={taskEditMode ? 'Done editing' : 'Edit tasks'}
+                  style={taskEditMode ? { color: 'var(--success)' } : undefined}
+                >
+                  {taskEditMode
+                    ? <CheckCircle size={ICON_SIZE} />
+                    : <Pencil size={ICON_SIZE} />}
+                </button>
+                {!isPinned && (<>
+                  <button className="view-title-action-btn" onClick={handleDuplicate} title="Duplicate list"><Copy size={ICON_SIZE} /></button>
+                  <button className="view-title-action-btn view-title-action-btn--danger" onClick={() => setConfirmDeleteList(true)} title="Delete list"><Trash2 size={ICON_SIZE} /></button>
+                </>)}
+              </span>
+              <AnimatePresence>
+                {iconPickerAnchor && (
+                  <IconPicker
+                    currentIcon={list.icon}
+                    anchorRect={iconPickerAnchor}
+                    onSelect={(icon) => updateListIcon(listId!, icon)}
+                    onClose={() => setIconPickerAnchor(null)}
+                  />
+                )}
+              </AnimatePresence>
+            </>
+          )}
+        </motion.div>
+        <motion.p variants={headerItemVariants} className="view-subtitle">
+          {list.type === 'general' ? 'tasks' : LIST_TYPE_LABELS[list.type]}
+        </motion.p>
       </motion.div>
 
+      <div className="view-body">
       {/* Ungrouped tasks + add task — unified drop zone to remove group assignment */}
       <div
         className={[
@@ -735,6 +736,7 @@ export function ListView() {
           </AnimatePresence>
         </section>
       )}
+      </div>
 
       <AnimatePresence>
         {confirmDeleteList && (

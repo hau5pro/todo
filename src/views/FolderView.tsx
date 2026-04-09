@@ -30,19 +30,17 @@ export function FolderView() {
   return (
     <div>
       <motion.div variants={headerVariants} initial="hidden" animate="show">
-        <motion.div variants={itemVariants} className="view-title-row">
-          <span className="view-title-icon">
-            <Folder size={20} />
-          </span>
-          <h1 className="view-title">{folder.name}</h1>
+        <motion.div variants={itemVariants} className="view-header">
+          <div className="view-title-row">
+            <span className="view-title-icon"><Folder size={20} /></span>
+            <h1 className="view-title">{folder.name}</h1>
+          </div>
+          <p className="view-subtitle">{folderLists.length} {folderLists.length === 1 ? 'list' : 'lists'}</p>
         </motion.div>
-        <motion.p variants={itemVariants} className="view-subtitle">
-          {folderLists.length} {folderLists.length === 1 ? 'list' : 'lists'}
-        </motion.p>
       </motion.div>
 
       <motion.div
-        className="folder-view-lists"
+        className="folder-view-lists view-body"
         variants={listVariants}
         initial="hidden"
         animate="show"

@@ -725,7 +725,7 @@ button.nav-section-label--button:hover { color: var(--fg); }
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 9px 10px;
+  padding: 9px 10px 9px 0;
   border-radius: 7px;
   color: var(--fg);
   text-decoration: none;
@@ -1214,6 +1214,32 @@ button.nav-section-label--button:hover { color: var(--fg); }
   letter-spacing: 0.1em;
   color: var(--fg-muted);
   margin: 1.5rem 0 0.625rem;
+}
+
+.view-header {
+  margin-bottom: 0.75rem;
+}
+
+.view-body {
+  padding-left: calc(var(--touch-size) + 6px);
+}
+
+.view-header .view-subtitle {
+  margin-top: 0;
+}
+
+/* Match plain icon span dimensions to touch-target button so title row height is consistent */
+/* +4px accounts for the 2px padding on .view-title-actions that wraps buttons in other views */
+.view-title-row .view-title-icon {
+  width: var(--touch-size);
+  height: calc(var(--touch-size) + 4px);
+  flex-shrink: 0;
+}
+
+/* Indent subtitle to align its text under the heading text */
+.view-header .view-subtitle {
+  margin: 0.1rem 0 0;
+  padding-left: calc(var(--touch-size) + 6px);
 }
 
 .view-title-row {

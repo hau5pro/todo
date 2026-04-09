@@ -111,23 +111,26 @@ export function DailyView() {
 
   return (
     <div>
-      <div className="view-title-row">
-        {list && getListIcon(list, 20) && <span className="view-title-icon">{getListIcon(list, 20)}</span>}
-        <h1 className="view-title">{list?.name ?? 'Habits'}</h1>
-        <span className="view-title-actions">
-          <button
-            className="view-title-action-btn"
-            onClick={() => setHabitEditMode((m) => !m)}
-            title={habitEditMode ? 'Done editing' : 'Edit habits'}
-            style={habitEditMode ? { color: 'var(--success)' } : undefined}
-          >
-            {habitEditMode
-              ? <CheckCircle size={ICON_SIZE} />
-              : <Pencil size={ICON_SIZE} />}
-          </button>
-        </span>
+      <div className="view-header">
+        <div className="view-title-row">
+          {list && getListIcon(list, 20) && <span className="view-title-icon">{getListIcon(list, 20)}</span>}
+          <h1 className="view-title">{list?.name ?? 'Habits'}</h1>
+          <span className="view-title-actions">
+            <button
+              className="view-title-action-btn"
+              onClick={() => setHabitEditMode((m) => !m)}
+              title={habitEditMode ? 'Done editing' : 'Edit habits'}
+              style={habitEditMode ? { color: 'var(--success)' } : undefined}
+            >
+              {habitEditMode
+                ? <CheckCircle size={ICON_SIZE} />
+                : <Pencil size={ICON_SIZE} />}
+            </button>
+          </span>
+        </div>
+        <p className="view-subtitle">{list ? LIST_TYPE_LABELS[list.type] : 'daily'}</p>
       </div>
-      <p className="view-subtitle">{list ? LIST_TYPE_LABELS[list.type] : 'daily'}</p>
+      <div className="view-body">
       <form onSubmit={handleAdd}>
         <input
           className="add-task-input"
@@ -152,6 +155,7 @@ export function DailyView() {
           />
         ))}
       </Reorder.Group>
+      </div>
     </div>
   );
 }
