@@ -1,17 +1,10 @@
 import { useParams } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Pencil, CheckCircle } from 'lucide-react';
-import { Reorder, useDragControls } from 'framer-motion';
 import { DragHandle, DeleteButton } from '../components/EditControls';
-
-const habitListVariants = {
-  show: { transition: { staggerChildren: 0.04, delayChildren: 0.05 } },
-};
-const habitItemVariants = {
-  hidden: { opacity: 0, y: 6 },
-  show:   { opacity: 1, y: 0, transition: { duration: 0.2, ease: 'easeOut' as const } },
-};
 import { useHabits } from '../hooks/useHabits';
+import { useLineDrag } from '../hooks/useLineDrag';
 import { useAppStore } from '../store';
 import { useTaskDetail } from '../contexts/TaskDetailContext';
 import { useSettings } from '../contexts/SettingsContext';
@@ -24,19 +17,19 @@ import { ICON_SIZE } from '../config/constants';
 import type { HabitRow } from '../hooks/useHabits';
 import { applyOrder } from '../utils/order';
 
-function HabitRow({ row, editMode, onToggle, onSelect, onDelete, isSelected }: {
+function HabitRow({ row, editMode, onToggle, onSelect, onDelete, isSelected, onReorderStart }: {
   row: HabitRow; editMode: boolean;
   onToggle: () => void; onSelect: () => void; onDelete: () => void; isSelected: boolean;
+  onReorderStart?: (e: React.PointerEvent) => void;
 }) {
-  const dragControls = useDragControls();
   return (
-    <Reorder.Item as="div" value={row} dragListener={false} dragControls={dragControls}
-      variants={habitItemVariants}
+    <div
+      data-reorder-id={row.task.id}
       className={`task-row${editMode ? ' task-row--editing' : ''}`}
       style={{ cursor: 'default' }}
     >
       <div className="nav-item-drag-zone">
-        <DragHandle show={editMode} dragControls={dragControls} />
+        <DragHandle show={editMode} onPointerDown={onReorderStart} />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <HabitItem
@@ -49,7 +42,7 @@ function HabitRow({ row, editMode, onToggle, onSelect, onDelete, isSelected }: {
         />
       </div>
       <DeleteButton show={editMode} onClick={onDelete} title="Delete habit" />
-    </Reorder.Item>
+    </div>
   );
 }
 
@@ -74,13 +67,19 @@ export function DailyView() {
     setHabitEditMode(false);
   }, [listId]);
 
+  const scrollRef = useRef<HTMLElement>(null);
+  const { dragId, startDrag, ghostRef, lineRef } = useLineDrag({
+    scrollRef,
+    onCommit: (_dragId, _context, newIds) => {
+      setListOrder(listId!, newIds);
+    },
+  });
+
   if (isLoading) return null;
 
   const orderedRows = applyOrder(rows, listOrders[listId!] ?? [], (r) => r.task.id);
 
-  function handleReorder(reordered: typeof rows) {
-    setListOrder(listId!, reordered.map((r) => r.task.id));
-  }
+  const ghostRow = dragId ? orderedRows.find((r) => r.task.id === dragId) : null;
 
   async function handleToggle(taskId: string) {
     await toggleHabitCompletion(taskId, today);
@@ -102,52 +101,63 @@ export function DailyView() {
   }
 
   return (
-    <div>
-      <div className="view-header">
-        {list && getListIcon(list, 20) && <span className="view-title-icon">{getListIcon(list, 20)}</span>}
-        <div className="view-title-row">
-          <h1 className="view-title">{list?.name ?? 'Habits'}</h1>
-          <span className="view-title-actions">
-            <button
-              className="view-title-action-btn"
-              onClick={() => setHabitEditMode((m) => !m)}
-              title={habitEditMode ? 'Done editing' : 'Edit habits'}
-              style={habitEditMode ? { color: 'var(--success)' } : undefined}
-            >
-              {habitEditMode
-                ? <CheckCircle size={ICON_SIZE} />
-                : <Pencil size={ICON_SIZE} />}
-            </button>
-          </span>
+    <>
+      {ghostRow && createPortal(
+        <div ref={ghostRef} className="folder-drag-ghost" style={{ display: 'none' }}>
+          {ghostRow.task.title}
+        </div>,
+        document.body
+      )}
+      {createPortal(
+        <div ref={lineRef} className="nav-reorder-line" style={{ opacity: 0 }} />,
+        document.body
+      )}
+      <div>
+        <div className="view-header">
+          {list && getListIcon(list, 20) && <span className="view-title-icon">{getListIcon(list, 20)}</span>}
+          <div className="view-title-row">
+            <h1 className="view-title">{list?.name ?? 'Habits'}</h1>
+            <span className="view-title-actions">
+              <button
+                className="view-title-action-btn"
+                onClick={() => setHabitEditMode((m) => !m)}
+                title={habitEditMode ? 'Done editing' : 'Edit habits'}
+                style={habitEditMode ? { color: 'var(--success)' } : undefined}
+              >
+                {habitEditMode
+                  ? <CheckCircle size={ICON_SIZE} />
+                  : <Pencil size={ICON_SIZE} />}
+              </button>
+            </span>
+          </div>
+          <p className="view-subtitle">{list ? LIST_TYPE_LABELS[list.type] : 'daily'}</p>
         </div>
-        <p className="view-subtitle">{list ? LIST_TYPE_LABELS[list.type] : 'daily'}</p>
+        <div className="view-body">
+          <form onSubmit={handleAdd}>
+            <input
+              className="add-task-input"
+              placeholder="+ Add habit"
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
+              onBlur={commitAdd}
+            />
+          </form>
+          <div data-reorder-context={listId}>
+            {orderedRows.map((row) => (
+              <HabitRow
+                key={row.task.id}
+                row={row}
+                editMode={habitEditMode}
+                onToggle={() => handleToggle(row.task.id)}
+                onSelect={() => detail?.task.id === row.task.id ? closeDetail() : openDetail({ task: row.task })}
+                onDelete={() => removeTask(row.task.id, listId!).then(reload)}
+                isSelected={detail?.task.id === row.task.id}
+                onReorderStart={(e) => startDrag(e, row.task.id, listId!, 'task-row--dragging')}
+              />
+            ))}
+          </div>
+        </div>
       </div>
-      <div className="view-body">
-      <form onSubmit={handleAdd}>
-        <input
-          className="add-task-input"
-          placeholder="+ Add habit"
-          value={newTitle}
-          onChange={(e) => setNewTitle(e.target.value)}
-          onBlur={commitAdd}
-        />
-      </form>
-      <Reorder.Group as="div" axis="y" values={orderedRows} onReorder={handleReorder}
-        variants={habitListVariants} initial="hidden" animate="show"
-      >
-        {orderedRows.map((row) => (
-          <HabitRow
-            key={row.task.id}
-            row={row}
-            editMode={habitEditMode}
-            onToggle={() => handleToggle(row.task.id)}
-            onSelect={() => detail?.task.id === row.task.id ? closeDetail() : openDetail({ task: row.task })}
-            onDelete={() => removeTask(row.task.id, listId!).then(reload)}
-            isSelected={detail?.task.id === row.task.id}
-          />
-        ))}
-      </Reorder.Group>
-      </div>
-    </div>
+    </>
   );
 }

@@ -2083,6 +2083,12 @@ button.nav-section-label--button:hover { color: var(--fg); }
   pointer-events: none;
 }
 
+.task-row--dragging,
+.folder-view-list-item-row--dragging {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
 .sidebar-collapsed-divider {
   width: 20px;
   height: 1px;
