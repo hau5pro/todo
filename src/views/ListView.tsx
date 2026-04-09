@@ -521,6 +521,39 @@ export function ListView() {
   return (
     <div>
       <motion.div variants={headerVariants} initial="hidden" animate="show" className="view-header">
+        <motion.div variants={headerItemVariants}>
+          {isPinned ? (
+            <span className="view-title-icon">
+              {getListIcon(list, 20) ?? <List size={20} />}
+            </span>
+          ) : (
+            <>
+              <button
+                ref={iconBtnRef}
+                className={`view-title-icon-btn${iconPickerAnchor ? ' view-title-icon-btn--open' : ''}`}
+                onClick={() => iconPickerAnchor
+                  ? setIconPickerAnchor(null)
+                  : setIconPickerAnchor(iconBtnRef.current!.getBoundingClientRect())
+                }
+                title="Change icon"
+                aria-label="Change icon"
+                aria-expanded={!!iconPickerAnchor}
+              >
+                {getListIcon(list, 20) ?? <List size={20} />}
+              </button>
+              <AnimatePresence>
+                {iconPickerAnchor && (
+                  <IconPicker
+                    currentIcon={list.icon}
+                    anchorRect={iconPickerAnchor}
+                    onSelect={(icon) => updateListIcon(listId!, icon)}
+                    onClose={() => setIconPickerAnchor(null)}
+                  />
+                )}
+              </AnimatePresence>
+            </>
+          )}
+        </motion.div>
         <motion.div variants={headerItemVariants} className="view-title-row">
           {editingListName ? (
             <>
@@ -539,25 +572,6 @@ export function ListView() {
             </>
           ) : (
             <>
-              {isPinned ? (
-                <span className="view-title-icon">
-                  {getListIcon(list, 20) ?? <List size={20} />}
-                </span>
-              ) : (
-                <button
-                  ref={iconBtnRef}
-                  className={`view-title-icon-btn${iconPickerAnchor ? ' view-title-icon-btn--open' : ''}`}
-                  onClick={() => iconPickerAnchor
-                    ? setIconPickerAnchor(null)
-                    : setIconPickerAnchor(iconBtnRef.current!.getBoundingClientRect())
-                  }
-                  title="Change icon"
-                  aria-label="Change icon"
-                  aria-expanded={!!iconPickerAnchor}
-                >
-                  {getListIcon(list, 20) ?? <List size={20} />}
-                </button>
-              )}
               <h1 className="view-title" onClick={!isPinned ? startEditListName : undefined} style={!isPinned ? { cursor: 'text' } : undefined}>{list.name}</h1>
               <span className="view-title-actions">
                 <button
@@ -575,16 +589,6 @@ export function ListView() {
                   <button className="view-title-action-btn view-title-action-btn--danger" onClick={() => setConfirmDeleteList(true)} title="Delete list"><Trash2 size={ICON_SIZE} /></button>
                 </>)}
               </span>
-              <AnimatePresence>
-                {iconPickerAnchor && (
-                  <IconPicker
-                    currentIcon={list.icon}
-                    anchorRect={iconPickerAnchor}
-                    onSelect={(icon) => updateListIcon(listId!, icon)}
-                    onClose={() => setIconPickerAnchor(null)}
-                  />
-                )}
-              </AnimatePresence>
             </>
           )}
         </motion.div>

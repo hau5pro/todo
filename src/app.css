@@ -1264,9 +1264,6 @@ button.nav-section-label--button:hover { color: var(--fg); }
   margin-bottom: 0.75rem;
 }
 
-.view-body {
-  padding-left: calc(var(--touch-size) + 6px);
-}
 
 .view-header .view-subtitle {
   margin-top: 0;
@@ -1274,16 +1271,9 @@ button.nav-section-label--button:hover { color: var(--fg); }
 
 /* Match plain icon span dimensions to touch-target button so title row height is consistent */
 /* +4px accounts for the 2px padding on .view-title-actions that wraps buttons in other views */
-.view-title-row .view-title-icon {
-  width: var(--touch-size);
-  height: calc(var(--touch-size) + 4px);
-  flex-shrink: 0;
-}
-
 /* Indent subtitle to align its text under the heading text */
 .view-header .view-subtitle {
   margin: 0.1rem 0 0;
-  padding-left: calc(var(--touch-size) + 6px);
 }
 
 .view-title-row {
@@ -1297,9 +1287,9 @@ button.nav-section-label--button:hover { color: var(--fg); }
 .view-title-icon {
   display: flex;
   align-items: center;
-  justify-content: center;
   flex-shrink: 0;
   line-height: 1;
+  margin-bottom: 4px;
 }
 
 .view-title {
@@ -1352,12 +1342,14 @@ button.nav-section-label--button:hover { color: var(--fg); }
 /* ── List icon button (opens picker) ───────────────────────── */
 .view-title-icon-btn {
   display: flex;
+  width: fit-content;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   background: none;
   border: none;
   padding: 4px;
+  margin-left: -14px;
   border-radius: 6px;
   color: var(--fg-muted);
   cursor: pointer;

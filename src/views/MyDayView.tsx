@@ -85,8 +85,8 @@ export function MyDayView() {
     <div>
       <motion.div variants={containerVariants} initial="hidden" animate="show">
       <motion.div variants={itemVariants} className="view-header">
+        <span className="view-title-icon"><Sun size={20} /></span>
         <div className="view-title-row">
-          <span className="view-title-icon"><Sun size={20} /></span>
           <h1 className="view-title">My Day</h1>
         </div>
         <p className="view-subtitle">{todayLabel}</p>

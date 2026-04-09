@@ -94,8 +94,8 @@ export function FolderView() {
     <div>
       <motion.div variants={headerVariants} initial="hidden" animate="show">
         <motion.div variants={itemVariants} className="view-header">
+          <span className="view-title-icon"><Folder size={20} /></span>
           <div className="view-title-row">
-            <span className="view-title-icon"><Folder size={20} /></span>
             <h1 className="view-title">{folder.name}</h1>
             <span className="view-title-actions">
               <button

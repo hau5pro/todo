@@ -102,8 +102,8 @@ export function DailyView() {
   return (
     <div>
       <div className="view-header">
+        {list && getListIcon(list, 20) && <span className="view-title-icon">{getListIcon(list, 20)}</span>}
         <div className="view-title-row">
-          {list && getListIcon(list, 20) && <span className="view-title-icon">{getListIcon(list, 20)}</span>}
           <h1 className="view-title">{list?.name ?? 'Habits'}</h1>
           <span className="view-title-actions">
             <button
