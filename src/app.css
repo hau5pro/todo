@@ -586,6 +586,35 @@ button.nav-section-label--button:hover { color: var(--fg); }
 }
 .nav-add-option:hover { background: var(--hover); color: var(--fg); }
 
+/* ── Folder inline options ───────────────────────────────── */
+.nav-folder-options {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 2px 4px 6px;
+  background: var(--hover);
+  border-radius: 6px;
+  margin: 2px 0 4px;
+}
+
+.nav-folder-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 5px;
+  font-size: 0.8125rem;
+  color: var(--fg-muted);
+  transition: background 0.12s, color 0.12s;
+  text-align: left;
+}
+.nav-folder-option:hover { background: var(--hover); color: var(--fg); }
+.nav-folder-option--danger:hover { color: var(--danger, #e53e3e); }
+
 /* ── Folder picker popover ───────────────────────────────── */
 .folder-picker-backdrop {
   position: fixed;
@@ -1933,6 +1962,7 @@ button.nav-section-label--button:hover { color: var(--fg); }
 .nav-icon-btn,
 .nav-item-delete-btn,
 .nav-add-option,
+.nav-folder-option,
 .nav-section-toggle,
 .view-title-icon-btn,
 .icon-picker-btn,

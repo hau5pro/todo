@@ -175,17 +175,11 @@ function FolderRow({
   const [editingName, setEditingName] = useState(false);
   const [newName, setNewName] = useState(folder.name);
   const [showMenu, setShowMenu] = useState(false);
-  const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const menuBtnRef = useRef<HTMLButtonElement>(null);
 
   function openMenu() {
-    if (menuBtnRef.current) {
-      const rect = menuBtnRef.current.getBoundingClientRect();
-      setMenuPos({ top: rect.bottom + 4, left: rect.left });
-    }
-    setShowMenu(true);
+    setShowMenu((p) => !p);
   }
 
   function closeMenu() {
@@ -294,28 +288,34 @@ function FolderRow({
         ))}
 
         {!editingName && (
-          <button ref={menuBtnRef} className="nav-folder-menu-btn" onClick={openMenu} title="Folder options">
+          <button className="nav-folder-menu-btn" onClick={openMenu} title="Folder options" aria-expanded={showMenu}>
             <MoreHorizontal size={ICON_SIZE} />
           </button>
         )}
-
-        {showMenu && menuPos && createPortal(
-          <>
-            <div className="folder-picker-backdrop" onClick={closeMenu} />
-            <div className="folder-picker" style={{ position: 'fixed', top: menuPos.top, left: menuPos.left }}>
-              <button onClick={startRename}>
-                <Pencil size={ICON_SIZE} />
-                Rename
-              </button>
-              <button className="folder-picker-danger" onClick={handleDelete}>
-                <Trash2 size={ICON_SIZE} />
-                Delete
-              </button>
-            </div>
-          </>,
-          document.body
-        )}
       </div>
+
+      {/* Folder options menu */}
+      <AnimatePresence initial={false}>
+        {showMenu && (
+          <motion.div
+            className="nav-folder-options"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            style={{ overflow: 'hidden' }}
+          >
+            <button className="nav-folder-option" onClick={startRename}>
+              <Pencil size={ICON_SIZE} />
+              Rename
+            </button>
+            <button className="nav-folder-option nav-folder-option--danger" onClick={handleDelete}>
+              <Trash2 size={ICON_SIZE} />
+              Delete
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Lists inside folder */}
       <AnimatePresence initial={false}>
