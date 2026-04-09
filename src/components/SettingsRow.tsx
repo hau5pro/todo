@@ -6,7 +6,7 @@ export function SettingsRow({ label, sublabel, checked, onChange }: {
 }) {
   return (
     <div className="settings-row">
-      <div>
+      <div style={{ flex: 1, minWidth: 0, paddingRight: '1rem' }}>
         <div style={{ fontSize: '0.875rem', fontWeight: 500 }}>{label}</div>
         {sublabel && (
           <div style={{ fontSize: '0.72rem', color: 'var(--fg-muted)', fontFamily: 'var(--mono)', marginTop: '0.15rem' }}>{sublabel}</div>
