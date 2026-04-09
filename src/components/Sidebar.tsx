@@ -1032,7 +1032,7 @@ export function Sidebar() {
                 </span>
                 <button
                   className="sidebar-collapse-btn sidebar-collapse-btn--toggle"
-                  onClick={() => setSidebarCollapsed(true)}
+                  onClick={() => { setSidebarCollapsed(true); setEditMode(false); }}
                   title="Collapse sidebar"
                 >
                   <Menu size={ICON_SIZE} />
@@ -1196,16 +1196,16 @@ export function Sidebar() {
             </div>{/* end sidebar-expanded-scroll */}
 
             <div className="sidebar-expanded-bottom">
-            <NavLink to="/docs" className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'}>
+            <NavLink to="/docs" className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'} onClick={() => setEditMode(false)}>
               <HelpCircle size={ICON_SIZE} />
               Help
             </NavLink>
-            <NavLink to="/settings" className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'}>
+            <NavLink to="/settings" className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'} onClick={() => setEditMode(false)}>
               <Settings size={ICON_SIZE} />
               Settings
             </NavLink>
             <div style={{ height: '0.5rem' }} />
-            <button className="nav-item nav-btn nav-item--signout" onClick={() => logOut(localOnly, setLocalOnly).catch(console.error)}>
+            <button className="nav-item nav-btn nav-item--signout" onClick={() => { setEditMode(false); logOut(localOnly, setLocalOnly).catch(console.error); }}>
               <LogOut size={ICON_SIZE} />
               Sign out
             </button>
