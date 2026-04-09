@@ -42,14 +42,13 @@ function reorderGroupInGlobal(globalOrder: string[], newGroupOrder: string[]): s
 }
 
 function TaskRow({
-  task, editMode, today, dragging, onDragStart, onDragEnd,
-  onToggle, onSelect, onDelete, isSelected, onReorderStart,
+  task, editMode, today, dragging,
+  onToggle, onSelect, onDelete, isSelected, onReorderStart, onGroupDragStart,
 }: {
   task: Task; editMode: boolean; today: string; dragging: boolean;
-  onDragStart: (e: React.DragEvent) => void;
-  onDragEnd: () => void;
   onToggle: () => void; onSelect: () => void; onDelete: () => void; isSelected: boolean;
   onReorderStart?: (e: React.PointerEvent) => void;
+  onGroupDragStart?: (e: React.PointerEvent) => void;
 }) {
   return (
     <div
@@ -60,21 +59,9 @@ function TaskRow({
       <div className="nav-item-drag-zone">
         <DragHandle show={editMode} onPointerDown={onReorderStart} />
       </div>
-      {/* Wrap content in a draggable div so it doesn't conflict with FM's onDragStart typing */}
       <div
-        style={{ flex: 1, minWidth: 0 }}
-        title={editMode ? 'Drag to move to group' : undefined}
-        draggable={editMode}
-        onDragStart={editMode ? (e) => {
-          const ghost = document.createElement('div');
-          ghost.className = 'task-drag-ghost';
-          ghost.textContent = task.title;
-          document.body.appendChild(ghost);
-          e.dataTransfer.setDragImage(ghost, 0, 0);
-          requestAnimationFrame(() => document.body.removeChild(ghost));
-          onDragStart(e);
-        } : undefined}
-        onDragEnd={editMode ? onDragEnd : undefined}
+        style={{ flex: 1, minWidth: 0, touchAction: editMode ? 'none' : undefined }}
+        onPointerDown={editMode ? onGroupDragStart : undefined}
       >
         <TaskItem
           title={task.title}
@@ -93,32 +80,28 @@ function TaskRow({
 }
 
 function GroupSection({
-  groupName, tasks, editMode, today, listId, draggingTaskId,
-  startDrag, onToggle, onSelect, onDelete, onRename, onDeleteGroup, onTaskDragStart, onTaskDragEnd, selectedTaskId,
+  groupName, tasks, editMode, today, draggingTaskId,
+  startDrag, onGroupDragStart, onToggle, onSelect, onDelete, onRename, onDeleteGroup, selectedTaskId,
 }: {
   groupName: string;
   tasks: Task[];
   editMode: boolean;
   today: string;
-  listId: string;
   draggingTaskId: string | null;
   startDrag: (e: React.PointerEvent, id: string, context: string, cls?: string) => void;
+  onGroupDragStart: (e: React.PointerEvent, taskId: string) => void;
   onToggle: (task: Task) => void;
   onSelect: (task: Task) => void;
   onDelete: (task: Task) => void;
   onRename: (oldName: string, newName: string) => void;
   onDeleteGroup: (name: string) => void;
-  onTaskDragStart: (taskId: string) => void;
-  onTaskDragEnd: () => void;
   selectedTaskId: string | undefined;
 }) {
-  const { moveTaskToGroup } = useAppStore();
   const [collapsed, setCollapsed] = useState(false);
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState(groupName);
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [isDragOver, setIsDragOver] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -145,37 +128,14 @@ function GroupSection({
     setEditingName(false);
   }
 
-  function handleDragOver(e: React.DragEvent) {
-    if (!draggingTaskId) return;
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    setIsDragOver(true);
-  }
-
-  function handleDragLeave(e: React.DragEvent) {
-    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-      setIsDragOver(false);
-    }
-  }
-
-  async function handleDrop(e: React.DragEvent) {
-    e.preventDefault();
-    setIsDragOver(false);
-    const taskId = e.dataTransfer.getData('text/plain');
-    if (taskId) await moveTaskToGroup(taskId, listId, groupName);
-  }
-
   return (
     <div
       data-reorder-id={groupName}
+      data-group-id={groupName}
       className={[
         'group-section',
         draggingTaskId ? 'group-section--dragging' : '',
-        isDragOver ? 'group-section--drag-over' : '',
       ].filter(Boolean).join(' ')}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
     >
       <div className={`group-header${editMode ? ' group-header--editing' : ''}`}>
         <div className="nav-item-drag-zone">
@@ -256,17 +216,12 @@ function GroupSection({
                   editMode={editMode}
                   today={today}
                   dragging={task.id === draggingTaskId}
-                  onDragStart={(e) => {
-                    e.dataTransfer.effectAllowed = 'move';
-                    e.dataTransfer.setData('text/plain', task.id);
-                    onTaskDragStart(task.id);
-                  }}
-                  onDragEnd={onTaskDragEnd}
                   onToggle={() => onToggle(task)}
                   onSelect={() => onSelect(task)}
                   onDelete={() => onDelete(task)}
                   isSelected={selectedTaskId === task.id}
                   onReorderStart={(e) => startDrag(e, task.id, groupName, 'task-row--dragging')}
+                  onGroupDragStart={(e) => onGroupDragStart(e, task.id)}
                 />
               ))}
             </div>
@@ -329,10 +284,11 @@ export function ListView() {
   const [iconPickerAnchor, setIconPickerAnchor] = useState<DOMRect | null>(null);
   const [taskEditMode, setTaskEditMode] = useState(false);
   const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
-  const [ungroupedDragOver, setUngroupedDragOver] = useState(false);
   const listNameInputRef = useRef<HTMLInputElement>(null);
   const iconBtnRef = useRef<HTMLButtonElement>(null);
   const scrollRef = useRef<HTMLElement>(null);
+  const groupDragTargetRef = useRef<string | null>(null);
+  const groupGhostRef = useRef<HTMLDivElement>(null);
   const { dragId, startDrag, ghostRef, lineRef } = useLineDrag({
     scrollRef,
     onCommit: (_id, context, newIds) => {
@@ -370,6 +326,65 @@ export function ListView() {
     observer.observe(sentinel);
     return () => observer.disconnect();
   }, [showCompleted, completedVisible]);
+
+  // Pointer-based cross-group drag
+  useEffect(() => {
+    if (!draggingTaskId) return;
+    const taskId = draggingTaskId;
+
+    function highlight(id: string | null) {
+      if (!id) return;
+      const cls = id === '__ungrouped__' ? 'ungrouped-drop-zone--active' : 'group-section--drag-over';
+      document.querySelector(`[data-group-id="${id}"]`)?.classList.add(cls);
+    }
+    function unhighlight(id: string | null) {
+      if (!id) return;
+      const cls = id === '__ungrouped__' ? 'ungrouped-drop-zone--active' : 'group-section--drag-over';
+      document.querySelector(`[data-group-id="${id}"]`)?.classList.remove(cls);
+    }
+
+    function onMove(e: PointerEvent) {
+      if (groupGhostRef.current) {
+        groupGhostRef.current.style.display = 'flex';
+        groupGhostRef.current.style.left = `${e.clientX + 12}px`;
+        groupGhostRef.current.style.top = `${e.clientY + 12}px`;
+      }
+      const el = document.elementFromPoint(e.clientX, e.clientY);
+      const groupEl = el?.closest('[data-group-id]');
+      const newTarget = groupEl?.getAttribute('data-group-id') ?? null;
+      if (newTarget !== groupDragTargetRef.current) {
+        unhighlight(groupDragTargetRef.current);
+        highlight(newTarget);
+        groupDragTargetRef.current = newTarget;
+      }
+    }
+
+    function cleanup() {
+      unhighlight(groupDragTargetRef.current);
+      groupDragTargetRef.current = null;
+      if (groupGhostRef.current) groupGhostRef.current.style.display = 'none';
+    }
+
+    function onUp() {
+      const target = groupDragTargetRef.current;
+      cleanup();
+      if (target === '__ungrouped__') moveTaskToGroup(taskId, listId!, null);
+      else if (target) moveTaskToGroup(taskId, listId!, target);
+      setDraggingTaskId(null);
+    }
+
+    function onCancel() { cleanup(); setDraggingTaskId(null); }
+
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onCancel);
+    return () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onCancel);
+      cleanup();
+    };
+  }, [draggingTaskId]);
 
   // Auto-sync group order: add any new groups that appear in tasks
   useEffect(() => {
@@ -412,6 +427,7 @@ export function ListView() {
 
   const ghostTask = dragId ? activeTasks.find((t) => t.id === dragId) : null;
   const ghostLabel = ghostTask?.title ?? (dragId && allGroupNames.includes(dragId) ? dragId : null);
+  const groupDragTask = draggingTaskId ? activeTasks.find((t) => t.id === draggingTaskId) : null;
 
   async function handleToggle(task: typeof tasks[0]) {
     if (task.recurrence_interval) {
@@ -478,32 +494,6 @@ export function ListView() {
     setListGroupOrder(listId!, current.filter((g) => g !== name));
   }
 
-  // Ungrouped drop zone handlers
-  function handleUngroupedDragOver(e: React.DragEvent) {
-    if (!draggingTaskId) return;
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    setUngroupedDragOver(true);
-  }
-
-  function handleUngroupedDragLeave(e: React.DragEvent) {
-    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-      setUngroupedDragOver(false);
-    }
-  }
-
-  async function handleUngroupedDrop(e: React.DragEvent) {
-    e.preventDefault();
-    setUngroupedDragOver(false);
-    const taskId = e.dataTransfer.getData('text/plain');
-    if (taskId) await moveTaskToGroup(taskId, listId!, null);
-  }
-
-  function handleTaskDragStart(e: React.DragEvent, taskId: string) {
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', taskId);
-    setDraggingTaskId(taskId);
-  }
 
   return (
     <>
@@ -515,6 +505,12 @@ export function ListView() {
       )}
       {createPortal(
         <div ref={lineRef} className="nav-reorder-line" style={{ opacity: 0 }} />,
+        document.body
+      )}
+      {groupDragTask && createPortal(
+        <div ref={groupGhostRef} className="folder-drag-ghost" style={{ display: 'none' }}>
+          {groupDragTask.title}
+        </div>,
         document.body
       )}
     <div>
@@ -598,15 +594,12 @@ export function ListView() {
       <div className="view-body">
       {/* Ungrouped tasks + add task — unified drop zone to remove group assignment */}
       <div
+        data-group-id="__ungrouped__"
         className={[
           'ungrouped-drop-zone',
           taskEditMode ? 'ungrouped-drop-zone--editing' : '',
           draggingTaskId ? 'ungrouped-drop-zone--dragging' : '',
-          ungroupedDragOver ? 'ungrouped-drop-zone--active' : '',
         ].filter(Boolean).join(' ')}
-        onDragOver={handleUngroupedDragOver}
-        onDragLeave={handleUngroupedDragLeave}
-        onDrop={handleUngroupedDrop}
       >
         <motion.form
           initial={{ opacity: 0, y: 5 }}
@@ -632,13 +625,12 @@ export function ListView() {
               editMode={taskEditMode}
               today={today}
               dragging={task.id === draggingTaskId}
-              onDragStart={(e) => handleTaskDragStart(e, task.id)}
-              onDragEnd={() => setDraggingTaskId(null)}
               onToggle={() => handleToggle(task)}
               onSelect={() => handleSelectTask(task)}
               onDelete={() => removeTask(task.id, listId!)}
               isSelected={detail?.task.id === task.id}
               onReorderStart={(e) => startDrag(e, task.id, 'ungrouped', 'task-row--dragging')}
+              onGroupDragStart={(e) => { e.preventDefault(); setDraggingTaskId(task.id); }}
             />
           ))}
         </div>
@@ -653,15 +645,13 @@ export function ListView() {
             tasks={groupMap.get(groupName) ?? []}
             editMode={taskEditMode}
             today={today}
-            listId={listId!}
             draggingTaskId={draggingTaskId}
             onToggle={handleToggle}
             onSelect={handleSelectTask}
             onDelete={(task) => removeTask(task.id, listId!)}
             onRename={handleRenameGroup}
             onDeleteGroup={handleDeleteGroup}
-            onTaskDragStart={(taskId) => setDraggingTaskId(taskId)}
-            onTaskDragEnd={() => setDraggingTaskId(null)}
+            onGroupDragStart={(e, taskId) => { e.preventDefault(); setDraggingTaskId(taskId); }}
             selectedTaskId={detail?.task.id}
             startDrag={startDrag}
           />
