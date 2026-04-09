@@ -281,8 +281,8 @@ function GroupSection({
           <motion.div
             className="group-section__body"
             initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1, overflow: 'visible' }}
+            exit={{ height: 0, opacity: 0, overflow: 'hidden' }}
             transition={{ duration: 0.2, ease: ease.out }}
             style={{ overflow: 'hidden' }}
           >
