@@ -103,7 +103,15 @@ export function DocsView() {
     <div style={{ maxWidth: 480, margin: '0 auto' }}>
       <div className="view-title-row" style={{ marginBottom: '2rem' }}>
         <h1 className="view-title">Help</h1>
+        <span style={{ fontSize: '0.75rem', color: 'var(--fg-muted)', opacity: 0.6, alignSelf: 'flex-end', paddingBottom: '0.2rem' }}>v{__APP_VERSION__}</span>
       </div>
+
+      <section className="settings-section">
+        <div className="settings-section-title">About</div>
+        <p style={{ fontSize: '0.85rem', color: 'var(--fg-muted)', marginTop: '0.25rem' }}>
+          A minimal, offline-first task manager.
+        </p>
+      </section>
 
       <section className="settings-section">
         <div className="settings-section-title">Features</div>
@@ -149,6 +157,7 @@ export function DocsView() {
           </div>
         ))}
       </section>
+
     </div>
   );
 }

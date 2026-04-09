@@ -1,3 +1,5 @@
+declare const __APP_VERSION__: string;
+
 export type ListType = 'general' | 'daily' | 'shopping';
 
 export const LIST_TYPE_LABELS: Record<ListType, string> = {
