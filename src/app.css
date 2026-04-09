@@ -735,10 +735,11 @@ button.nav-section-label--button:hover { color: var(--fg); }
 .folder-view-list-item-row--editing .folder-view-list-item { flex: 1; pointer-events: none; }
 
 .folder-view-list-item {
+  flex: 1;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 9px 10px 9px 0;
+  padding: 9px 10px;
   border-radius: 7px;
   color: var(--fg);
   text-decoration: none;
