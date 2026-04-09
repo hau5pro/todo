@@ -204,7 +204,7 @@ export function TaskDetailPanel() {
                 <button
                   type="button"
                   className={`task-detail-field-btn${dueDate ? ' task-detail-field-btn--set' : ''}`}
-                  onClick={() => setCalOpen((o) => !o)}
+                  onClick={() => { setEditingTime(false); setCalOpen((o) => !o); }}
                   title={dueDate ? 'Change due date' : 'Set a due date'}
                 >
                   <Calendar size={ICON_SIZE} />
@@ -231,6 +231,7 @@ export function TaskDetailPanel() {
                   className={`task-detail-time-wrap${dueTime ? ' task-detail-time-wrap--set' : ''}`}
                   onClick={() => {
                     if (!editingTime) {
+                      setCalOpen(false);
                       setTimeInput(dueTime ? dueTime.replace(':', '') : '900');
                       setEditingTime(true);
                       setTimeout(() => timeInputRef.current?.select(), 0);
@@ -366,7 +367,7 @@ export function TaskDetailPanel() {
             <button
               type="button"
               className={`task-detail-field-btn${currentGroup ? ' task-detail-field-btn--set' : ''}`}
-              onClick={() => { setEditingGroup(true); focusLater(groupInputRef); }}
+              onClick={() => { setCalOpen(false); setEditingTime(false); setEditingGroup(true); focusLater(groupInputRef); }}
               title={currentGroup ? 'Change group' : 'Assign to a group'}
             >
               <Folder size={ICON_SIZE} />

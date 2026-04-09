@@ -197,7 +197,7 @@ function GroupSection({
       onDrop={handleDrop}
     >
       <div className="group-header">
-        <DragHandle show={editMode} dragControls={dragControls} />
+        <DragHandle show={editMode && !editingName} dragControls={dragControls} />
         <button
           className={`group-header-collapse${!collapsed ? ' group-header-collapse--expanded' : ''}`}
           onClick={() => setCollapsed((p) => !p)}
@@ -252,7 +252,7 @@ function GroupSection({
             )}
           </AnimatePresence>
         </div>
-        <DeleteButton show={editMode} onClick={() => setConfirmDelete(true)} title="Delete group" />
+        <DeleteButton show={editMode && !editingName} onClick={() => setConfirmDelete(true)} title="Delete group" />
       </div>
 
       <AnimatePresence>
@@ -449,6 +449,7 @@ export function ListView() {
   function startEditListName() {
     setNewListName(list!.name);
     setEditingListName(true);
+    setTaskEditMode(false);
     focusLater(listNameInputRef);
   }
 
@@ -561,7 +562,7 @@ export function ListView() {
               <span className="view-title-actions">
                 <button
                   className="view-title-action-btn"
-                  onClick={() => setTaskEditMode((m) => !m)}
+                  onClick={() => { if (editingListName) setEditingListName(false); setTaskEditMode((m) => !m); }}
                   title={taskEditMode ? 'Done editing' : 'Edit tasks'}
                   style={taskEditMode ? { color: 'var(--success)' } : undefined}
                 >

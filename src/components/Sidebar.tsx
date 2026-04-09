@@ -244,7 +244,7 @@ function FolderRow({
     >
       {/* Folder header */}
       <div className={`nav-folder-header${editMode ? ' nav-item-row--editing' : ''}`}>
-        <DragHandle show={editMode} dragControls={dragControls} />
+        <DragHandle show={editMode && !editingName} dragControls={dragControls} />
 
         {!editMode && (
           <button
