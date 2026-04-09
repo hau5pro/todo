@@ -156,6 +156,8 @@ export function LoginView() {
     try {
       await signInWithGoogle();
     } catch {
+      // fall through to finally
+    } finally {
       setLoading(null);
     }
   }
