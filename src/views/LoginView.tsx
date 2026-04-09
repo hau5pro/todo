@@ -45,8 +45,14 @@ const stagger = {
   show:   { transition: { staggerChildren: 0.07 } },
 };
 
+function isPWA() {
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+
 function PWAAccordion() {
   const [open, setOpen] = useState(false);
+
+  if (isPWA()) return null;
 
   return (
     <div className="pwa-accordion">
