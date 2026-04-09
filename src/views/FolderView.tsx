@@ -54,7 +54,9 @@ function SortableListItem({
       className={`folder-view-list-item-row${editMode ? ' folder-view-list-item-row--editing' : ''}`}
       transition={{ layout: { duration: 0.08, ease: 'easeOut' } }}
     >
-      <DragHandle show={editMode} dragControls={dragControls} />
+      <div className="nav-item-drag-zone">
+        <DragHandle show={editMode} dragControls={dragControls} />
+      </div>
 
       {editMode ? (
         <div className="folder-view-list-item">

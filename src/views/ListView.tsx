@@ -65,11 +65,13 @@ function TaskRow({
       dragListener={false}
       dragControls={dragControls}
       variants={taskItemVariants}
-      className="task-row"
+      className={`task-row${editMode ? ' task-row--editing' : ''}`}
       style={{ cursor: editMode ? 'grab' : 'default', opacity: dragging ? 0.4 : 1 }}
       transition={{ layout: { duration: 0.08, ease: 'easeOut' } }}
     >
-      <DragHandle show={editMode} dragControls={dragControls} />
+      <div className="nav-item-drag-zone">
+        <DragHandle show={editMode} dragControls={dragControls} />
+      </div>
       {/* Wrap content in a draggable div so it doesn't conflict with FM's onDragStart typing */}
       <div
         style={{ flex: 1, minWidth: 0 }}
@@ -196,8 +198,10 @@ function GroupSection({
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      <div className="group-header">
-        <DragHandle show={editMode && !editingName} dragControls={dragControls} />
+      <div className={`group-header${editMode ? ' group-header--editing' : ''}`}>
+        <div className="nav-item-drag-zone">
+          <DragHandle show={editMode && !editingName} dragControls={dragControls} />
+        </div>
         <button
           className={`group-header-collapse${!collapsed ? ' group-header-collapse--expanded' : ''}`}
           onClick={() => setCollapsed((p) => !p)}
@@ -602,6 +606,7 @@ export function ListView() {
       <div
         className={[
           'ungrouped-drop-zone',
+          taskEditMode ? 'ungrouped-drop-zone--editing' : '',
           draggingTaskId ? 'ungrouped-drop-zone--dragging' : '',
           ungroupedDragOver ? 'ungrouped-drop-zone--active' : '',
         ].filter(Boolean).join(' ')}

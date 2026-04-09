@@ -32,10 +32,12 @@ function HabitRow({ row, editMode, onToggle, onSelect, onDelete, isSelected }: {
   return (
     <Reorder.Item as="div" value={row} dragListener={false} dragControls={dragControls}
       variants={habitItemVariants}
-      className="task-row"
+      className={`task-row${editMode ? ' task-row--editing' : ''}`}
       style={{ cursor: 'default' }}
     >
-      <DragHandle show={editMode} dragControls={dragControls} />
+      <div className="nav-item-drag-zone">
+        <DragHandle show={editMode} dragControls={dragControls} />
+      </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <HabitItem
           title={row.task.title}

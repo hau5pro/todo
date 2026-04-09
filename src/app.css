@@ -463,9 +463,16 @@ button.nav-section-label--button:hover { color: var(--fg); }
   border-radius: 6px;
   overflow: hidden;
 }
-.nav-item-row--editing .nav-item-drag-zone {
+.nav-item-row--editing .nav-item-drag-zone,
+.task-row--editing .nav-item-drag-zone,
+.folder-view-list-item-row--editing .nav-item-drag-zone,
+.group-header--editing .nav-item-drag-zone {
   background: var(--hover);
   margin-right: 2px;
+}
+.task-row--editing .nav-item-drag-zone {
+  margin-right: 8px;
+  height: 40px;
 }
 .nav-item-drag-zone-divider {
   width: 1px;
@@ -473,7 +480,8 @@ button.nav-section-label--button:hover { color: var(--fg); }
   background: var(--border);
   flex-shrink: 0;
 }
-.nav-item-row--editing + .nav-item-row--editing {
+.nav-item-row--editing + .nav-item-row--editing,
+.folder-view-list-item-row--editing + .folder-view-list-item-row--editing {
   margin-top: 3px;
 }
 
@@ -2249,6 +2257,9 @@ button.nav-section-label--button:hover { color: var(--fg); }
   transition: background 0.15s, outline 0.15s;
   outline: 2px solid transparent;
 }
+.task-row--editing .task-item {
+  border-bottom: none;
+}
 .ungrouped-drop-zone--dragging {
   background: color-mix(in srgb, var(--accent) 5%, transparent);
 }
@@ -2259,10 +2270,15 @@ button.nav-section-label--button:hover { color: var(--fg); }
 
 /* ── Group sections ──────────────────────────────────────── */
 .group-section {
-  margin-top: 0.75rem;
   border-radius: 6px;
   transition: background 0.15s, outline 0.15s;
   outline: 2px solid transparent;
+}
+.group-section + .group-section {
+  margin-top: 0.75rem;
+}
+.group-section:has(.group-header--editing) + .group-section:has(.group-header--editing) {
+  margin-top: 3px;
 }
 .group-section--dragging {
   background: color-mix(in srgb, var(--accent) 5%, transparent);
