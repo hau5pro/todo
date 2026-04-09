@@ -992,30 +992,14 @@ button.nav-section-label--button:hover { color: var(--fg); }
 
 .task-item__title {
   flex: 1;
-  position: relative;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.task-item__title::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  height: 1.5px;
-  background: var(--fg-muted);
-  width: 0;
-  transition: width 0.12s ease;
-  transform: translateY(-50%);
-  border-radius: 1px;
-  pointer-events: none;
-}
 .task-item__title--completed {
   color: var(--fg-muted);
-}
-.task-item__title--completed::after {
-  width: 100%;
+  text-decoration: line-through;
 }
 
 @keyframes task-flash {
