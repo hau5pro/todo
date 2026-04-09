@@ -46,7 +46,7 @@ const stagger = {
 };
 
 function isPWA() {
-  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  return window.matchMedia('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true;
 }
 
 function PWAAccordion() {
