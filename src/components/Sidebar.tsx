@@ -697,7 +697,7 @@ export function Sidebar() {
                   <button
                     className="sidebar-collapse-btn"
                     onClick={() => setEditMode((e) => !e)}
-                    title={editMode ? 'Done reordering' : 'Reorder lists'}
+                    title={editMode ? 'Done editing' : 'Edit lists'}
                   >
                     {editMode
                       ? <CheckCircle size={ICON_SIZE} style={{ color: 'var(--success)' }} />
