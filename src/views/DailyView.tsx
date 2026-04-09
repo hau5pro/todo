@@ -1,7 +1,8 @@
 import { useParams } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
-import { Pencil, CheckCircle, Trash2, GripVertical } from 'lucide-react';
+import { Pencil, CheckCircle } from 'lucide-react';
 import { Reorder, useDragControls } from 'framer-motion';
+import { DragHandle, DeleteButton } from '../components/EditControls';
 
 const habitListVariants = {
   show: { transition: { staggerChildren: 0.04, delayChildren: 0.05 } },
@@ -34,11 +35,7 @@ function HabitRow({ row, editMode, onToggle, onSelect, onDelete, isSelected }: {
       className="task-row"
       style={{ cursor: 'default' }}
     >
-      <span style={{ width: editMode ? 44 : 0, opacity: editMode ? 1 : 0, overflow: 'hidden', flexShrink: 0, display: 'flex', transition: 'width 0.15s, opacity 0.15s' }}>
-        <span className="task-edit-drag" onPointerDown={(e) => dragControls.start(e)}>
-          <GripVertical size={ICON_SIZE} />
-        </span>
-      </span>
+      <DragHandle show={editMode} dragControls={dragControls} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <HabitItem
           title={row.task.title}
@@ -49,14 +46,7 @@ function HabitRow({ row, editMode, onToggle, onSelect, onDelete, isSelected }: {
           isSelected={!editMode && isSelected}
         />
       </div>
-      <button
-        className="task-edit-delete"
-        onClick={onDelete}
-        title="Delete habit"
-        style={{ width: editMode ? 44 : 0, opacity: editMode ? 1 : 0, overflow: 'hidden', transition: 'width 0.15s, opacity 0.15s' }}
-      >
-        <Trash2 size={ICON_SIZE} />
-      </button>
+      <DeleteButton show={editMode} onClick={onDelete} title="Delete habit" />
     </Reorder.Item>
   );
 }
@@ -96,8 +86,7 @@ export function DailyView() {
     requestSync();
   }
 
-  async function handleAdd(e: React.FormEvent) {
-    e.preventDefault();
+  async function commitAdd() {
     if (!newTitle.trim()) return;
     await addTask(listId!, newTitle.trim());
     setNewTitle('');
@@ -105,31 +94,40 @@ export function DailyView() {
     closeDetail();
   }
 
+  async function handleAdd(e: React.FormEvent) {
+    e.preventDefault();
+    await commitAdd();
+  }
+
   return (
     <div>
-      <div className="view-title-row">
-        {list && getListIcon(list, 20) && <span className="view-title-icon">{getListIcon(list, 20)}</span>}
-        <h1 className="view-title">{list?.name ?? 'Habits'}</h1>
-        <span className="view-title-actions">
-          <button
-            className="view-title-action-btn"
-            onClick={() => setHabitEditMode((m) => !m)}
-            title={habitEditMode ? 'Done editing' : 'Edit habits'}
-            style={habitEditMode ? { color: 'var(--success)' } : undefined}
-          >
-            {habitEditMode
-              ? <CheckCircle size={ICON_SIZE} />
-              : <Pencil size={ICON_SIZE} />}
-          </button>
-        </span>
+      <div className="view-header">
+        <div className="view-title-row">
+          {list && getListIcon(list, 20) && <span className="view-title-icon">{getListIcon(list, 20)}</span>}
+          <h1 className="view-title">{list?.name ?? 'Habits'}</h1>
+          <span className="view-title-actions">
+            <button
+              className="view-title-action-btn"
+              onClick={() => setHabitEditMode((m) => !m)}
+              title={habitEditMode ? 'Done editing' : 'Edit habits'}
+              style={habitEditMode ? { color: 'var(--success)' } : undefined}
+            >
+              {habitEditMode
+                ? <CheckCircle size={ICON_SIZE} />
+                : <Pencil size={ICON_SIZE} />}
+            </button>
+          </span>
+        </div>
+        <p className="view-subtitle">{list ? LIST_TYPE_LABELS[list.type] : 'daily'}</p>
       </div>
-      <p className="view-subtitle">{list ? LIST_TYPE_LABELS[list.type] : 'daily'}</p>
+      <div className="view-body">
       <form onSubmit={handleAdd}>
         <input
           className="add-task-input"
           placeholder="+ Add habit"
           value={newTitle}
           onChange={(e) => setNewTitle(e.target.value)}
+          onBlur={commitAdd}
         />
       </form>
       <Reorder.Group as="div" axis="y" values={orderedRows} onReorder={handleReorder}
@@ -147,6 +145,7 @@ export function DailyView() {
           />
         ))}
       </Reorder.Group>
+      </div>
     </div>
   );
 }

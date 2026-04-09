@@ -160,6 +160,47 @@ describe('store: removeTask', () => {
   });
 });
 
+describe('store: completeTask without list loaded', () => {
+  it('does not create an empty tasksByList entry when list was never loaded', async () => {
+    const list = await dbCreateList('Work', 'general');
+    const task = await dbCreateTask(list.id, 'Finish report', { due_date: '2026-04-08' });
+
+    // Simulate completing from My Day without ever loading the list
+    await useAppStore.getState().loadMyDay();
+    expect(useAppStore.getState().tasksByList[list.id]).toBeUndefined();
+
+    await useAppStore.getState().completeTask(task.id, list.id, true);
+
+    // tasksByList[listId] must stay undefined so ListView triggers loadTasks on mount
+    expect(useAppStore.getState().tasksByList[list.id]).toBeUndefined();
+  });
+
+  it('still persists the completion to the DB', async () => {
+    const list = await dbCreateList('Work', 'general');
+    const task = await dbCreateTask(list.id, 'Finish report', { due_date: '2026-04-08' });
+
+    await useAppStore.getState().loadMyDay();
+    await useAppStore.getState().completeTask(task.id, list.id, true);
+
+    const dbTasks = await getTasksByList(list.id);
+    expect(dbTasks.find((t) => t.id === task.id)?.completed).toBe(true);
+  });
+});
+
+describe('store: removeTask without list loaded', () => {
+  it('does not create an empty tasksByList entry when list was never loaded', async () => {
+    const list = await dbCreateList('Work', 'general');
+    const task = await dbCreateTask(list.id, 'Finish report', { due_date: '2026-04-08' });
+
+    await useAppStore.getState().loadMyDay();
+    expect(useAppStore.getState().tasksByList[list.id]).toBeUndefined();
+
+    await useAppStore.getState().removeTask(task.id, list.id);
+
+    expect(useAppStore.getState().tasksByList[list.id]).toBeUndefined();
+  });
+});
+
 describe('store: loadTasks', () => {
   it('loads tasks for a list including soft-deleted', async () => {
     const list = await dbCreateList('Test', 'general');

@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { Pencil, Trash2, ChevronDown, ChevronRight, Copy, List, CheckCircle, MoreHorizontal, GripVertical } from 'lucide-react';
+import { Pencil, Trash2, ChevronDown, ChevronRight, Copy, List, CheckCircle, MoreHorizontal } from 'lucide-react';
+import { DragHandle, DeleteButton } from '../components/EditControls';
 import { AnimatePresence, motion, Reorder, useDragControls } from 'framer-motion';
 import { ease } from '../utils/easing';
 import { focusLater } from '../utils/dom';
@@ -11,7 +12,7 @@ import { useTaskDetail } from '../contexts/TaskDetailContext';
 import { useSettings } from '../contexts/SettingsContext';
 import { TaskItem } from '../components/TaskItem';
 import { IconPicker } from '../components/IconPicker';
-import { ICON_SIZE, COMPLETED_PAGE_SIZE, ADD_TASK_PLACEHOLDER } from '../config/constants';
+import { ICON_SIZE, COMPLETED_PAGE_SIZE, ADD_TASK_PLACEHOLDER, PINNED_LIST_SUBTITLES } from '../config/constants';
 import { LIST_TYPE_LABELS } from '../types';
 import { getListIcon } from '../config/listIcons';
 import type { Task } from '../types';
@@ -68,11 +69,7 @@ function TaskRow({
       style={{ cursor: editMode ? 'grab' : 'default', opacity: dragging ? 0.4 : 1 }}
       transition={{ layout: { duration: 0.08, ease: 'easeOut' } }}
     >
-      <span style={{ width: editMode ? 44 : 0, opacity: editMode ? 1 : 0, overflow: 'hidden', flexShrink: 0, display: 'flex', transition: 'width 0.15s, opacity 0.15s' }}>
-        <span className="task-edit-drag" title="Drag to reorder" onPointerDown={(e) => dragControls.start(e)}>
-          <GripVertical size={ICON_SIZE} />
-        </span>
-      </span>
+      <DragHandle show={editMode} dragControls={dragControls} />
       {/* Wrap content in a draggable div so it doesn't conflict with FM's onDragStart typing */}
       <div
         style={{ flex: 1, minWidth: 0 }}
@@ -100,14 +97,7 @@ function TaskRow({
           isSelected={!editMode && isSelected}
         />
       </div>
-      <button
-        className="task-edit-delete"
-        onClick={onDelete}
-        title="Delete task"
-        style={{ width: editMode ? 44 : 0, opacity: editMode ? 1 : 0, overflow: 'hidden', transition: 'width 0.15s, opacity 0.15s' }}
-      >
-        <Trash2 size={ICON_SIZE} />
-      </button>
+      <DeleteButton show={editMode} onClick={onDelete} title="Delete task" />
     </Reorder.Item>
   );
 }
@@ -207,11 +197,7 @@ function GroupSection({
       onDrop={handleDrop}
     >
       <div className="group-header">
-        <span style={{ width: editMode ? 44 : 0, opacity: editMode ? 1 : 0, overflow: 'hidden', flexShrink: 0, display: 'flex', transition: 'width 0.15s, opacity 0.15s' }}>
-          <span className="task-edit-drag" onPointerDown={(e) => dragControls.start(e)}>
-            <GripVertical size={ICON_SIZE} />
-          </span>
-        </span>
+        <DragHandle show={editMode} dragControls={dragControls} />
         <button
           className={`group-header-collapse${!collapsed ? ' group-header-collapse--expanded' : ''}`}
           onClick={() => setCollapsed((p) => !p)}
@@ -266,14 +252,7 @@ function GroupSection({
             )}
           </AnimatePresence>
         </div>
-        <button
-          className="task-edit-delete"
-          onClick={() => setConfirmDelete(true)}
-          title="Delete group"
-          style={{ width: editMode ? 44 : 0, opacity: editMode ? 1 : 0, overflow: 'hidden', transition: 'width 0.15s, opacity 0.15s' }}
-        >
-          <Trash2 size={ICON_SIZE} />
-        </button>
+        <DeleteButton show={editMode} onClick={() => setConfirmDelete(true)} title="Delete group" />
       </div>
 
       <AnimatePresence>
@@ -281,8 +260,8 @@ function GroupSection({
           <motion.div
             className="group-section__body"
             initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1, overflow: 'visible' }}
+            exit={{ height: 0, opacity: 0, overflow: 'hidden' }}
             transition={{ duration: 0.2, ease: ease.out }}
             style={{ overflow: 'hidden' }}
           >
@@ -455,12 +434,16 @@ export function ListView() {
     }
   }
 
-  async function handleAdd(e: React.FormEvent) {
-    e.preventDefault();
+  async function commitAdd() {
     if (!newTitle.trim()) return;
     await addTask(listId!, newTitle.trim());
     setNewTitle('');
     closeDetail();
+  }
+
+  async function handleAdd(e: React.FormEvent) {
+    e.preventDefault();
+    await commitAdd();
   }
 
   function startEditListName() {
@@ -536,79 +519,80 @@ export function ListView() {
 
   return (
     <div>
-      <motion.div variants={headerVariants} initial="hidden" animate="show">
-      <motion.div variants={headerItemVariants} className="view-title-row">
-        {editingListName ? (
-          <>
-            <input
-              ref={listNameInputRef}
-              className="view-title-input"
-              value={newListName}
-              onChange={(e) => setNewListName(e.target.value)}
-              onBlur={commitEditListName}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') commitEditListName();
-                if (e.key === 'Escape') setEditingListName(false);
-              }}
-            />
-            <button className="view-title-action-btn" onClick={commitEditListName} title="Save"><CheckCircle size={ICON_SIZE} /></button>
-          </>
-        ) : (
-          <>
-            {isPinned ? (
-              <span className="view-title-icon">
-                {getListIcon(list, 20) ?? <List size={20} />}
-              </span>
-            ) : (
-              <button
-                ref={iconBtnRef}
-                className={`view-title-icon-btn${iconPickerAnchor ? ' view-title-icon-btn--open' : ''}`}
-                onClick={() => iconPickerAnchor
-                  ? setIconPickerAnchor(null)
-                  : setIconPickerAnchor(iconBtnRef.current!.getBoundingClientRect())
-                }
-                title="Change icon"
-                aria-label="Change icon"
-                aria-expanded={!!iconPickerAnchor}
-              >
-                {getListIcon(list, 20) ?? <List size={20} />}
-              </button>
-            )}
-            <h1 className="view-title" onClick={!isPinned ? startEditListName : undefined} style={!isPinned ? { cursor: 'text' } : undefined}>{list.name}</h1>
-            <span className="view-title-actions">
-              <button
-                className="view-title-action-btn"
-                onClick={() => setTaskEditMode((m) => !m)}
-                title={taskEditMode ? 'Done editing' : 'Edit tasks'}
-                style={taskEditMode ? { color: 'var(--success)' } : undefined}
-              >
-                {taskEditMode
-                  ? <CheckCircle size={ICON_SIZE} />
-                  : <Pencil size={ICON_SIZE} />}
-              </button>
-              {!isPinned && (<>
-                <button className="view-title-action-btn" onClick={handleDuplicate} title="Duplicate list"><Copy size={ICON_SIZE} /></button>
-                <button className="view-title-action-btn view-title-action-btn--danger" onClick={() => setConfirmDeleteList(true)} title="Delete list"><Trash2 size={ICON_SIZE} /></button>
-              </>)}
-            </span>
-            <AnimatePresence>
-              {iconPickerAnchor && (
-                <IconPicker
-                  currentIcon={list.icon}
-                  anchorRect={iconPickerAnchor}
-                  onSelect={(icon) => updateListIcon(listId!, icon)}
-                  onClose={() => setIconPickerAnchor(null)}
-                />
+      <motion.div variants={headerVariants} initial="hidden" animate="show" className="view-header">
+        <motion.div variants={headerItemVariants} className="view-title-row">
+          {editingListName ? (
+            <>
+              <input
+                ref={listNameInputRef}
+                className="view-title-input"
+                value={newListName}
+                onChange={(e) => setNewListName(e.target.value)}
+                onBlur={commitEditListName}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') commitEditListName();
+                  if (e.key === 'Escape') setEditingListName(false);
+                }}
+              />
+              <button className="view-title-action-btn" onClick={commitEditListName} title="Save"><CheckCircle size={ICON_SIZE} /></button>
+            </>
+          ) : (
+            <>
+              {isPinned ? (
+                <span className="view-title-icon">
+                  {getListIcon(list, 20) ?? <List size={20} />}
+                </span>
+              ) : (
+                <button
+                  ref={iconBtnRef}
+                  className={`view-title-icon-btn${iconPickerAnchor ? ' view-title-icon-btn--open' : ''}`}
+                  onClick={() => iconPickerAnchor
+                    ? setIconPickerAnchor(null)
+                    : setIconPickerAnchor(iconBtnRef.current!.getBoundingClientRect())
+                  }
+                  title="Change icon"
+                  aria-label="Change icon"
+                  aria-expanded={!!iconPickerAnchor}
+                >
+                  {getListIcon(list, 20) ?? <List size={20} />}
+                </button>
               )}
-            </AnimatePresence>
-          </>
-        )}
-      </motion.div>
-      <motion.p variants={headerItemVariants} className="view-subtitle">
-        {list.type === 'general' ? 'tasks' : LIST_TYPE_LABELS[list.type]}
-      </motion.p>
+              <h1 className="view-title" onClick={!isPinned ? startEditListName : undefined} style={!isPinned ? { cursor: 'text' } : undefined}>{list.name}</h1>
+              <span className="view-title-actions">
+                <button
+                  className="view-title-action-btn"
+                  onClick={() => setTaskEditMode((m) => !m)}
+                  title={taskEditMode ? 'Done editing' : 'Edit tasks'}
+                  style={taskEditMode ? { color: 'var(--success)' } : undefined}
+                >
+                  {taskEditMode
+                    ? <CheckCircle size={ICON_SIZE} />
+                    : <Pencil size={ICON_SIZE} />}
+                </button>
+                {!isPinned && (<>
+                  <button className="view-title-action-btn" onClick={handleDuplicate} title="Duplicate list"><Copy size={ICON_SIZE} /></button>
+                  <button className="view-title-action-btn view-title-action-btn--danger" onClick={() => setConfirmDeleteList(true)} title="Delete list"><Trash2 size={ICON_SIZE} /></button>
+                </>)}
+              </span>
+              <AnimatePresence>
+                {iconPickerAnchor && (
+                  <IconPicker
+                    currentIcon={list.icon}
+                    anchorRect={iconPickerAnchor}
+                    onSelect={(icon) => updateListIcon(listId!, icon)}
+                    onClose={() => setIconPickerAnchor(null)}
+                  />
+                )}
+              </AnimatePresence>
+            </>
+          )}
+        </motion.div>
+        <motion.p variants={headerItemVariants} className="view-subtitle">
+          {PINNED_LIST_SUBTITLES[list.name] ?? (list.type === 'general' ? 'tasks' : LIST_TYPE_LABELS[list.type])}
+        </motion.p>
       </motion.div>
 
+      <div className="view-body">
       {/* Ungrouped tasks + add task — unified drop zone to remove group assignment */}
       <div
         className={[
@@ -632,6 +616,7 @@ export function ListView() {
             aria-label="Add task"
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
+            onBlur={commitAdd}
             data-add-task
           />
         </motion.form>
@@ -730,6 +715,7 @@ export function ListView() {
           </AnimatePresence>
         </section>
       )}
+      </div>
 
       <AnimatePresence>
         {confirmDeleteList && (

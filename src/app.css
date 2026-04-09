@@ -92,6 +92,7 @@ body {
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+  overscroll-behavior-x: none;
 }
 
 /* ── Scrollbar ───────────────────────────────────────────── */
@@ -110,8 +111,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 1.25rem;
-  height: 3.25rem;
+  padding: env(safe-area-inset-top) 1.25rem 0;
+  min-height: calc(3.25rem + env(safe-area-inset-top));
   border-bottom: 1px solid var(--border);
   background: var(--surface);
   flex-shrink: 0;
@@ -170,7 +171,7 @@ body {
   flex-direction: column;
   flex: 1;
   padding: 0.875rem 0.625rem;
-  padding-bottom: max(0.875rem, env(safe-area-inset-bottom));
+  padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
   overflow-y: auto;
   min-width: 208px;
 }
@@ -502,6 +503,9 @@ button.nav-section-label--button:hover { color: var(--fg); }
 .nav-folder--drag-over .nav-folder-header:hover { background: transparent; }
 .nav-folder-header.nav-item-row--editing { cursor: default; }
 .nav-folder-header.nav-item-row--editing .nav-folder-icon { color: var(--fg); }
+.nav-folder-header:has(.nav-folder-name--active) { background: var(--accent-dim); }
+.nav-folder-header:has(.nav-folder-name--active):hover { background: var(--accent-dim); }
+.nav-folder-header:has(.nav-folder-name--active) .nav-folder-icon { color: var(--accent); }
 
 .nav-folder-chevron {
   background: none;
@@ -720,11 +724,18 @@ button.nav-section-label--button:hover { color: var(--fg); }
   margin-top: 0.25rem;
 }
 
+.folder-view-list-item-row {
+  display: flex;
+  align-items: center;
+}
+.folder-view-list-item-row--editing { cursor: grab; user-select: none; }
+.folder-view-list-item-row--editing .folder-view-list-item { flex: 1; pointer-events: none; }
+
 .folder-view-list-item {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 9px 10px;
+  padding: 9px 10px 9px 0;
   border-radius: 7px;
   color: var(--fg);
   text-decoration: none;
@@ -958,6 +969,7 @@ button.nav-section-label--button:hover { color: var(--fg); }
   color: var(--danger);
   cursor: pointer;
   flex-shrink: 0;
+  overflow: hidden;
 }
 .task-edit-delete:hover { color: var(--danger); filter: brightness(1.15); }
 
@@ -991,30 +1003,14 @@ button.nav-section-label--button:hover { color: var(--fg); }
 
 .task-item__title {
   flex: 1;
-  position: relative;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.task-item__title::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  height: 1.5px;
-  background: var(--fg-muted);
-  width: 0;
-  transition: width 0.12s ease;
-  transform: translateY(-50%);
-  border-radius: 1px;
-  pointer-events: none;
-}
 .task-item__title--completed {
   color: var(--fg-muted);
-}
-.task-item__title--completed::after {
-  width: 100%;
+  text-decoration: line-through;
 }
 
 @keyframes task-flash {
@@ -1229,6 +1225,32 @@ button.nav-section-label--button:hover { color: var(--fg); }
   letter-spacing: 0.1em;
   color: var(--fg-muted);
   margin: 1.5rem 0 0.625rem;
+}
+
+.view-header {
+  margin-bottom: 0.75rem;
+}
+
+.view-body {
+  padding-left: calc(var(--touch-size) + 6px);
+}
+
+.view-header .view-subtitle {
+  margin-top: 0;
+}
+
+/* Match plain icon span dimensions to touch-target button so title row height is consistent */
+/* +4px accounts for the 2px padding on .view-title-actions that wraps buttons in other views */
+.view-title-row .view-title-icon {
+  width: var(--touch-size);
+  height: calc(var(--touch-size) + 4px);
+  flex-shrink: 0;
+}
+
+/* Indent subtitle to align its text under the heading text */
+.view-header .view-subtitle {
+  margin: 0.1rem 0 0;
+  padding-left: calc(var(--touch-size) + 6px);
 }
 
 .view-title-row {
@@ -2092,7 +2114,7 @@ button.nav-section-label--button:hover { color: var(--fg); }
   transition: color 0.15s, background 0.15s;
 }
 .group-header-collapse:hover { color: var(--fg); }
-.group-header-collapse--expanded { background: var(--hover); color: var(--fg); }
+.group-header-collapse--expanded { color: var(--fg); }
 
 .group-header-name {
   font-size: 0.72rem;
@@ -2847,12 +2869,14 @@ button.nav-section-label--button:hover { color: var(--fg); }
 .rrule-day-chips {
   display: flex;
   gap: 4px;
+  align-items: center;
 }
 
 .rrule-chip {
   flex: 1;
   aspect-ratio: 1;
   min-width: 0;
+  min-height: 0;
   padding: 0;
   background: none;
   border: 1px solid var(--border);

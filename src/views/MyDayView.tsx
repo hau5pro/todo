@@ -84,11 +84,14 @@ export function MyDayView() {
   return (
     <div>
       <motion.div variants={containerVariants} initial="hidden" animate="show">
-      <motion.div variants={itemVariants} className="view-title-row">
-        <span className="view-title-icon"><Sun size={20} /></span>
-        <h1 className="view-title">My Day</h1>
+      <motion.div variants={itemVariants} className="view-header">
+        <div className="view-title-row">
+          <span className="view-title-icon"><Sun size={20} /></span>
+          <h1 className="view-title">My Day</h1>
+        </div>
+        <p className="view-subtitle">{todayLabel}</p>
       </motion.div>
-      <motion.p variants={itemVariants} className="view-subtitle">{todayLabel}</motion.p>
+      <div className="view-body">
       {!hasAnything && <motion.p variants={itemVariants} className="empty-state">Nothing due today.</motion.p>}
         {orderedHabits.length > 0 && (
           <motion.section variants={sectionVariants}>
@@ -138,6 +141,7 @@ export function MyDayView() {
             ))}
           </motion.section>
         )}
+      </div>
       </motion.div>
 
     </div>

@@ -9,3 +9,9 @@ export const COMPLETED_PAGE_SIZE = 25;
 
 /** Placeholder text for all "add task" inputs. */
 export const ADD_TASK_PLACEHOLDER = '+ Add task';
+
+/** Subheading overrides for pinned lists by name. */
+export const PINNED_LIST_SUBTITLES: Record<string, string> = {
+  Tasks: 'general',
+  Chores: 'cycles',
+};
