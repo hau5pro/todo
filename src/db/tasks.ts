@@ -179,8 +179,11 @@ export async function getMyDayTasks(today: string): Promise<{ overdue: Task[]; t
   const relevant = all.filter((t) => {
     if (t.due_date === null || t.deleted_at !== null) return false;
     if (!t.completed) return true;
-    // Completed: only keep if it was completed today
-    return t.completed_at != null && t.completed_at.startsWith(today);
+    // Completed: only keep if it was completed today (compare in local time)
+    if (t.completed_at == null) return false;
+    const c = new Date(t.completed_at);
+    const completedLocal = `${c.getFullYear()}-${String(c.getMonth() + 1).padStart(2, '0')}-${String(c.getDate()).padStart(2, '0')}`;
+    return completedLocal === today;
   });
   return {
     overdue: relevant.filter((t) => t.due_date! < today),

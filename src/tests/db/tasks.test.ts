@@ -133,7 +133,7 @@ describe('tasks CRUD', () => {
     const todayDate = getTodayString();
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayDate = yesterday.toISOString().split('T')[0];
+    const yesterdayDate = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
     const list = await createList('Chores', 'general');
     const overdueTask = await createTask(list.id, 'Overdue done today', { due_date: yesterdayDate });
     const todayTask = await createTask(list.id, 'Today done today', { due_date: todayDate });
