@@ -14,16 +14,9 @@ import { useAppStore } from '../store';
 import { ICON_SIZE } from '../config/constants';
 import { getListIcon } from '../config/listIcons';
 import type { List as ListType, ListFolder } from '../types';
+import { reinsert } from '../utils/order';
 
 const COLLAPSED_ICON_SIZE = 26;
-
-function reinsert(ids: string[], dragId: string, insertAfter: string | null): string[] {
-  const without = ids.filter((id) => id !== dragId);
-  if (!insertAfter || insertAfter === '__start__') return [dragId, ...without];
-  const idx = without.indexOf(insertAfter);
-  if (idx === -1) return [...without, dragId];
-  return [...without.slice(0, idx + 1), dragId, ...without.slice(idx + 1)];
-}
 
 const MY_DAY_SENTINEL = { id: 'my-day' as const };
 type PinnedItem = ListType | typeof MY_DAY_SENTINEL;

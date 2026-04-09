@@ -9,3 +9,15 @@ export function applyOrder<T>(items: T[], order: string[], getId: (item: T) => s
   const rest = items.filter((t) => !order.includes(getId(t)));
   return [...ordered, ...rest];
 }
+
+/**
+ * Re-insert a dragged item into an ordered list after a given anchor.
+ * insertAfter === null | '__start__' puts it first.
+ */
+export function reinsert(ids: string[], dragId: string, insertAfter: string | null): string[] {
+  const without = ids.filter((id) => id !== dragId);
+  if (!insertAfter || insertAfter === '__start__') return [dragId, ...without];
+  const idx = without.indexOf(insertAfter);
+  if (idx === -1) return [...without, dragId];
+  return [...without.slice(0, idx + 1), dragId, ...without.slice(idx + 1)];
+}

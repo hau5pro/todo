@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { applyOrder } from '../../utils/order';
+import { applyOrder, reinsert } from '../../utils/order';
 
 const getId = (item: { id: string }) => item.id;
 
@@ -36,5 +36,27 @@ describe('applyOrder', () => {
     const items = [{ id: '1' }, { id: '2' }, { id: '3' }];
     const result = applyOrder(items, ['3', '2', '1'], getId);
     expect(result.map((i) => i.id)).toEqual(['3', '2', '1']);
+  });
+});
+
+describe('reinsert', () => {
+  it('moves item to start when insertAfter is __start__', () => {
+    expect(reinsert(['a', 'b', 'c'], 'c', '__start__')).toEqual(['c', 'a', 'b']);
+  });
+
+  it('moves item to start when insertAfter is null', () => {
+    expect(reinsert(['a', 'b', 'c'], 'b', null)).toEqual(['b', 'a', 'c']);
+  });
+
+  it('moves item after the specified id', () => {
+    expect(reinsert(['a', 'b', 'c'], 'a', 'c')).toEqual(['b', 'c', 'a']);
+  });
+
+  it('handles moving item that is already in position', () => {
+    expect(reinsert(['a', 'b', 'c'], 'b', 'a')).toEqual(['a', 'b', 'c']);
+  });
+
+  it('appends at end when insertAfter id is not found', () => {
+    expect(reinsert(['a', 'b', 'c'], 'a', 'z')).toEqual(['b', 'c', 'a']);
   });
 });
