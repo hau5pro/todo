@@ -24,6 +24,12 @@ Offline-first PWA todo app. React 18 + TypeScript + Vite.
 | Keyboard nav / focus traps | `src/hooks/useKeyboardNav.ts` |
 | iOS PWA focus workaround | See "always-mounted" input comments in Sidebar.tsx + FolderRow |
 
+## Git
+
+### Atomic commits
+
+Commit one logical change at a time. Each commit should be self-contained and buildable. Don't bundle unrelated fixes, style tweaks, and feature work into a single commit. If a session touches multiple concerns, split them into separate commits before wrapping up.
+
 ## UI behaviour rules
 
 ### One edit state at a time
