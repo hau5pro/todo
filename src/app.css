@@ -1487,6 +1487,7 @@ button.nav-section-label--button:hover { color: var(--fg); }
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+  justify-content: center;
 }
 
 .color-swatch {
