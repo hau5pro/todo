@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Sun, Settings, LogOut, ChevronDown, ChevronRight,
   List, Plus, CheckCircle, Pencil, Menu,
-  FolderPlus, Folder, FolderInput, Trash2, CornerDownLeft, MoreHorizontal, HelpCircle,
+  FolderPlus, Folder, FolderInput, CornerDownLeft, HelpCircle,
 } from 'lucide-react';
 import { DragHandle, DeleteButton } from './EditControls';
 import { logOut } from '../supabase/auth';
@@ -107,6 +107,8 @@ const SortableItem = memo(function SortableItem({
             <FolderInput size={ICON_SIZE} />
           </span>
         )}
+        {editMode && !pinned && <span className="nav-item-drag-zone-divider" />}
+        <DeleteButton show={editMode && !pinned} onClick={handleDelete} title="Delete list" />
       </div>
       {/* List content */}
       {editMode ? (
@@ -124,7 +126,6 @@ const SortableItem = memo(function SortableItem({
           <span className="nav-item__name">{list.name}</span>
         </NavLink>
       )}
-      <DeleteButton show={editMode && !pinned} onClick={handleDelete} title="Delete list" />
     </div>
   );
 });
@@ -184,7 +185,6 @@ const FolderRow = memo(function FolderRow({
   startReorder?: (e: React.PointerEvent, itemId: string, context: string) => void;
 }) {
   const { folderCollapsed, setFolderCollapsed } = useSettings();
-  const renameFolder = useAppStore((s) => s.renameFolder);
   const deleteFolder = useAppStore((s) => s.deleteFolder);
   const { customOrder, setCustomOrder } = useSettings();
 
@@ -194,32 +194,7 @@ const FolderRow = memo(function FolderRow({
     startReorder?.(e, listId, folder.id);
   }, [startReorder, folder.id]);
 
-  const [editingName, setEditingName] = useState(false);
-  const [newName, setNewName] = useState(folder.name);
-  const [showMenu, setShowMenu] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  function openMenu() {
-    setShowMenu((p) => !p);
-  }
-
-  function closeMenu() {
-    setShowMenu(false);
-  }
-
-  function startRename() {
-    closeMenu();
-    setNewName(folder.name);
-    setEditingName(true);
-    inputRef.current?.focus();
-  }
-
-  async function commitRename() {
-    const name = newName.trim();
-    if (name && name !== folder.name) await renameFolder(folder.id, name);
-    setEditingName(false);
-  }
 
   async function handleDelete() {
     const { movedListIds } = await deleteFolder(folder.id);
@@ -227,7 +202,6 @@ const FolderRow = memo(function FolderRow({
       ...movedListIds,
       ...customOrder.filter((id) => id !== folder.id && !movedListIds.includes(id)),
     ]);
-    closeMenu();
   }
 
   function handleDragOver(e: React.DragEvent) {
@@ -266,29 +240,14 @@ const FolderRow = memo(function FolderRow({
       <div className={`nav-folder-header${editMode ? ' nav-item-row--editing' : ''}`}>
         <div className="nav-item-drag-zone">
           <DragHandle
-            show={editMode && !editingName}
-            onPointerDown={startReorder && !editingName
-              ? (e) => startReorder(e, folder.id, 'folders')
-              : undefined}
+            show={editMode}
+            onPointerDown={startReorder ? (e) => startReorder(e, folder.id, 'folders') : undefined}
           />
+          {editMode && <span className="nav-item-drag-zone-divider" />}
+          <DeleteButton show={editMode} onClick={handleDelete} title="Delete folder" />
         </div>
 
-        {/* Always-mounted rename input so focus() works synchronously on iOS PWA */}
-        <Folder size={ICON_SIZE} className="nav-folder-icon" style={editingName ? undefined : { position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0, overflow: 'hidden' }} />
-        <input
-          ref={inputRef}
-          className="nav-inline-input"
-          inputMode="text"
-          value={newName}
-          onChange={(e) => setNewName(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') commitRename();
-            if (e.key === 'Escape') setEditingName(false);
-          }}
-          onBlur={commitRename}
-          style={editingName ? undefined : { position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0, overflow: 'hidden' }}
-        />
-        {!editingName && (editMode ? (
+        {editMode ? (
           <>
             <Folder size={ICON_SIZE} className="nav-folder-icon" />
             <span className="nav-folder-name">{folder.name}</span>
@@ -302,15 +261,9 @@ const FolderRow = memo(function FolderRow({
             <Folder size={ICON_SIZE} className="nav-folder-icon" />
             {folder.name}
           </NavLink>
-        ))}
-
-        {!editingName && (
-          <button className="nav-folder-menu-btn" onClick={openMenu} title="Folder options" aria-expanded={showMenu}>
-            <MoreHorizontal size={ICON_SIZE} />
-          </button>
         )}
 
-        {!editingName && !editMode && (
+        {!editMode && (
           <button
             className="nav-folder-chevron"
             onClick={() => setFolderCollapsed(folder.id, !isCollapsed)}
@@ -320,29 +273,6 @@ const FolderRow = memo(function FolderRow({
           </button>
         )}
       </div>
-
-      {/* Folder options menu */}
-      <AnimatePresence initial={false}>
-        {showMenu && (
-          <motion.div
-            className="nav-folder-options"
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.15 }}
-            style={{ overflow: 'hidden' }}
-          >
-            <button className="nav-folder-option" onClick={startRename}>
-              <Pencil size={ICON_SIZE} />
-              Rename
-            </button>
-            <button className="nav-folder-option nav-folder-option--danger" onClick={handleDelete}>
-              <Trash2 size={ICON_SIZE} />
-              Delete
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Lists inside folder */}
       <AnimatePresence initial={false}>
@@ -892,7 +822,7 @@ export function Sidebar() {
     )}
     <motion.nav
       className="sidebar"
-      animate={{ width: sidebarCollapsed ? COLLAPSED_W : (isMobile ? 280 : SIDEBAR_W) }}
+      animate={{ width: sidebarCollapsed ? COLLAPSED_W : (isMobile ? '100vw' : SIDEBAR_W) }}
       initial={false}
       transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
     >
