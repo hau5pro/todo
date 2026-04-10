@@ -19,7 +19,6 @@ function TaskRow({
 }) {
   return (
     <div
-      data-reorder-id={task.id}
       className={`task-row${editMode ? ' task-row--editing' : ''}`}
       style={{ cursor: 'default', opacity: dragging ? 0.4 : 1 }}
     >
@@ -190,21 +189,31 @@ export function GroupSection({
             style={{ overflow: 'hidden' }}
           >
             <div data-reorder-context={groupName}>
-              {tasks.map((task) => (
-                <TaskRow
-                  key={task.id}
-                  task={task}
-                  editMode={editMode}
-                  today={today}
-                  dragging={task.id === draggingTaskId}
-                  onToggle={onToggle}
-                  onSelect={() => onSelect(task)}
-                  onDelete={() => onDelete(task)}
-                  isSelected={selectedTaskId === task.id}
-                  onReorderStart={(e) => startDrag(e, task.id, groupName, 'task-row--dragging')}
-                  onGroupDragStart={(e) => onGroupDragStart(e, task.id)}
-                />
-              ))}
+              <AnimatePresence initial={false}>
+                {tasks.map((task) => (
+                  <motion.div
+                    key={task.id}
+                    data-reorder-id={task.id}
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto', transition: { duration: 0.22, ease: ease.snap } }}
+                    exit={{ opacity: 0, height: 0, transition: { duration: 0.18, ease: ease.in } }}
+                    style={{ overflow: 'hidden' }}
+                  >
+                    <TaskRow
+                      task={task}
+                      editMode={editMode}
+                      today={today}
+                      dragging={task.id === draggingTaskId}
+                      onToggle={onToggle}
+                      onSelect={() => onSelect(task)}
+                      onDelete={() => onDelete(task)}
+                      isSelected={selectedTaskId === task.id}
+                      onReorderStart={(e) => startDrag(e, task.id, groupName, 'task-row--dragging')}
+                      onGroupDragStart={(e) => onGroupDragStart(e, task.id)}
+                    />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
             </div>
           </motion.div>
         )}
