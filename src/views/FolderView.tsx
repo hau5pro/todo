@@ -201,15 +201,6 @@ export function FolderView() {
         </motion.div>
 
         <div className="folder-view-lists view-body" data-reorder-context="folder-lists">
-          {folderLists.map((list) => (
-            <SortableListItem
-              key={list.id}
-              list={list}
-              editMode={editMode}
-              folderId={folderId!}
-              onReorderStart={(e) => startDrag(e, list.id, 'folder-lists', 'folder-view-list-item-row--dragging')}
-            />
-          ))}
           <form onSubmit={(e) => { e.preventDefault(); commitAddList(); }}>
             <input
               ref={addListRef}
@@ -221,6 +212,15 @@ export function FolderView() {
               onBlur={commitAddList}
             />
           </form>
+          {folderLists.map((list) => (
+            <SortableListItem
+              key={list.id}
+              list={list}
+              editMode={editMode}
+              folderId={folderId!}
+              onReorderStart={(e) => startDrag(e, list.id, 'folder-lists', 'folder-view-list-item-row--dragging')}
+            />
+          ))}
         </div>
       </div>
 
