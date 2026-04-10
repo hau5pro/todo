@@ -196,7 +196,7 @@ export function GroupSection({
                     data-reorder-id={task.id}
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto', transition: { duration: 0.22, ease: ease.snap } }}
-                    exit={{ opacity: 0, height: 0, transition: { duration: 0.18, ease: ease.in } }}
+                    exit={{ opacity: 0, height: 0, pointerEvents: 'none', transition: { duration: 0.18, ease: ease.in } }}
                     style={{ overflow: 'hidden' }}
                   >
                     <TaskRow
