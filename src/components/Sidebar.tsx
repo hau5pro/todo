@@ -3,12 +3,11 @@ import { useState, useRef, useEffect, useCallback, useMemo, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Sun, Settings, LogOut, ChevronDown, ChevronRight,
+  Sun, Settings, ChevronDown, ChevronRight,
   List, Plus, CheckCircle, Pencil, Menu,
-  FolderPlus, Folder, FolderInput, CornerDownLeft, HelpCircle,
+  FolderPlus, Folder, FolderInput, CornerDownLeft,
 } from 'lucide-react';
 import { DragHandle, DeleteButton } from './EditControls';
-import { logOut } from '../supabase/auth';
 import { useSettings } from '../contexts/SettingsContext';
 import { useAppStore } from '../store';
 import { ICON_SIZE } from '../config/constants';
@@ -555,8 +554,6 @@ export function Sidebar() {
     setFolderOrder,
     sidebarCollapsed,
     setSidebarCollapsed,
-    localOnly,
-    setLocalOnly,
   } = useSettings();
 
   const { pathname } = useLocation();
@@ -893,15 +890,6 @@ export function Sidebar() {
             </div>
 
             <div className="sidebar-collapsed-bottom">
-              <NavTooltip label="Help">
-                <NavLink
-                  to="/docs"
-                  className={({ isActive }) => isActive ? 'nav-icon-btn nav-icon-btn--active' : 'nav-icon-btn'}
-                  aria-label="Help"
-                >
-                  <HelpCircle size={COLLAPSED_ICON_SIZE} />
-                </NavLink>
-              </NavTooltip>
               <NavTooltip label="Settings">
                 <NavLink
                   to="/settings"
@@ -910,15 +898,6 @@ export function Sidebar() {
                 >
                   <Settings size={COLLAPSED_ICON_SIZE} />
                 </NavLink>
-              </NavTooltip>
-              <NavTooltip label="Sign out">
-                <button
-                  className="nav-icon-btn"
-                  onClick={() => logOut(localOnly, setLocalOnly).catch(console.error)}
-                  aria-label="Sign out"
-                >
-                  <LogOut size={COLLAPSED_ICON_SIZE} />
-                </button>
               </NavTooltip>
             </div>
           </motion.div>
@@ -1119,19 +1098,10 @@ export function Sidebar() {
             </div>{/* end sidebar-expanded-scroll */}
 
             <div className="sidebar-expanded-bottom">
-            <NavLink to="/docs" className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'} onClick={() => setEditMode(false)}>
-              <HelpCircle size={ICON_SIZE} />
-              Help
-            </NavLink>
             <NavLink to="/settings" className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'} onClick={() => setEditMode(false)}>
               <Settings size={ICON_SIZE} />
               Settings
             </NavLink>
-            <div style={{ height: '0.5rem' }} />
-            <button className="nav-item nav-btn nav-item--signout" onClick={() => { setEditMode(false); logOut(localOnly, setLocalOnly).catch(console.error); }}>
-              <LogOut size={ICON_SIZE} />
-              Sign out
-            </button>
             </div>
           </motion.div>
         )}

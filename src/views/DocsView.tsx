@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { Keyboard, List, Sun, Repeat, ShoppingCart, Folder, WifiOff, Cloud } from 'lucide-react';
+import { Keyboard, List, Sun, Repeat, ShoppingCart, Folder, WifiOff, Cloud, RotateCcw, Plus, Pencil, Copy, Smile, Trash2, FolderInput, GripVertical, Info, Zap, MousePointerClick } from 'lucide-react';
 
 interface ShortcutRow {
   keys: string[];
@@ -80,10 +80,33 @@ const listSubSections: ListSubSection[] = [
     body: 'A persistent running list, never fully cleared. Good for groceries and anything you restock regularly.',
   },
   {
+    icon: RotateCcw,
+    heading: 'Chores list',
+    body: 'Recurring tasks that cycle instead of complete. Set an interval (e.g. every 3 days) and checking off a task advances its due date rather than removing it.',
+  },
+  {
     icon: Folder,
     heading: 'Folders',
     body: 'Group lists into collapsible folders in the sidebar to keep things organised.',
   },
+];
+
+interface ButtonItem {
+  icon: LucideIcon;
+  label: string;
+  body: string;
+}
+
+const sidebarButtons: ButtonItem[] = [
+  { icon: Plus, label: '+', body: 'Create a new list or folder.' },
+  { icon: Pencil, label: 'Edit', body: 'Enter edit mode. Drag handles appear on each list so you can reorder them. A folder icon lets you drag a list into or out of a folder. A delete button appears on each list.' },
+];
+
+const listViewButtons: ButtonItem[] = [
+  { icon: Pencil, label: 'Edit', body: 'Enter edit mode. Each task gets a drag handle to reorder, a group icon to drag it into a different group, and a delete button.' },
+  { icon: Copy, label: 'Duplicate', body: 'Create a copy of the list and all its tasks.' },
+  { icon: Smile, label: 'Icon', body: 'Pick an emoji icon for the list. Shown in the sidebar and the list header.' },
+  { icon: Trash2, label: 'Delete', body: 'Permanently delete the list and all its tasks.' },
 ];
 
 function ItemRow({ icon: ItemIcon, heading, body }: { icon: LucideIcon; heading: string; body: string }) {
@@ -98,6 +121,20 @@ function ItemRow({ icon: ItemIcon, heading, body }: { icon: LucideIcon; heading:
   );
 }
 
+function ButtonRow({ icon: BtnIcon, label, body }: ButtonItem) {
+  return (
+    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+      <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 6, border: '1px solid var(--border)', background: 'var(--surface)', flexShrink: 0, marginTop: 1 }}>
+        <BtnIcon size={13} style={{ color: 'var(--fg-muted)' }} />
+      </span>
+      <div>
+        <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{label}</span>
+        <p style={{ fontSize: '0.85rem', color: 'var(--fg-muted)', lineHeight: 1.5, marginTop: '0.1rem' }}>{body}</p>
+      </div>
+    </div>
+  );
+}
+
 export function DocsView() {
   return (
     <div style={{ maxWidth: 480, margin: '0 auto' }}>
@@ -107,14 +144,20 @@ export function DocsView() {
       </div>
 
       <section className="settings-section">
-        <div className="settings-section-title">About</div>
+        <div className="settings-section-title">
+          <Info size={16} />
+          About
+        </div>
         <p style={{ fontSize: '0.85rem', color: 'var(--fg-muted)', marginTop: '0.25rem' }}>
           A minimal, offline-first task manager.
         </p>
       </section>
 
       <section className="settings-section">
-        <div className="settings-section-title">Features</div>
+        <div className="settings-section-title">
+          <Zap size={16} />
+          Features
+        </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '0.25rem' }}>
           {features.map((item) => <ItemRow key={item.heading} {...item} />)}
         </div>
@@ -127,6 +170,21 @@ export function DocsView() {
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '0.25rem' }}>
           {listSubSections.map((item) => <ItemRow key={item.heading} {...item} />)}
+        </div>
+      </section>
+
+      <section className="settings-section">
+        <div className="settings-section-title">
+          <MousePointerClick size={16} />
+          Action buttons
+        </div>
+        <p style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--fg-muted)', margin: '0.5rem 0 0.375rem' }}>Sidebar</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem', marginBottom: '1rem' }}>
+          {sidebarButtons.map((b) => <ButtonRow key={b.label} {...b} />)}
+        </div>
+        <p style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--fg-muted)', margin: '0.5rem 0 0.375rem' }}>List / Folder view</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
+          {listViewButtons.map((b) => <ButtonRow key={b.label} {...b} />)}
         </div>
       </section>
 
