@@ -445,6 +445,7 @@ export function ListView() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.2, ease: 'easeOut', delay: 0.21 }}
           onSubmit={handleAdd}
+          style={{ position: 'relative' }}
         >
           <AnimatePresence initial={false}>
             {!addOpen && (
@@ -453,36 +454,35 @@ export function ListView() {
                 type="button"
                 className="add-task"
                 onClick={() => { setAddOpen(true); focusLater(addInputRef); }}
-                exit={{ opacity: 0, transition: { duration: 0.08 } }}
+                exit={{ opacity: 0, transition: { duration: 0.1 } }}
+                style={{ position: 'absolute', inset: 0, margin: 0, height: '100%' }}
               >
                 {ADD_TASK_PLACEHOLDER}
               </motion.button>
             )}
           </AnimatePresence>
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={addOpen ? { height: 'auto', opacity: 1 } : { height: 0, opacity: 0 }}
-            transition={{ duration: addOpen ? 0.22 : 0.16, ease: addOpen ? ease.snap : ease.in }}
-            style={{ overflow: 'hidden' }}
-          >
-            <input
-              ref={addInputRef}
-              className="add-task-input"
-              placeholder={ADD_TASK_PLACEHOLDER}
-              aria-label="Add task"
-              value={newTitle}
-              onChange={(e) => setNewTitle(e.target.value)}
-              onFocus={() => setAddOpen(true)}
-              onBlur={() => {
-                if (!newTitle.trim()) setAddOpen(false);
-                else commitAdd();
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Escape') { setNewTitle(''); setAddOpen(false); }
-              }}
-              data-add-task
-            />
-          </motion.div>
+          <input
+            ref={addInputRef}
+            className="add-task-input"
+            placeholder={ADD_TASK_PLACEHOLDER}
+            aria-label="Add task"
+            value={newTitle}
+            onChange={(e) => setNewTitle(e.target.value)}
+            onFocus={() => setAddOpen(true)}
+            onBlur={() => {
+              if (!newTitle.trim()) setAddOpen(false);
+              else commitAdd();
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') { setNewTitle(''); setAddOpen(false); }
+            }}
+            data-add-task
+            style={{
+              opacity: addOpen ? 1 : 0,
+              transition: 'opacity 0.12s ease',
+              pointerEvents: addOpen ? 'auto' : 'none',
+            }}
+          />
         </motion.form>
         <div data-reorder-context="ungrouped">
           <AnimatePresence initial={false}>
