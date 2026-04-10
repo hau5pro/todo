@@ -96,10 +96,11 @@ export function MyDayView() {
 
   // Ref so handleTaskToggle stays stable across renders without needing the task lists as deps.
   const myDayTasksRef = useRef<Map<string, typeof myDayOverdue[0]>>(new Map());
-  myDayTasksRef.current = useMemo(
+  const taskMap = useMemo(
     () => new Map([...myDayOverdue, ...myDayToday].map((t) => [t.id, t])),
     [myDayOverdue, myDayToday],
   );
+  myDayTasksRef.current = taskMap;
 
   const handleTaskToggle = useCallback(async (id: string) => {
     const task = myDayTasksRef.current.get(id);
