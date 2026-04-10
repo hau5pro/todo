@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { Pencil, Trash2, ChevronDown, ChevronRight, Copy, List, CheckCircle, MoreHorizontal } from 'lucide-react';
+import { Pencil, Trash2, ChevronDown, ChevronRight, Copy, List, CheckCircle, MoreHorizontal, Smile } from 'lucide-react';
 import { DragHandle, DeleteButton } from '../components/EditControls';
 import { AnimatePresence, motion } from 'framer-motion';
 import { createPortal } from 'react-dom';
@@ -518,37 +518,9 @@ export function ListView() {
     <div>
       <motion.div variants={headerVariants} initial="hidden" animate="show" className="view-header">
         <motion.div variants={headerItemVariants} className="view-title-row">
-          {isPinned ? (
-            <span className="view-title-icon">
-              {getListIcon(list, 20) ?? <List size={20} />}
-            </span>
-          ) : (
-            <>
-              <button
-                ref={iconBtnRef}
-                className={`view-title-icon-btn${iconPickerAnchor ? ' view-title-icon-btn--open' : ''}`}
-                onClick={() => iconPickerAnchor
-                  ? setIconPickerAnchor(null)
-                  : setIconPickerAnchor(iconBtnRef.current!.getBoundingClientRect())
-                }
-                title="Change icon"
-                aria-label="Change icon"
-                aria-expanded={!!iconPickerAnchor}
-              >
-                {getListIcon(list, 20) ?? <List size={20} />}
-              </button>
-              <AnimatePresence>
-                {iconPickerAnchor && (
-                  <IconPicker
-                    currentIcon={list.icon}
-                    anchorRect={iconPickerAnchor}
-                    onSelect={(icon) => updateListIcon(listId!, icon)}
-                    onClose={() => setIconPickerAnchor(null)}
-                  />
-                )}
-              </AnimatePresence>
-            </>
-          )}
+          <span className="view-title-icon">
+            {getListIcon(list, 20) ?? <List size={20} />}
+          </span>
           {editingListName ? (
             <>
               <input
@@ -574,12 +546,33 @@ export function ListView() {
                   title={taskEditMode ? 'Done editing' : 'Edit tasks'}
                   style={taskEditMode ? { color: 'var(--success)' } : undefined}
                 >
-                  {taskEditMode
-                    ? <CheckCircle size={ICON_SIZE} />
-                    : <Pencil size={ICON_SIZE} />}
+                  {taskEditMode ? <CheckCircle size={ICON_SIZE} /> : <Pencil size={ICON_SIZE} />}
                 </button>
                 {!isPinned && (<>
                   <button className="view-title-action-btn" onClick={handleDuplicate} title="Duplicate list"><Copy size={ICON_SIZE} /></button>
+                  <button
+                    ref={iconBtnRef}
+                    className={`view-title-action-btn${iconPickerAnchor ? ' view-title-action-btn--open' : ''}`}
+                    onClick={() => iconPickerAnchor
+                      ? setIconPickerAnchor(null)
+                      : setIconPickerAnchor(iconBtnRef.current!.getBoundingClientRect())
+                    }
+                    title="Change icon"
+                    aria-label="Change icon"
+                    aria-expanded={!!iconPickerAnchor}
+                  >
+                    <Smile size={ICON_SIZE} />
+                  </button>
+                  <AnimatePresence>
+                    {iconPickerAnchor && (
+                      <IconPicker
+                        currentIcon={list.icon}
+                        anchorRect={iconPickerAnchor}
+                        onSelect={(icon) => updateListIcon(listId!, icon)}
+                        onClose={() => setIconPickerAnchor(null)}
+                      />
+                    )}
+                  </AnimatePresence>
                   <button className="view-title-action-btn view-title-action-btn--danger" onClick={() => setConfirmDeleteList(true)} title="Delete list"><Trash2 size={ICON_SIZE} /></button>
                 </>)}
               </span>
