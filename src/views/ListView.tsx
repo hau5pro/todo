@@ -53,7 +53,6 @@ function TaskRow({
 }) {
   return (
     <div
-      data-reorder-id={task.id}
       className={`task-row${editMode ? ' task-row--editing' : ''}`}
       style={{ cursor: 'default', opacity: dragging ? 0.4 : 1 }}
     >
@@ -448,21 +447,31 @@ export function ListView() {
           />
         </motion.form>
         <div data-reorder-context="ungrouped">
-          {ungroupedTasks.map((task) => (
-            <TaskRow
-              key={task.id}
-              task={task}
-              editMode={taskEditMode}
-              today={today}
-              dragging={task.id === draggingTaskId}
-              onToggle={handleToggle}
-              onSelect={() => handleSelectTask(task)}
-              onDelete={() => removeTask(task.id, listId!)}
-              isSelected={detail?.task.id === task.id}
-              onReorderStart={(e) => startDrag(e, task.id, 'ungrouped', 'task-row--dragging')}
-              onGroupDragStart={(e) => { e.preventDefault(); setDraggingTaskId(task.id); }}
-            />
-          ))}
+          <AnimatePresence initial={false}>
+            {ungroupedTasks.map((task) => (
+              <motion.div
+                key={task.id}
+                data-reorder-id={task.id}
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto', transition: { duration: 0.22, ease: ease.snap } }}
+                exit={{ opacity: 0, height: 0, transition: { duration: 0.18, ease: ease.in } }}
+                style={{ overflow: 'hidden' }}
+              >
+                <TaskRow
+                  task={task}
+                  editMode={taskEditMode}
+                  today={today}
+                  dragging={task.id === draggingTaskId}
+                  onToggle={handleToggle}
+                  onSelect={() => handleSelectTask(task)}
+                  onDelete={() => removeTask(task.id, listId!)}
+                  isSelected={detail?.task.id === task.id}
+                  onReorderStart={(e) => startDrag(e, task.id, 'ungrouped', 'task-row--dragging')}
+                  onGroupDragStart={(e) => { e.preventDefault(); setDraggingTaskId(task.id); }}
+                />
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
       </div>
 
