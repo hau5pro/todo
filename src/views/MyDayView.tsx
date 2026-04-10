@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import { Sun, CalendarCheck, Clock } from 'lucide-react';
+import { Sun, Flame, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAppStore, HabitWithCompletion } from '../store';
 import { useSettings } from '../contexts/SettingsContext';
@@ -126,7 +126,7 @@ export function MyDayView() {
       {!hasAnything && <motion.p variants={itemVariants} className="empty-state">Nothing due today.</motion.p>}
         {habitSections.length > 0 && (
           <motion.section variants={sectionVariants}>
-            <div className="section-heading"><CalendarCheck size={ICON_SIZE} />Habits</div>
+            <div className="section-heading"><Flame size={ICON_SIZE} />Habits</div>
             {(() => {
               const multipleListsPresent = new Set(habitSections.map((s) => s.listId)).size > 1;
               const firstIndexByList = new Map<string, number>();
