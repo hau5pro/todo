@@ -103,6 +103,7 @@ interface AppStore {
   createFolder: (name: string) => Promise<ListFolder>;
   renameFolder: (id: string, name: string) => Promise<void>;
   deleteFolder: (id: string) => Promise<{ movedListIds: string[] }>;
+  duplicateFolder: (id: string) => Promise<ListFolder>;
 
   // Task mutations
   addTask: (listId: string, title: string, group?: string | null) => Promise<Task>;
@@ -291,6 +292,52 @@ export const useAppStore = create<AppStore>((set, get) => ({
     }));
     requestSync();
     return { movedListIds: listsInFolder.map((l) => l.id) };
+  },
+
+  duplicateFolder: async (id) => {
+    const source = get().folders.find((f) => f.id === id);
+    if (!source) throw new Error(`Folder ${id} not found`);
+    const existingFolderNames = new Set(get().folders.map((f) => f.name));
+    const folderBase = source.name.replace(/ \(\d+\)$/, '');
+    let n = 2;
+    let folderCopyName = `${folderBase} (${n})`;
+    while (existingFolderNames.has(folderCopyName)) folderCopyName = `${folderBase} (${++n})`;
+    const newFolder = await dbCreateFolder(folderCopyName);
+    const listsInFolder = get().lists.filter((l) => l.folder_id === id && !l.deleted_at);
+    const allListNames = new Set(get().lists.map((l) => l.name));
+    const newEntries: { list: List; tasks: Task[] }[] = [];
+    for (const sourceList of listsInFolder) {
+      const listBase = sourceList.name.replace(/ \(\d+\)$/, '');
+      let ln = 2;
+      let listCopyName = `${listBase} (${ln})`;
+      while (allListNames.has(listCopyName)) listCopyName = `${listBase} (${++ln})`;
+      allListNames.add(listCopyName);
+      const newList = await dbCreateList(listCopyName, sourceList.type, newFolder.id);
+      const sourceTasks = await getTasksByList(sourceList.id);
+      const newTasks = await Promise.all(
+        sourceTasks.map((t) =>
+          dbCreateTask(newList.id, t.title, {
+            completed: t.completed,
+            due_date: t.due_date ?? undefined,
+            recurrence_interval: t.recurrence_interval ?? undefined,
+            recurrence_unit: t.recurrence_unit ?? undefined,
+            rrule: t.rrule ?? undefined,
+            group: t.group ?? undefined,
+          })
+        )
+      );
+      newEntries.push({ list: newList, tasks: newTasks });
+    }
+    set((s) => ({
+      folders: [...s.folders, newFolder],
+      lists: [...s.lists, ...newEntries.map(({ list }) => list)],
+      tasksByList: {
+        ...s.tasksByList,
+        ...Object.fromEntries(newEntries.map(({ list, tasks }) => [list.id, tasks])),
+      },
+    }));
+    requestSync();
+    return newFolder;
   },
 
   // ── Task mutations ─────────────────────────────────────────────────────────
