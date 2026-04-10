@@ -389,10 +389,8 @@ export function DailyView() {
     ...Array.from(groupMap.keys()).filter((g) => !savedGroupOrder.includes(g)),
   ];
 
-  const ghostRow = dragId
-    ? (orderedRows.find((r) => r.task.id === dragId) ?? (allGroupNames.includes(dragId) ? { task: { title: dragId } as HabitRow['task'] } : null))
-    : null;
-  const ghostLabel = ghostRow ? ghostRow.task.title : null;
+  const ghostTask = dragId ? orderedRows.find((r) => r.task.id === dragId) : null;
+  const ghostLabel = ghostTask?.task.title ?? (dragId && allGroupNames.includes(dragId) ? dragId : null);
   const groupDragRow = draggingHabitId ? orderedRows.find((r) => r.task.id === draggingHabitId) : null;
 
   async function handleToggle(taskId: string) {
