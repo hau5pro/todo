@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import dayjs from 'dayjs';
 import { motion } from 'framer-motion';
 import { AnimatedCheckbox } from './AnimatedCheckbox';
@@ -17,7 +17,7 @@ interface Props {
   isSelected?: boolean;
 }
 
-export function TaskItem({ title, completed, dueDate, dueTime, today, onToggle, onSelect, isSelected }: Props) {
+export const TaskItem = memo(function TaskItem({ title, completed, dueDate, dueTime, today, onToggle, onSelect, isSelected }: Props) {
   const isOverdue  = dueDate && dueDate < today;
   const isTomorrow = dueDate === dayjs(today).add(1, 'day').format('YYYY-MM-DD');
 
@@ -73,4 +73,4 @@ export function TaskItem({ title, completed, dueDate, dueTime, today, onToggle, 
       )}
     </motion.div>
   );
-}
+});
