@@ -280,6 +280,7 @@ body {
 }
 .nav-icon-btn:hover { color: var(--fg); background: var(--hover); }
 .nav-icon-btn--active { color: var(--accent); background: var(--accent-dim); }
+.nav-icon-btn--active:hover { color: var(--accent); background: var(--accent-dim); }
 .nav-icon-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 
 [data-tooltip] { position: relative; }
