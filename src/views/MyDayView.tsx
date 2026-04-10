@@ -58,7 +58,7 @@ export function MyDayView() {
     for (const h of myDayHabits) {
       const id = h.task.list_id;
       if (!byList.has(id)) byList.set(id, []);
-      byList.get(id)!.push(h);
+      byList.get(id)!.push(h); // safe: set above if absent
     }
 
     const sections: HabitSection[] = [];
@@ -71,7 +71,7 @@ export function MyDayView() {
       for (const h of ordered) {
         if (h.task.group) {
           if (!groupMap.has(h.task.group)) groupMap.set(h.task.group, []);
-          groupMap.get(h.task.group)!.push(h);
+          groupMap.get(h.task.group)!.push(h); // safe: set above if absent
         }
       }
 

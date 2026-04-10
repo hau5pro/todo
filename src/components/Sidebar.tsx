@@ -291,6 +291,7 @@ export function Sidebar() {
           if (after) lineY = after.el.getBoundingClientRect().bottom;
         }
         if (lineY !== null) {
+          // safe: group was checked `if (!group) return` earlier in this effect
           const groupRect = group!.getBoundingClientRect();
           reorderLineRef.current.style.opacity = '1';
           reorderLineRef.current.style.top = `${lineY}px`;

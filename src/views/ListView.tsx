@@ -261,7 +261,7 @@ export function ListView() {
   for (const task of orderedActive) {
     if (task.group) {
       if (!groupMap.has(task.group)) groupMap.set(task.group, []);
-      groupMap.get(task.group)!.push(task);
+      groupMap.get(task.group)!.push(task); // safe: set above if absent
     }
   }
 
@@ -288,7 +288,8 @@ export function ListView() {
   }
 
   function startEditListName() {
-    setNewListName(list!.name);
+    if (!list) return;
+    setNewListName(list.name);
     setEditingListName(true);
     setTaskEditMode(false);
     focusLater(listNameInputRef);
@@ -296,7 +297,7 @@ export function ListView() {
 
   async function commitEditListName() {
     const name = newListName.trim();
-    if (name && name !== list!.name) await renameList(listId!, name);
+    if (name && list && name !== list.name) await renameList(listId!, name);
     setEditingListName(false);
   }
 
@@ -389,10 +390,10 @@ export function ListView() {
                   <button
                     ref={iconBtnRef}
                     className={`view-title-action-btn${iconPickerAnchor ? ' view-title-action-btn--open' : ''}`}
-                    onClick={() => iconPickerAnchor
-                      ? setIconPickerAnchor(null)
-                      : setIconPickerAnchor(iconBtnRef.current!.getBoundingClientRect())
-                    }
+                    onClick={() => {
+                      if (iconPickerAnchor) { setIconPickerAnchor(null); return; }
+                      if (iconBtnRef.current) setIconPickerAnchor(iconBtnRef.current.getBoundingClientRect());
+                    }}
                     title="Change icon"
                     aria-label="Change icon"
                     aria-expanded={!!iconPickerAnchor}

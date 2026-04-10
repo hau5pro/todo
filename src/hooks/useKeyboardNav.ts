@@ -34,10 +34,12 @@ export function useKeyboardNav() {
           return;
         }
         if (e.key === 'Tab') {
+          // safe: inDetailPanel already confirmed .task-detail-panel contains active
           const panel = document.querySelector('.task-detail-panel')!;
           const focusable = Array.from(
             panel.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled])')
           );
+          // safe: active is non-null — inDetailPanel check confirmed it
           const idx = focusable.indexOf(active!);
           e.preventDefault();
           focusable[!e.shiftKey
@@ -57,6 +59,7 @@ export function useKeyboardNav() {
           document.querySelectorAll<HTMLElement>('[data-nav-item]')
         );
         const isNavItem = active?.hasAttribute('data-nav-item');
+        // safe: active is non-null — inSidebar check confirmed it
         const idx = isNavItem ? navItems.indexOf(active!) : -1;
 
         if (e.key === 'ArrowDown' || (e.key === 'Tab' && !e.shiftKey)) {
@@ -66,6 +69,7 @@ export function useKeyboardNav() {
           e.preventDefault();
           navItems[idx > 0 ? idx - 1 : navItems.length - 1]?.focus();
         } else if ((e.key === 'Enter' || e.key === 'ArrowRight') && isNavItem) {
+          // safe: active is non-null — inSidebar check confirmed it
           active!.click();
           setTimeout(() => {
             const target =
@@ -85,6 +89,7 @@ export function useKeyboardNav() {
         if (!isNavRow && !isAddTask) return;
 
         const items = Array.from(document.querySelectorAll<HTMLElement>(ROW_SELECTOR));
+        // safe: active is non-null — isNavRow / isAddTask checks confirmed it
         const idx = items.indexOf(active!);
 
         if (e.key === 'ArrowDown' || (e.key === 'Tab' && !e.shiftKey)) {
@@ -95,9 +100,11 @@ export function useKeyboardNav() {
           items[idx > 0 ? idx - 1 : items.length - 1]?.focus();
         } else if (e.key === ' ') {
           e.preventDefault();
+          // safe: active is non-null — isNavRow / isAddTask checks confirmed it
           active!.querySelector<HTMLElement>('.animated-checkbox')?.click();
         } else if (e.key === 'Enter' && isNavRow) {
           lastNavRow.current = active;
+          // safe: active is non-null — isNavRow / isAddTask checks confirmed it
           active!.click();
         } else if (e.key === 'Escape') {
           if (detail) {

@@ -96,6 +96,7 @@ export function useLineDrag({ scrollRef, onCommit }: UseLineDragOptions): UseLin
           if (after) lineY = after.el.getBoundingClientRect().bottom;
         }
         if (lineY !== null) {
+          // safe: group was checked `if (!group) return` earlier in this effect
           const groupRect = group!.getBoundingClientRect();
           lineRef.current.style.opacity = '1';
           lineRef.current.style.top = `${lineY}px`;

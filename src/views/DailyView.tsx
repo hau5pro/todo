@@ -201,7 +201,7 @@ export function DailyView() {
   for (const row of orderedRows) {
     if (row.task.group) {
       if (!groupMap.has(row.task.group)) groupMap.set(row.task.group, []);
-      groupMap.get(row.task.group)!.push(row);
+      groupMap.get(row.task.group)!.push(row); // safe: set above if absent
     }
   }
 

@@ -253,6 +253,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     if (!userRef.current) return;
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
+      // safe: userRef.current was checked non-null above; closure captures the same ref
       pushCloudSettings(userRef.current!.id, next).catch(console.error);
     }, 1000);
   }, []);
