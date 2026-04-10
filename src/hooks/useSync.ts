@@ -39,9 +39,17 @@ export function useSync() {
       const db = await getDB();
       await pushPending(db, supabase, user.id);
       await pullFromSupabase(db, supabase);
-      setPendingCount(0); // pushPending cleared all pending flags
+      setPendingCount(await countPending());
     } catch (e) {
       setSyncError(e instanceof Error ? e : new Error(String(e)));
+      // pushPending may have partially succeeded (e.g. folders cleared but
+      // tasks errored) before throwing, so recompute from the source of truth
+      // instead of leaving the UI showing a stale count.
+      try {
+        setPendingCount(await countPending());
+      } catch {
+        // ignore — DB unavailable, count stays as-is
+      }
     } finally {
       syncingRef.current = false;
       setIsSyncing(false);
