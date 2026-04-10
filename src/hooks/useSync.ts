@@ -39,7 +39,11 @@ export function useSync() {
       const db = await getDB();
       await pushPending(db, supabase, user.id);
       await pullFromSupabase(db, supabase);
-      setPendingCount(await countPending());
+      try {
+        setPendingCount(await countPending());
+      } catch {
+        // DB unavailable after successful sync — ignore, count will refresh on next sync
+      }
     } catch (e) {
       setSyncError(e instanceof Error ? e : new Error(String(e)));
       // pushPending may have partially succeeded (e.g. folders cleared but
