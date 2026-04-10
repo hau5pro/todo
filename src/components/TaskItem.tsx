@@ -32,7 +32,6 @@ export const TaskItem = memo(function TaskItem({ id, title, completed, dueDate, 
     return label;
   }
   const { soundEnabled, soundStyle, hapticEnabled } = useSettings();
-  const [flashing, setFlashing] = useState(false);
   const [popping, setPopping] = useState(false);
 
   function handleToggle() {
@@ -40,9 +39,8 @@ export const TaskItem = memo(function TaskItem({ id, title, completed, dueDate, 
     if (!completed) {
       if (soundEnabled) playComplete(soundStyle);
       if (hapticEnabled) hapticComplete();
-      setFlashing(true);
       setPopping(true);
-      setTimeout(() => { setFlashing(false); setPopping(false); }, 250);
+      setTimeout(() => setPopping(false), 250);
       onToggle(id);
     } else {
       onToggle(id);
@@ -55,7 +53,6 @@ export const TaskItem = memo(function TaskItem({ id, title, completed, dueDate, 
         'task-item',
         isSelected ? 'task-item--selected' : '',
         onSelect ? 'task-item--selectable' : '',
-        flashing ? 'task-item--flash' : '',
         !onToggle ? 'task-item--no-toggle' : '',
       ].filter(Boolean).join(' ')}
       tabIndex={0}
