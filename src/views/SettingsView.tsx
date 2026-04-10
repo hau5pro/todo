@@ -14,6 +14,7 @@ import { ColorSwatchPicker } from '../components/ColorSwatchPicker';
 import { SettingsRow } from '../components/SettingsRow';
 import type { List } from '../types';
 import { LIST_TYPE_LABELS } from '../types';
+import { PINNED_LIST_SUBTITLES } from '../config/constants';
 
 const MY_DAY_SENTINEL = { id: 'my-day' as const };
 type PinnedItem = List | typeof MY_DAY_SENTINEL;
@@ -27,7 +28,7 @@ function SortableSettingsRow({ list, checked, onChange }: { list: List; checked:
       <div className="settings-drag-handle" onPointerDown={(e) => dragControls.start(e)}>
         <GripVertical size={ICON_SIZE} />
       </div>
-      <SettingsRow label={list.name} sublabel={LIST_TYPE_LABELS[list.type]} checked={checked} onChange={onChange} />
+      <SettingsRow label={list.name} sublabel={PINNED_LIST_SUBTITLES[list.name] ?? LIST_TYPE_LABELS[list.type]} checked={checked} onChange={onChange} />
     </Reorder.Item>
   );
 }
