@@ -281,11 +281,14 @@ export function ListView() {
   async function commitAdd() {
     if (!newTitle.trim() || submittingRef.current) return;
     submittingRef.current = true;
-    await addTask(listId!, newTitle.trim());
-    submittingRef.current = false;
-    setNewTitle('');
-    setAddOpen(false);
-    closeDetail();
+    try {
+      await addTask(listId!, newTitle.trim());
+      setNewTitle('');
+      setAddOpen(false);
+      closeDetail();
+    } finally {
+      submittingRef.current = false;
+    }
   }
 
   async function handleAdd(e: React.FormEvent) {
