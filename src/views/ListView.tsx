@@ -106,6 +106,8 @@ export function ListView() {
   const { listOrders, setListOrder, listGroupOrders, setListGroupOrder, customOrder, setCustomOrder, pinnedOrder } = useSettings();
 
   const [newTitle, setNewTitle] = useState('');
+  const [addOpen, setAddOpen] = useState(false);
+  const addInputRef = useRef<HTMLInputElement>(null);
   const [editingListName, setEditingListName] = useState(false);
   const [newListName, setNewListName] = useState('');
   const [confirmDeleteList, setConfirmDeleteList] = useState(false);
@@ -141,6 +143,7 @@ export function ListView() {
     setTaskEditMode(false);
     setEditingListName(false);
     setCompletedVisible(COMPLETED_PAGE_SIZE);
+    setAddOpen(false);
   }, [listId]);
 
   useEffect(() => {
@@ -278,6 +281,7 @@ export function ListView() {
     if (!newTitle.trim()) return;
     await addTask(listId!, newTitle.trim());
     setNewTitle('');
+    setAddOpen(false);
     closeDetail();
   }
 
@@ -436,15 +440,42 @@ export function ListView() {
           transition={{ duration: 0.2, ease: 'easeOut', delay: 0.21 }}
           onSubmit={handleAdd}
         >
-          <input
-            className="add-task-input"
-            placeholder={ADD_TASK_PLACEHOLDER}
-            aria-label="Add task"
-            value={newTitle}
-            onChange={(e) => setNewTitle(e.target.value)}
-            onBlur={commitAdd}
-            data-add-task
-          />
+          <AnimatePresence initial={false}>
+            {!addOpen && (
+              <motion.button
+                key="add-trigger"
+                type="button"
+                className="add-task"
+                onClick={() => { setAddOpen(true); focusLater(addInputRef); }}
+                exit={{ opacity: 0, transition: { duration: 0.08 } }}
+              >
+                {ADD_TASK_PLACEHOLDER}
+              </motion.button>
+            )}
+          </AnimatePresence>
+          <motion.div
+            animate={addOpen ? { height: 'auto', opacity: 1 } : { height: 0, opacity: 0 }}
+            transition={{ duration: addOpen ? 0.22 : 0.16, ease: addOpen ? ease.snap : ease.in }}
+            style={{ overflow: 'hidden' }}
+          >
+            <input
+              ref={addInputRef}
+              className="add-task-input"
+              placeholder={ADD_TASK_PLACEHOLDER}
+              aria-label="Add task"
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
+              onFocus={() => setAddOpen(true)}
+              onBlur={() => {
+                if (!newTitle.trim()) setAddOpen(false);
+                else commitAdd();
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') { setNewTitle(''); setAddOpen(false); }
+              }}
+              data-add-task
+            />
+          </motion.div>
         </motion.form>
         <div data-reorder-context="ungrouped">
           <AnimatePresence initial={false}>
