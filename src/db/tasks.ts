@@ -70,7 +70,8 @@ export async function setTaskCompleted(id: string, completed: boolean): Promise<
   const db = await getDB();
   const tx = db.transaction('tasks', 'readwrite');
   const store = tx.objectStore('tasks');
-  const existing = await req<Task>(store.get(id));
+  const existing = await req<Task | undefined>(store.get(id));
+  if (!existing) throw new Error(`Task ${id} not found`);
   const now = new Date().toISOString();
   const updated: Task = {
     ...existing,
@@ -87,7 +88,8 @@ export async function advanceCyclicalTask(id: string): Promise<Task> {
   const db = await getDB();
   const tx = db.transaction('tasks', 'readwrite');
   const store = tx.objectStore('tasks');
-  const existing = await req<Task>(store.get(id));
+  const existing = await req<Task | undefined>(store.get(id));
+  if (!existing) throw new Error(`Task ${id} not found`);
   if (!existing.due_date || !existing.recurrence_interval || !existing.recurrence_unit) {
     throw new Error(`Task ${id} has no recurrence configured`);
   }
@@ -108,7 +110,8 @@ export async function softDeleteTask(id: string, deletedAt?: string): Promise<vo
   const db = await getDB();
   const tx = db.transaction('tasks', 'readwrite');
   const store = tx.objectStore('tasks');
-  const existing = await req<Task>(store.get(id));
+  const existing = await req<Task | undefined>(store.get(id));
+  if (!existing) throw new Error(`Task ${id} not found`);
   await req(
     store.put({
       ...existing,
@@ -123,7 +126,8 @@ export async function advanceRecurringTask(id: string): Promise<Task> {
   const db = await getDB();
   const tx = db.transaction('tasks', 'readwrite');
   const store = tx.objectStore('tasks');
-  const existing = await req<Task>(store.get(id));
+  const existing = await req<Task | undefined>(store.get(id));
+  if (!existing) throw new Error(`Task ${id} not found`);
   if (!existing.due_date || !existing.rrule) {
     throw new Error(`Task ${id} does not have rrule recurrence`);
   }
@@ -160,7 +164,8 @@ export async function updateTask(id: string, changes: Partial<Pick<Task, 'title'
   const db = await getDB();
   const tx = db.transaction('tasks', 'readwrite');
   const store = tx.objectStore('tasks');
-  const existing = await req<Task>(store.get(id));
+  const existing = await req<Task | undefined>(store.get(id));
+  if (!existing) throw new Error(`Task ${id} not found`);
   const updated: Task = {
     ...existing,
     ...changes,
