@@ -528,7 +528,7 @@ button.nav-section-label--button:hover { color: var(--fg); }
 .nav-section-header {
   display: flex;
   align-items: center;
-  padding: 8px 6px 6px 10px;
+  padding: 8px 12px 6px 10px;
   position: relative;
   margin-bottom: 4px;
 }
