@@ -5,3 +5,5 @@ dist/
 .env.local
 
 *.code-workspace
+
+quality_assurance.md
