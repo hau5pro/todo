@@ -20,17 +20,18 @@ import { ease } from '../utils/easing';
 import type { HabitRow } from '../hooks/useHabits';
 import { applyOrder } from '../utils/order';
 
-function HabitRow({ row, editMode, onToggle, onSelect, onDelete, isSelected, onReorderStart, onGroupDragStart }: {
+function HabitRow({ row, editMode, onToggle, onSelect, onDelete, isSelected, onReorderStart, onGroupDragStart, dragging }: {
   row: HabitRow; editMode: boolean;
   onToggle: () => void; onSelect: () => void; onDelete: () => void; isSelected: boolean;
   onReorderStart?: (e: React.PointerEvent) => void;
   onGroupDragStart?: (e: React.PointerEvent) => void;
+  dragging?: boolean;
 }) {
   return (
     <div
       data-reorder-id={row.task.id}
       className={`task-row${editMode ? ' task-row--editing' : ''}`}
-      style={{ cursor: 'default' }}
+      style={{ cursor: 'default', opacity: dragging ? 0.4 : 1 }}
     >
       <div className="nav-item-drag-zone">
         <DragHandle show={editMode} onPointerDown={onReorderStart} />
@@ -65,9 +66,10 @@ function HabitRow({ row, editMode, onToggle, onSelect, onDelete, isSelected, onR
   );
 }
 
+// export to be removed when wired in Task 3
 export function HabitGroupSection({
   groupName, rows, editMode,
-  startDrag, onGroupDragStart, onToggle, onSelect, onDelete, onRename, onDeleteGroup, selectedTaskId,
+  startDrag, onGroupDragStart, onToggle, onSelect, onDelete, onRename, onDeleteGroup, selectedTaskId, draggingHabitId,
 }: {
   groupName: string;
   rows: HabitRow[];
@@ -80,6 +82,7 @@ export function HabitGroupSection({
   onRename: (oldName: string, newName: string) => void;
   onDeleteGroup: (name: string) => void;
   selectedTaskId: string | undefined;
+  draggingHabitId?: string | null;
 }) {
   const [collapsed, setCollapsed] = useState(false);
   const [editingName, setEditingName] = useState(false);
@@ -116,7 +119,10 @@ export function HabitGroupSection({
     <div
       data-reorder-id={groupName}
       data-group-id={groupName}
-      className="group-section"
+      className={[
+        'group-section',
+        draggingHabitId ? 'group-section--dragging' : '',
+      ].filter(Boolean).join(' ')}
     >
       <div className={`group-header${editMode ? ' group-header--editing' : ''}`}>
         <div className="nav-item-drag-zone">
@@ -204,6 +210,7 @@ export function HabitGroupSection({
                   isSelected={selectedTaskId === row.task.id}
                   onReorderStart={(e) => startDrag(e, row.task.id, groupName, 'task-row--dragging')}
                   onGroupDragStart={(e) => onGroupDragStart(e, row.task.id)}
+                  dragging={draggingHabitId === row.task.id}
                 />
               ))}
             </div>
