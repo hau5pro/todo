@@ -521,7 +521,10 @@ export function ListView() {
                   {visibleCompleted.map((task) => (
                     <motion.div
                       key={task.id}
-                      exit={{ opacity: 0, transition: { duration: 0.15, ease: 'easeIn' as const } }}
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto', transition: { duration: 0.22, ease: ease.snap } }}
+                      exit={{ opacity: 0, height: 0, transition: { duration: 0.18, ease: ease.in } }}
+                      style={{ overflow: 'hidden' }}
                     >
                       <TaskItem
                         id={task.id}
