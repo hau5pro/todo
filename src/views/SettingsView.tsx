@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Trash2, CircleUser, Paintbrush, Volume2, Pin, TriangleAlert, GripVertical } from 'lucide-react';
+import { NavLink } from 'react-router-dom';
+import { Trash2, CircleUser, Paintbrush, Volume2, Pin, TriangleAlert, GripVertical, HelpCircle, LogOut } from 'lucide-react';
 import { ICON_SIZE } from '../config/constants';
 import { Reorder, useDragControls } from 'framer-motion';
 import { useSettings } from '../contexts/SettingsContext';
@@ -7,7 +8,7 @@ import { playComplete, SOUND_STYLES } from '../utils/sound';
 import { useAppStore } from '../store';
 import { clearAllLocalData } from '../db/client';
 import { deleteAllCloudData } from '../db/sync';
-import { signOut } from '../supabase/auth';
+import { logOut, signOut } from '../supabase/auth';
 import { supabase } from '../supabase/client';
 import { ColorSwatchPicker } from '../components/ColorSwatchPicker';
 import { SettingsRow } from '../components/SettingsRow';
@@ -55,7 +56,7 @@ export function SettingsView() {
     soundStyle, setSoundStyle,
     hapticEnabled, setHapticEnabled,
     syncEnabled, setSyncEnabled,
-    localOnly,
+    localOnly, setLocalOnly,
   } = useSettings();
 
   const lists = useAppStore((s) => s.lists);
@@ -96,6 +97,17 @@ export function SettingsView() {
         <h1 className="view-title">Settings</h1>
       </div>
 
+      {/* Help */}
+      <section className="settings-section">
+        <div className="settings-section-title">
+          <HelpCircle size={16} />
+          Help
+        </div>
+        <NavLink to="/docs" className="settings-link-row">
+          Documentation & tips
+        </NavLink>
+      </section>
+
       {/* Account */}
       <section className="settings-section">
         <div className="settings-section-title">
@@ -113,7 +125,50 @@ export function SettingsView() {
             onChange={() => setSyncEnabled(!syncEnabled)}
           />
         )}
+        {!localOnly && (
+          <button
+            className="settings-signout-btn"
+            onClick={() => logOut(localOnly, setLocalOnly).catch(console.error)}
+          >
+            <LogOut size={14} />
+            Sign out
+          </button>
+        )}
       </section>
+
+      {/* Pinned items */}
+      {pinnedItems.length > 0 && (
+        <section className="settings-section">
+          <div className="settings-section-title">
+            <Pin size={16} />
+            Pinned
+          </div>
+          <p style={{ fontSize: '0.85rem', color: 'var(--fg-muted)', margin: '0.5rem 0 0.875rem' }}>
+            Drag to reorder. Toggle to show or hide in the sidebar.
+          </p>
+          <Reorder.Group
+            as="div"
+            axis="y"
+            values={pinnedItems}
+            onReorder={(newOrder) => setPinnedOrder(newOrder.map((item) => item.id))}
+          >
+            {pinnedItems.map((item) =>
+              item.id === 'my-day'
+                ? <SortableMyDaySettingsRow
+                    key="my-day"
+                    checked={!hiddenListIds.includes('my-day')}
+                    onChange={() => toggleListVisibility('my-day')}
+                  />
+                : <SortableSettingsRow
+                    key={item.id}
+                    list={item as List}
+                    checked={!hiddenListIds.includes(item.id)}
+                    onChange={() => toggleListVisibility(item.id)}
+                  />
+            )}
+          </Reorder.Group>
+        </section>
+      )}
 
       {/* Appearance */}
       <section className="settings-section">
@@ -179,40 +234,6 @@ export function SettingsView() {
           </div>
         )}
       </section>
-
-      {/* Pinned items */}
-      {pinnedItems.length > 0 && (
-        <section className="settings-section">
-          <div className="settings-section-title">
-            <Pin size={16} />
-            Pinned
-          </div>
-          <p style={{ fontSize: '0.85rem', color: 'var(--fg-muted)', margin: '0.5rem 0 0.875rem' }}>
-            Drag to reorder. Toggle to show or hide in the sidebar.
-          </p>
-          <Reorder.Group
-            as="div"
-            axis="y"
-            values={pinnedItems}
-            onReorder={(newOrder) => setPinnedOrder(newOrder.map((item) => item.id))}
-          >
-            {pinnedItems.map((item) =>
-              item.id === 'my-day'
-                ? <SortableMyDaySettingsRow
-                    key="my-day"
-                    checked={!hiddenListIds.includes('my-day')}
-                    onChange={() => toggleListVisibility('my-day')}
-                  />
-                : <SortableSettingsRow
-                    key={item.id}
-                    list={item as List}
-                    checked={!hiddenListIds.includes(item.id)}
-                    onChange={() => toggleListVisibility(item.id)}
-                  />
-            )}
-          </Reorder.Group>
-        </section>
-      )}
 
       {/* Danger zone */}
       <section className="settings-section">

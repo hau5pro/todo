@@ -1961,6 +1961,32 @@ button.nav-section-label--button:hover { color: var(--fg); }
   padding: 0.5rem 0;
 }
 
+.settings-link-row {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--accent);
+  padding: 0.4rem 0;
+  text-decoration: none;
+}
+.settings-link-row:hover { text-decoration: underline; }
+
+.settings-signout-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 100%;
+  margin-top: 0.875rem;
+  padding: 0.6rem 0;
+  font-size: 0.875rem;
+  color: var(--fg-muted);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.settings-signout-btn:hover { color: var(--fg); border-color: var(--fg-muted); }
+
 .danger-zone {
   border: 1px solid color-mix(in srgb, var(--danger) 35%, transparent);
   border-radius: 8px;
