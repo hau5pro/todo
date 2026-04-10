@@ -61,17 +61,23 @@ export function SetupWizard() {
   }
 
   async function finish() {
+    if (saving) return;
     setSaving(true);
-    if (!lists['My Day']) toggleListVisibility('my-day');
-    const createdIds: string[] = [];
-    if (lists['Tasks'])     createdIds.push((await createList('Tasks', 'general')).id);
-    if (lists['Habits'])    createdIds.push((await createList('Habits', 'daily')).id);
-    if (lists['Groceries']) createdIds.push((await createList('Groceries', 'shopping')).id);
-    if (lists['Chores'])    createdIds.push((await createList('Chores', 'general')).id);
-    setPinnedOrder(['my-day', ...createdIds]);
-    if (!localOnly) setSyncEnabled(syncChoice);
-    await Promise.all([loadLists(), loadFolders(), loadMyDay()]);
-    markSetupDone();
+    try {
+      if (!lists['My Day']) toggleListVisibility('my-day');
+      const createdIds: string[] = [];
+      if (lists['Tasks'])     createdIds.push((await createList('Tasks', 'general')).id);
+      if (lists['Habits'])    createdIds.push((await createList('Habits', 'daily')).id);
+      if (lists['Groceries']) createdIds.push((await createList('Groceries', 'shopping')).id);
+      if (lists['Chores'])    createdIds.push((await createList('Chores', 'general')).id);
+      setPinnedOrder(['my-day', ...createdIds]);
+      if (!localOnly) setSyncEnabled(syncChoice);
+      await Promise.all([loadLists(), loadFolders(), loadMyDay()]);
+      markSetupDone();
+    } catch (err) {
+      console.error(err);
+      setSaving(false);
+    }
   }
 
   return (
