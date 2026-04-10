@@ -58,6 +58,8 @@ function TaskRow({
     >
       <div className="nav-item-drag-zone">
         <DragHandle show={editMode} onPointerDown={onReorderStart} />
+        {editMode && <span className="nav-item-drag-zone-divider" />}
+        <DeleteButton show={editMode} onClick={onDelete} title="Delete task" />
       </div>
       <div
         style={{ flex: 1, minWidth: 0, touchAction: editMode ? 'none' : undefined }}
@@ -74,7 +76,6 @@ function TaskRow({
           isSelected={!editMode && isSelected}
         />
       </div>
-      <DeleteButton show={editMode} onClick={onDelete} title="Delete task" />
     </div>
   );
 }
@@ -140,6 +141,8 @@ function GroupSection({
       <div className={`group-header${editMode ? ' group-header--editing' : ''}`}>
         <div className="nav-item-drag-zone">
           <DragHandle show={editMode && !editingName} onPointerDown={(e) => startDrag(e, groupName, 'groups', 'group-section--dragging')} />
+          {editMode && !editingName && <span className="nav-item-drag-zone-divider" />}
+          <DeleteButton show={editMode && !editingName} onClick={() => setConfirmDelete(true)} title="Delete group" />
         </div>
         <button
           className={`group-header-collapse${!collapsed ? ' group-header-collapse--expanded' : ''}`}
@@ -195,7 +198,6 @@ function GroupSection({
             )}
           </AnimatePresence>
         </div>
-        <DeleteButton show={editMode && !editingName} onClick={() => setConfirmDelete(true)} title="Delete group" />
       </div>
 
       <AnimatePresence>
