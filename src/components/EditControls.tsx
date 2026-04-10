@@ -44,17 +44,17 @@ export function DeleteButton({
   return (
     <AnimatePresence initial={false}>
       {show && (
-        <motion.button
-          className="task-edit-delete"
-          onClick={onClick}
+        <motion.span
+          style={{ overflow: 'hidden', flexShrink: 0, display: 'flex' }}
           initial={{ width: 0, opacity: 0 }}
           animate={{ width: 44, opacity: 1 }}
           exit={{ width: 0, opacity: 0 }}
           transition={{ duration: 0.15 }}
-          title={title}
         >
-          <Trash2 size={ICON_SIZE} />
-        </motion.button>
+          <button className="task-edit-delete" onClick={onClick} title={title}>
+            <Trash2 size={ICON_SIZE} />
+          </button>
+        </motion.span>
       )}
     </AnimatePresence>
   );
