@@ -71,6 +71,11 @@ export async function toggleHabitCompletion(taskId: string, date: string): Promi
 /**
  * Calculate the current streak for a task given its completions.
  * Pure function — accepts today as a parameter so it's testable.
+ *
+ * The streak starts from today and walks backward: today counts if completed,
+ * and so does yesterday — this allows the streak to stay alive if the user
+ * hasn't ticked off today yet but was consistent up through yesterday.
+ * The loop breaks at the first missing day so partial gaps reset the streak.
  */
 export function calculateStreak(
   completions: HabitCompletion[],
@@ -84,6 +89,9 @@ export function calculateStreak(
   );
 
   let streak = 0;
+  // Append a local-midnight time component so Date parsing isn't shifted by the
+  // runtime's UTC offset — without it, "2024-01-15" parses as UTC midnight and
+  // can resolve to the previous calendar day in negative-offset timezones.
   const base = new Date(today + 'T00:00:00');
 
   for (let i = 0; i < 365; i++) {

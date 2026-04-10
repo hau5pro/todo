@@ -38,7 +38,11 @@ function runHandler(): void {
   }
 }
 
-/** Called by store mutations after any data-driven write. Debounced to coalesce rapid actions. */
+/**
+ * Called by store mutations after any data-driven write. Debounced to coalesce rapid actions.
+ * Debouncing avoids hammering the network on every keystroke — e.g. renaming a list fires a
+ * store write per character; we only want one push after the user stops typing.
+ */
 export function requestSync(): void {
   if (debounceTimer !== null) clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => {

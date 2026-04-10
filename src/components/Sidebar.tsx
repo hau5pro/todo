@@ -843,7 +843,11 @@ export function Sidebar() {
                     ))}
                   </div>
 
-                  {/* Add folder inline — always mounted so focus() works synchronously on iOS PWA */}
+                  {/* Add folder inline — always mounted so focus() works synchronously on iOS PWA.
+                      On iOS Safari in standalone (PWA) mode, calling .focus() on an input that was
+                      just mounted via conditional rendering doesn't raise the keyboard reliably.
+                      Keeping the input in the DOM at all times and hiding it visually means the
+                      element is already live when focus() is called, which iOS requires. */}
                   <div className="nav-item nav-item--editing" style={addingFolder ? undefined : { position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0, overflow: 'hidden' }}>
                     <Folder size={ICON_SIZE} style={{ color: 'var(--fg-muted)', flexShrink: 0 }} />
                     <input
@@ -864,7 +868,7 @@ export function Sidebar() {
                     </button>
                   </div>
 
-                  {/* Add list inline — always mounted so focus() works synchronously on iOS PWA */}
+                  {/* Add list inline — always mounted for the same iOS PWA focus reason above. */}
                   <div className="nav-item nav-item--editing" style={addingList ? undefined : { position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0, overflow: 'hidden' }}>
                     <input
                       ref={addInputRef}
