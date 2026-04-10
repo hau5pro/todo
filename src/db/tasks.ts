@@ -198,9 +198,21 @@ export async function purgeOldShoppingItems(): Promise<void> {
   cutoff.setDate(cutoff.getDate() - 30);
   const cutoffStr = cutoff.toISOString();
 
-  const all = await req<Task[]>(db.transaction('tasks').objectStore('tasks').getAll());
-  const toDelete = all.filter(
-    (t) => t.deleted_at !== null && t.deleted_at < cutoffStr
+  // Only purge tasks belonging to shopping lists — other lists keep their
+  // soft-deleted history indefinitely.
+  const readTx = db.transaction(['tasks', 'lists']);
+  const allTasks = await req<Task[]>(readTx.objectStore('tasks').getAll());
+  const allLists = await req<{ id: string; type: string }[]>(
+    readTx.objectStore('lists').getAll() as IDBRequest<{ id: string; type: string }[]>
+  );
+  const shoppingListIds = new Set(
+    allLists.filter((l) => l.type === 'shopping').map((l) => l.id)
+  );
+  const toDelete = allTasks.filter(
+    (t) =>
+      t.deleted_at !== null &&
+      t.deleted_at < cutoffStr &&
+      shoppingListIds.has(t.list_id)
   );
 
   if (toDelete.length === 0) return;
