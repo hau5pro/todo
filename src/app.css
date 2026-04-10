@@ -1430,7 +1430,10 @@ button.nav-section-label--button:hover { color: var(--fg); }
   border-radius: 10px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.12);
   width: 248px;
-  overflow: hidden;
+  max-height: min(420px, calc(100vh - 100px));
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 

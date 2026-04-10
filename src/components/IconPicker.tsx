@@ -15,13 +15,14 @@ export function IconPicker({ currentIcon, anchorRect, onSelect, onClose }: IconP
   const viewportWidth = window.innerWidth;
   const left = Math.min(anchorRect.left, viewportWidth - pickerWidth - 8);
   const top = anchorRect.bottom + 6;
+  const maxHeight = window.innerHeight - top - 8;
 
   return createPortal(
     <>
       <div className="icon-picker-backdrop" onClick={onClose} />
       <motion.div
         className="icon-picker"
-        style={{ top, left }}
+        style={{ top, left, maxHeight }}
         role="dialog"
         aria-label="Select icon"
         initial={{ opacity: 0, scale: 0.93, y: -6 }}
