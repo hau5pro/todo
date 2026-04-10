@@ -26,7 +26,8 @@ export async function renameFolder(id: string, name: string): Promise<ListFolder
   const db = await getDB();
   const tx = db.transaction('folders', 'readwrite');
   const store = tx.objectStore('folders');
-  const existing = await req<ListFolder>(store.get(id));
+  const existing = await req<ListFolder | undefined>(store.get(id));
+  if (!existing) throw new Error(`Folder ${id} not found`);
   const updated: ListFolder = {
     ...existing,
     name,
@@ -41,7 +42,8 @@ export async function deleteFolder(id: string): Promise<void> {
   const db = await getDB();
   const tx = db.transaction('folders', 'readwrite');
   const store = tx.objectStore('folders');
-  const existing = await req<ListFolder>(store.get(id));
+  const existing = await req<ListFolder | undefined>(store.get(id));
+  if (!existing) throw new Error(`Folder ${id} not found`);
   await req(
     store.put({
       ...existing,
