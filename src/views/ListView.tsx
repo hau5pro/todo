@@ -54,7 +54,7 @@ function TaskRow({
     <div
       data-reorder-id={task.id}
       className={`task-row${editMode ? ' task-row--editing' : ''}`}
-      style={{ cursor: editMode ? 'grab' : 'default', opacity: dragging ? 0.4 : 1 }}
+      style={{ cursor: 'default', opacity: dragging ? 0.4 : 1 }}
     >
       <div className="nav-item-drag-zone">
         <DragHandle show={editMode} onPointerDown={onReorderStart} />
@@ -65,7 +65,6 @@ function TaskRow({
             title="Drag to move to group"
             style={{ cursor: 'grab' }}
             onPointerDown={(e) => {
-              e.preventDefault();
               e.stopPropagation();
               onGroupDragStart?.(e);
             }}
