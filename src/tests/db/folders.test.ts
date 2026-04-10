@@ -35,4 +35,12 @@ describe('folders CRUD', () => {
     const folders = await getFolders();
     expect(folders).toHaveLength(0);
   });
+
+  it('renameFolder throws when ID does not exist', async () => {
+    await expect(renameFolder('nonexistent-id', 'New Name')).rejects.toThrow('nonexistent-id');
+  });
+
+  it('deleteFolder throws when ID does not exist', async () => {
+    await expect(deleteFolder('nonexistent-id')).rejects.toThrow('nonexistent-id');
+  });
 });

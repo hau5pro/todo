@@ -2,6 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { pushPending, pullFromSupabase, initialSync, deleteAllCloudData } from '../../db/sync';
 import { createList, getLists } from '../../db/lists';
+import { createFolder, getFolders } from '../../db/folders';
 import { createTask, getTasksByList } from '../../db/tasks';
 import { getDB } from '../../db/client';
 
@@ -91,6 +92,40 @@ describe('pushPending', () => {
     await pushPending(await getDB(), mockSupa as never, 'user-123');
     expect(mockSupa._upsertMock).not.toHaveBeenCalled();
   });
+
+  it('upserts pending folders to Supabase', async () => {
+    const folder = await createFolder('Work');
+    const mockSupa = makeMockSupabase();
+    await pushPending(await getDB(), mockSupa as never, 'user-123');
+    expect(mockSupa.from).toHaveBeenCalledWith('folders');
+    expect(mockSupa._upsertMock).toHaveBeenCalledWith(
+      expect.arrayContaining([expect.objectContaining({ id: folder.id, user_id: 'user-123' })]),
+      expect.any(Object)
+    );
+  });
+
+  it('clears pending_sync on folders after successful upsert', async () => {
+    await createFolder('Personal');
+    const mockSupa = makeMockSupabase();
+    await pushPending(await getDB(), mockSupa as never, 'user-123');
+    const folders = await getFolders();
+    expect(folders.every((f) => f.pending_sync === false)).toBe(true);
+  });
+
+  it('does NOT clear pending_sync when Supabase upsert returns an error', async () => {
+    await createList('Groceries', 'shopping');
+    // Mock returns an error for every upsert
+    const upsertMock = vi.fn().mockResolvedValue({ error: { message: 'network error' }, data: null });
+    const mockSupa = {
+      from: vi.fn().mockReturnValue({ upsert: upsertMock }),
+      _upsertMock: upsertMock,
+    };
+    // pushPending should throw (it collects errors and throws at the end)
+    await expect(pushPending(await getDB(), mockSupa as never, 'user-123')).rejects.toThrow();
+    // pending_sync must still be true — the failed upsert must not have cleared it
+    const lists = await getLists();
+    expect(lists.every((l) => l.pending_sync === true)).toBe(true);
+  });
 });
 
 describe('pullFromSupabase', () => {
@@ -166,6 +201,29 @@ describe('pullFromSupabase', () => {
     expect(stored).not.toBeNull();
     const storedTime = new Date(stored!).getTime();
     expect(storedTime).toBeGreaterThanOrEqual(before);
+  });
+
+  it('does NOT update todo_last_sync when any table select returns an error', async () => {
+    localStorage.removeItem(LAST_SYNC_KEY);
+
+    // One table returns an error
+    const fromMock = vi.fn().mockImplementation((table: string) => {
+      const gtSpy = vi.fn().mockResolvedValue(
+        table === 'lists'
+          ? { data: null, error: { message: 'permission denied' } }
+          : { data: [], error: null }
+      );
+      return {
+        select: vi.fn().mockReturnValue({ gt: gtSpy }),
+        upsert: vi.fn().mockResolvedValue({ error: null, data: [] }),
+      };
+    });
+
+    const db = await getDB();
+    await pullFromSupabase(db, { from: fromMock } as never);
+
+    // last_sync must NOT have been written
+    expect(localStorage.getItem(LAST_SYNC_KEY)).toBeNull();
   });
 
   it('uses created_at filter for habit_completions and updated_at for lists/tasks', async () => {
