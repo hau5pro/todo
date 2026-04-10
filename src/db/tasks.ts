@@ -1,5 +1,5 @@
 import { RRule } from 'rrule';
-import { getDB, req } from './client';
+import { getDB, req, excludeDeleted } from './client';
 import type { Task, RecurrenceUnit } from '../types';
 
 function advanceDueDate(dueDate: string, interval: number, unit: RecurrenceUnit): string {
@@ -63,7 +63,7 @@ export async function getTasksByList(listId: string, opts: GetTasksOpts = {}): P
   const all = await req<Task[]>(
     db.transaction('tasks').objectStore('tasks').index('list_id').getAll(listId)
   );
-  return opts.includeDeleted ? all : all.filter((t) => t.deleted_at === null);
+  return opts.includeDeleted ? all : excludeDeleted(all);
 }
 
 export async function setTaskCompleted(id: string, completed: boolean): Promise<Task> {

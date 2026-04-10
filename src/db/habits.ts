@@ -1,4 +1,4 @@
-import { getDB, req } from './client';
+import { getDB, req, excludeDeleted } from './client';
 import type { HabitCompletion } from '../types';
 
 export async function getCompletionsForTask(taskId: string): Promise<HabitCompletion[]> {
@@ -13,7 +13,7 @@ export async function getTodayCompletions(date: string): Promise<HabitCompletion
   const all = await req<HabitCompletion[]>(
     db.transaction('habit_completions').objectStore('habit_completions').index('date').getAll(date)
   );
-  return all.filter((c) => c.deleted_at === null);
+  return excludeDeleted(all);
 }
 
 /**

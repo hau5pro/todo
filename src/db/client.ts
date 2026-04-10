@@ -5,6 +5,11 @@ export function req<T>(r: IDBRequest<T>): Promise<T> {
   });
 }
 
+/** Filter out soft-deleted records (deleted_at !== null). */
+export function excludeDeleted<T extends { deleted_at: string | null }>(records: T[]): T[] {
+  return records.filter((r) => r.deleted_at === null);
+}
+
 const DB_VERSION = 2;
 
 let dbName = 'todo-app-local';

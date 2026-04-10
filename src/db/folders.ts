@@ -1,4 +1,4 @@
-import { getDB, req } from './client';
+import { getDB, req, excludeDeleted } from './client';
 import type { ListFolder } from '../types';
 
 export async function getFolders(): Promise<ListFolder[]> {
@@ -6,7 +6,7 @@ export async function getFolders(): Promise<ListFolder[]> {
   const all = await req<ListFolder[]>(
     db.transaction('folders').objectStore('folders').getAll()
   );
-  return all.filter((f) => f.deleted_at === null);
+  return excludeDeleted(all);
 }
 
 export async function createFolder(name: string): Promise<ListFolder> {

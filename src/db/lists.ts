@@ -1,4 +1,4 @@
-import { getDB, req } from './client';
+import { getDB, req, excludeDeleted } from './client';
 import type { List, ListType } from '../types';
 
 export async function getLists(): Promise<List[]> {
@@ -6,8 +6,7 @@ export async function getLists(): Promise<List[]> {
   const all = await req<List[]>(
     db.transaction('lists').objectStore('lists').getAll()
   );
-  return all
-    .filter((l) => l.deleted_at === null)
+  return excludeDeleted(all)
     .map((l) => ({ ...l, icon: l.icon ?? null, folder_id: l.folder_id ?? null }));
 }
 
