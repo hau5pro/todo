@@ -74,6 +74,7 @@ export function TaskDetailPanel() {
       setEditTitle(detail.task.title);
       setGroupInput(detail.task.group ?? '');
       setCalOpen(false);
+      setEditingTime(false);
       setEditingGroup(false);
       setShowSuggestions(false);
       setHighlightIdx(-1);
