@@ -37,7 +37,8 @@ export async function updateList(id: string, changes: Partial<Pick<List, 'name' 
   const db = await getDB();
   const tx = db.transaction('lists', 'readwrite');
   const store = tx.objectStore('lists');
-  const existing = await req<List>(store.get(id));
+  const existing = await req<List | undefined>(store.get(id));
+  if (!existing) throw new Error(`List ${id} not found`);
   const updated: List = {
     ...existing,
     folder_id: existing.folder_id ?? null,
@@ -53,7 +54,8 @@ export async function deleteList(id: string): Promise<void> {
   const db = await getDB();
   const tx = db.transaction('lists', 'readwrite');
   const store = tx.objectStore('lists');
-  const existing = await req<List>(store.get(id));
+  const existing = await req<List | undefined>(store.get(id));
+  if (!existing) throw new Error(`List ${id} not found`);
   await req(
     store.put({
       ...existing,
