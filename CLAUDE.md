@@ -32,6 +32,10 @@ Offline-first PWA todo app. React 18 + TypeScript + Vite.
 
 ## Git
 
+### Service worker
+
+The service worker (`src/sw/service-worker.ts`) does static precaching only. **Never add runtime caching for `supabase.co` routes** — authenticated API responses cached in Cache Storage would persist across sign-outs.
+
 ### Atomic commits
 
 Commit one logical change at a time. Each commit should be self-contained and buildable. Don't bundle unrelated fixes, style tweaks, and feature work into a single commit. If a session touches multiple concerns, split them into separate commits before wrapping up.

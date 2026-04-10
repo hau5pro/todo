@@ -77,7 +77,8 @@ export function SettingsView() {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) await deleteAllCloudData(supabase, user.id);
       await clearAllLocalData();
-      localStorage.clear();
+      localStorage.removeItem('todo_settings');
+      localStorage.removeItem('todo_last_sync');
       if (user) await signOut();
       else window.location.reload();
     } catch (err) {
