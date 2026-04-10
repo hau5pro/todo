@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { Sun, CalendarCheck, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useAppStore } from '../store';
+import { useAppStore, HabitWithCompletion } from '../store';
 import { useSettings } from '../contexts/SettingsContext';
 import { TaskItem } from '../components/TaskItem';
 import { HabitItem } from '../components/HabitItem';
@@ -24,6 +24,13 @@ const containerVariants = {
   show: { transition: { staggerChildren: 0.06, delayChildren: 0.03 } },
 };
 
+type HabitSection = {
+  listId: string;
+  listName: string;
+  groupName: string | null;
+  habits: HabitWithCompletion[];
+};
+
 function sortByDueDateTime<T extends { due_date?: string | null; due_time?: string | null }>(tasks: T[]): T[] {
   return [...tasks].sort((a, b) => {
     if (!a.due_date) return 1;
@@ -41,8 +48,7 @@ function sortByDueDateTime<T extends { due_date?: string | null; due_time?: stri
 export function MyDayView() {
   const today = useMemo(() => getTodayString(), []);
   const todayLabel = useMemo(() => new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }), []);
-  const { myDayOverdue, myDayToday, myDayHabits, myDayLoaded, loadMyDay, completeTask, advanceCyclicalTask } = useAppStore();
-  const lists = useAppStore((s) => s.lists);
+  const { myDayOverdue, myDayToday, myDayHabits, myDayLoaded, loadMyDay, completeTask, advanceCyclicalTask, lists } = useAppStore();
   const { listOrders, listGroupOrders } = useSettings();
 
   useEffect(() => { loadMyDay(); }, []);
@@ -60,13 +66,6 @@ export function MyDayView() {
     loadMyDay();
     requestSync();
   }
-
-  type HabitSection = {
-    listId: string;
-    listName: string;
-    groupName: string | null;
-    habits: typeof myDayHabits;
-  };
 
   const habitSections = useMemo((): HabitSection[] => {
     const byList = new Map<string, typeof myDayHabits>();
@@ -130,30 +129,29 @@ export function MyDayView() {
             <div className="section-heading"><CalendarCheck size={ICON_SIZE} />Habits</div>
             {(() => {
               const multipleListsPresent = new Set(habitSections.map((s) => s.listId)).size > 1;
-              let lastListId: string | null = null;
-              return habitSections.map((section, i) => {
-                const showListHeader = multipleListsPresent && section.listId !== lastListId;
-                lastListId = section.listId;
-                return (
-                  <div key={`${section.listId}-${section.groupName ?? '__ungrouped__'}-${i}`}>
-                    {showListHeader && (
-                      <div className="my-day-list-label">{section.listName}</div>
-                    )}
-                    {section.groupName && (
-                      <div className="my-day-group-label">{section.groupName}</div>
-                    )}
-                    {section.habits.map(({ task, completedToday, streak }) => (
-                      <HabitItem
-                        key={task.id}
-                        title={task.title}
-                        completedToday={completedToday}
-                        streak={streak}
-                        onToggle={() => handleHabitToggle(task.id)}
-                      />
-                    ))}
-                  </div>
-                );
+              const firstIndexByList = new Map<string, number>();
+              habitSections.forEach((s, i) => {
+                if (!firstIndexByList.has(s.listId)) firstIndexByList.set(s.listId, i);
               });
+              return habitSections.map((section, i) => (
+                <div key={`${section.listId}-${section.groupName ?? '__ungrouped__'}`}>
+                  {multipleListsPresent && firstIndexByList.get(section.listId) === i && (
+                    <div className="my-day-list-label">{section.listName}</div>
+                  )}
+                  {section.groupName && (
+                    <div className="my-day-group-label">{section.groupName}</div>
+                  )}
+                  {section.habits.map(({ task, completedToday, streak }) => (
+                    <HabitItem
+                      key={task.id}
+                      title={task.title}
+                      completedToday={completedToday}
+                      streak={streak}
+                      onToggle={() => handleHabitToggle(task.id)}
+                    />
+                  ))}
+                </div>
+              ));
             })()}
           </motion.section>
         )}
