@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useRef, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useRef, useMemo, useCallback, type ReactNode } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { onAuthStateChange } from '../supabase/auth';
 import { fetchCloudSettings, pushCloudSettings } from '../db/settings';
@@ -249,24 +249,24 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     return unsub;
   }, []);
 
-  function scheduleCloudPush(next: Settings) {
+  const scheduleCloudPush = useCallback((next: Settings) => {
     if (!userRef.current) return;
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       pushCloudSettings(userRef.current!.id, next).catch(console.error);
     }, 1000);
-  }
+  }, []);
 
-  function update(patchOrFn: Partial<Settings> | ((prev: Settings) => Settings)) {
+  const update = useCallback((patchOrFn: Partial<Settings> | ((prev: Settings) => Settings)) => {
     setSettings((prev) => {
       const next = typeof patchOrFn === 'function' ? patchOrFn(prev) : { ...prev, ...patchOrFn };
       saveSettings(next);
       scheduleCloudPush(next);
       return next;
     });
-  }
+  }, [scheduleCloudPush]);
 
-  const value: SettingsContextValue = {
+  const value: SettingsContextValue = useMemo(() => ({
     ...settings,
     setAccent: (accent) => update({ accent }),
     setTheme: (theme) => update({ theme }),
@@ -295,7 +295,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       update((prev) => ({ ...prev, listGroupOrders: { ...prev.listGroupOrders, [listId]: groups } })),
     setSyncEnabled: (syncEnabled) => update({ syncEnabled }),
     setLocalOnly: (v) => update({ localOnly: v, syncEnabled: v ? false : true }),
-  };
+  }), [settings, update]);
 
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;
 }
