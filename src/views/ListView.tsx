@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { Pencil, Trash2, ChevronDown, ChevronRight, Copy, List, CheckCircle, MoreHorizontal, Smile, FolderInput } from 'lucide-react';
 import { DragHandle, DeleteButton } from '../components/EditControls';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -414,6 +414,19 @@ export function ListView() {
     }
   }, [tasks, listId]);
 
+  const tasksRef = useRef(tasks);
+  tasksRef.current = tasks;
+
+  const handleToggle = useCallback(async (id: string) => {
+    const task = tasksRef.current?.find((t) => t.id === id);
+    if (!task) return;
+    if (task.recurrence_interval) {
+      await advanceCyclicalTask(task.id, listId!);
+    } else {
+      await completeTask(task.id, listId!, !task.completed);
+    }
+  }, [advanceCyclicalTask, completeTask, listId]);
+
   if (!list || tasks === undefined) return null;
 
   const isPinned = pinnedOrder.includes(listId!);
@@ -443,16 +456,6 @@ export function ListView() {
   const ghostTask = dragId ? activeTasks.find((t) => t.id === dragId) : null;
   const ghostLabel = ghostTask?.title ?? (dragId && allGroupNames.includes(dragId) ? dragId : null);
   const groupDragTask = draggingTaskId ? activeTasks.find((t) => t.id === draggingTaskId) : null;
-
-  async function handleToggle(id: string) {
-    const task = tasks.find((t) => t.id === id);
-    if (!task) return;
-    if (task.recurrence_interval) {
-      await advanceCyclicalTask(task.id, listId!);
-    } else {
-      await completeTask(task.id, listId!, !task.completed);
-    }
-  }
 
   async function commitAdd() {
     if (!newTitle.trim()) return;

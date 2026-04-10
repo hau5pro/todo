@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Pencil, CheckCircle, ChevronDown, ChevronRight, MoreHorizontal, Trash2, FolderInput } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -370,6 +370,12 @@ export function DailyView() {
     if (newOnes.length > 0) setListGroupOrder(listId!, [...saved, ...newOnes]);
   }, [rows, listId]);
 
+  const handleToggle = useCallback(async (taskId: string) => {
+    await toggleHabitCompletion(taskId, today);
+    reload();
+    requestSync();
+  }, [today, reload]);
+
   if (isLoading) return null;
 
   const globalOrder = listOrders[listId!] ?? [];
@@ -393,12 +399,6 @@ export function DailyView() {
   const ghostTask = dragId ? orderedRows.find((r) => r.task.id === dragId) : null;
   const ghostLabel = ghostTask?.task.title ?? (dragId && allGroupNames.includes(dragId) ? dragId : null);
   const groupDragRow = draggingHabitId ? orderedRows.find((r) => r.task.id === draggingHabitId) : null;
-
-  async function handleToggle(taskId: string) {
-    await toggleHabitCompletion(taskId, today);
-    reload();
-    requestSync();
-  }
 
   async function commitAdd() {
     if (!newTitle.trim()) return;
