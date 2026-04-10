@@ -1,12 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
-import { Pencil, Trash2, ChevronDown, ChevronRight, MoreHorizontal } from 'lucide-react';
+import { Pencil, Trash2, ChevronDown, ChevronRight, MoreHorizontal, FolderInput } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { DragHandle, DeleteButton } from './EditControls';
 import { TaskItem } from './TaskItem';
 import { ease } from '../utils/easing';
 import { focusLater } from '../utils/dom';
 import { ICON_SIZE } from '../config/constants';
-import { FolderInput } from 'lucide-react';
 import type { Task } from '../types';
 
 function TaskRow({
