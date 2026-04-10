@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { Pencil, Trash2, ChevronDown, ChevronRight, Copy, List, CheckCircle, MoreHorizontal, Smile } from 'lucide-react';
+import { Pencil, Trash2, ChevronDown, ChevronRight, Copy, List, CheckCircle, MoreHorizontal, Smile, FolderInput } from 'lucide-react';
 import { DragHandle, DeleteButton } from '../components/EditControls';
 import { AnimatePresence, motion } from 'framer-motion';
 import { createPortal } from 'react-dom';
@@ -59,12 +59,24 @@ function TaskRow({
       <div className="nav-item-drag-zone">
         <DragHandle show={editMode} onPointerDown={onReorderStart} />
         {editMode && <span className="nav-item-drag-zone-divider" />}
+        {editMode && (
+          <span
+            className="task-edit-drag"
+            title="Drag to move to group"
+            style={{ cursor: 'grab' }}
+            onPointerDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onGroupDragStart?.(e);
+            }}
+          >
+            <FolderInput size={ICON_SIZE} />
+          </span>
+        )}
+        {editMode && <span className="nav-item-drag-zone-divider" />}
         <DeleteButton show={editMode} onClick={onDelete} title="Delete task" />
       </div>
-      <div
-        style={{ flex: 1, minWidth: 0, touchAction: editMode ? 'none' : undefined }}
-        onPointerDown={editMode ? onGroupDragStart : undefined}
-      >
+      <div style={{ flex: 1, minWidth: 0 }}>
         <TaskItem
           title={task.title}
           completed={task.completed}
