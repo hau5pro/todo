@@ -18,7 +18,22 @@ export function useList(listId: string) {
     setIsLoading(false);
   }, [listId]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const [l, t] = await Promise.all([
+        getListById(listId),
+        getTasksByList(listId),
+      ]);
+      if (cancelled) return;
+      setList(l ?? null);
+      setTasks(t);
+      setIsLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [listId]);
 
   return { list, tasks, isLoading, reload: load };
 }
