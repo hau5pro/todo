@@ -108,6 +108,7 @@ export function ListView() {
   const [newTitle, setNewTitle] = useState('');
   const [addOpen, setAddOpen] = useState(false);
   const addInputRef = useRef<HTMLInputElement>(null);
+  const submittingRef = useRef(false);
   const [editingListName, setEditingListName] = useState(false);
   const [newListName, setNewListName] = useState('');
   const [confirmDeleteList, setConfirmDeleteList] = useState(false);
@@ -278,8 +279,10 @@ export function ListView() {
   const groupDragTask = draggingTaskId ? activeTasks.find((t) => t.id === draggingTaskId) : null;
 
   async function commitAdd() {
-    if (!newTitle.trim()) return;
+    if (!newTitle.trim() || submittingRef.current) return;
+    submittingRef.current = true;
     await addTask(listId!, newTitle.trim());
+    submittingRef.current = false;
     setNewTitle('');
     setAddOpen(false);
     closeDetail();
@@ -454,6 +457,7 @@ export function ListView() {
             )}
           </AnimatePresence>
           <motion.div
+            initial={{ height: 0, opacity: 0 }}
             animate={addOpen ? { height: 'auto', opacity: 1 } : { height: 0, opacity: 0 }}
             transition={{ duration: addOpen ? 0.22 : 0.16, ease: addOpen ? ease.snap : ease.in }}
             style={{ overflow: 'hidden' }}
