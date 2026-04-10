@@ -321,6 +321,7 @@ export function ListView() {
 
   useEffect(() => {
     setTaskEditMode(false);
+    setEditingListName(false);
     setCompletedVisible(COMPLETED_PAGE_SIZE);
   }, [listId]);
 
