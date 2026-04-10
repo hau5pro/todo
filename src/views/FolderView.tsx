@@ -51,6 +51,8 @@ function SortableListItem({
     >
       <div className="nav-item-drag-zone">
         <DragHandle show={editMode} onPointerDown={onReorderStart} />
+        {editMode && <span className="nav-item-drag-zone-divider" />}
+        <DeleteButton show={editMode} onClick={handleDelete} title="Delete list" />
       </div>
 
       {editMode ? (
@@ -68,8 +70,6 @@ function SortableListItem({
           <span className="folder-view-list-name">{list.name}</span>
         </NavLink>
       )}
-
-      <DeleteButton show={editMode} onClick={handleDelete} title="Delete list" />
     </div>
   );
 }
@@ -78,8 +78,12 @@ export function FolderView() {
   const { folderId } = useParams<{ folderId: string }>();
   const folders = useAppStore((s) => s.folders);
   const lists = useAppStore((s) => s.lists);
+  const renameFolder = useAppStore((s) => s.renameFolder);
   const { folderOrders, setFolderOrder } = useSettings();
   const [editMode, setEditMode] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  const [nameValue, setNameValue] = useState('');
+  const nameInputRef = useRef<HTMLInputElement>(null);
 
   const folder = folders.find((f) => f.id === folderId);
   const rawFolderLists = lists.filter((l) => l.folder_id === folderId && !l.deleted_at);
@@ -94,6 +98,18 @@ export function FolderView() {
   });
 
   const ghostList = dragId ? folderLists.find((l) => l.id === dragId) : null;
+
+  function startEditName() {
+    setNameValue(folder!.name);
+    setEditingName(true);
+    setTimeout(() => nameInputRef.current?.focus(), 0);
+  }
+
+  async function commitEditName() {
+    const name = nameValue.trim();
+    if (name && name !== folder!.name) await renameFolder(folderId!, name);
+    setEditingName(false);
+  }
 
   if (!folder) return <Navigate to="/" replace />;
 
@@ -115,17 +131,36 @@ export function FolderView() {
           <motion.div variants={itemVariants} className="view-header">
             <span className="view-title-icon"><Folder size={20} /></span>
             <div className="view-title-row">
-              <h1 className="view-title">{folder.name}</h1>
-              <span className="view-title-actions">
-                <button
-                  className="view-title-action-btn"
-                  onClick={() => setEditMode((m) => !m)}
-                  title={editMode ? 'Done editing' : 'Edit lists'}
-                  style={editMode ? { color: 'var(--success)' } : undefined}
-                >
-                  {editMode ? <CheckCircle size={ICON_SIZE} /> : <Pencil size={ICON_SIZE} />}
-                </button>
-              </span>
+              {editingName ? (
+                <>
+                  <input
+                    ref={nameInputRef}
+                    className="view-title-input"
+                    value={nameValue}
+                    onChange={(e) => setNameValue(e.target.value)}
+                    onBlur={commitEditName}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') commitEditName();
+                      if (e.key === 'Escape') setEditingName(false);
+                    }}
+                  />
+                  <button className="view-title-action-btn" onClick={commitEditName} title="Save"><CheckCircle size={ICON_SIZE} /></button>
+                </>
+              ) : (
+                <>
+                  <h1 className="view-title" onClick={startEditName} style={{ cursor: 'text' }}>{folder.name}</h1>
+                  <span className="view-title-actions">
+                    <button
+                      className="view-title-action-btn"
+                      onClick={() => { if (editingName) setEditingName(false); setEditMode((m) => !m); }}
+                      title={editMode ? 'Done editing' : 'Edit lists'}
+                      style={editMode ? { color: 'var(--success)' } : undefined}
+                    >
+                      {editMode ? <CheckCircle size={ICON_SIZE} /> : <Pencil size={ICON_SIZE} />}
+                    </button>
+                  </span>
+                </>
+              )}
             </div>
             <p className="view-subtitle">{folderLists.length} {folderLists.length === 1 ? 'list' : 'lists'}</p>
           </motion.div>
