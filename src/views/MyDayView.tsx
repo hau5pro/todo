@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useCallback } from 'react';
 import { Sun, Flame, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAppStore, HabitWithCompletion } from '../store';
@@ -53,20 +53,6 @@ export function MyDayView() {
 
   useEffect(() => { loadMyDay(); }, []);
 
-  async function handleTaskToggle(task: typeof myDayOverdue[0]) {
-    if (task.recurrence_interval) {
-      await advanceCyclicalTask(task.id, task.list_id);
-    } else {
-      await completeTask(task.id, task.list_id, !task.completed);
-    }
-  }
-
-  async function handleHabitToggle(taskId: string) {
-    await toggleHabitCompletion(taskId, today);
-    loadMyDay();
-    requestSync();
-  }
-
   const habitSections = useMemo((): HabitSection[] => {
     const byList = new Map<string, typeof myDayHabits>();
     for (const h of myDayHabits) {
@@ -105,12 +91,26 @@ export function MyDayView() {
     return sections;
   }, [myDayHabits, listOrders, listGroupOrders, lists]);
 
+  const sortedOverdue = useMemo(() => sortByDueDateTime(myDayOverdue), [myDayOverdue]);
+  const sortedToday = useMemo(() => sortByDueDateTime(myDayToday), [myDayToday]);
+
+  const handleTaskToggle = useCallback(async (task: typeof myDayOverdue[0]) => {
+    if (task.recurrence_interval) {
+      await advanceCyclicalTask(task.id, task.list_id);
+    } else {
+      await completeTask(task.id, task.list_id, !task.completed);
+    }
+  }, [advanceCyclicalTask, completeTask]);
+
+  const handleHabitToggle = useCallback(async (taskId: string) => {
+    await toggleHabitCompletion(taskId, today);
+    loadMyDay();
+    requestSync();
+  }, [today, loadMyDay]);
+
   if (!myDayLoaded) return null;
 
   const hasAnything = myDayOverdue.length > 0 || myDayToday.length > 0 || myDayHabits.length > 0;
-
-  const sortedOverdue = sortByDueDateTime(myDayOverdue);
-  const sortedToday = sortByDueDateTime(myDayToday);
 
   return (
     <div>
