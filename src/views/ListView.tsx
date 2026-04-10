@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
-import { Pencil, Trash2, ChevronDown, ChevronRight, Copy, List, CheckCircle, MoreHorizontal, Smile, FolderInput } from 'lucide-react';
+import { Pencil, Trash2, ChevronDown, ChevronRight, Copy, List, CheckCircle, Smile, FolderInput } from 'lucide-react';
 import { DragHandle, DeleteButton } from '../components/EditControls';
 import { AnimatePresence, motion } from 'framer-motion';
 import { createPortal } from 'react-dom';
@@ -14,6 +14,7 @@ import { useTaskDetail } from '../contexts/TaskDetailContext';
 import { useSettings } from '../contexts/SettingsContext';
 import { TaskItem } from '../components/TaskItem';
 import { IconPicker } from '../components/IconPicker';
+import { GroupSection } from '../components/GroupSection';
 import { ICON_SIZE, COMPLETED_PAGE_SIZE, ADD_TASK_PLACEHOLDER, PINNED_LIST_SUBTITLES } from '../config/constants';
 import { LIST_TYPE_LABELS } from '../types';
 import { getListIcon } from '../config/listIcons';
@@ -88,189 +89,6 @@ function TaskRow({
           isSelected={!editMode && isSelected}
         />
       </div>
-    </div>
-  );
-}
-
-function GroupSection({
-  groupName, tasks, editMode, today, draggingTaskId,
-  startDrag, onGroupDragStart, onToggle, onSelect, onDelete, onRename, onDeleteGroup, selectedTaskId,
-}: {
-  groupName: string;
-  tasks: Task[];
-  editMode: boolean;
-  today: string;
-  draggingTaskId: string | null;
-  startDrag: (e: React.PointerEvent, id: string, context: string, cls?: string) => void;
-  onGroupDragStart: (e: React.PointerEvent, taskId: string) => void;
-  onToggle: (id: string) => void;
-  onSelect: (task: Task) => void;
-  onDelete: (task: Task) => void;
-  onRename: (oldName: string, newName: string) => void;
-  onDeleteGroup: (name: string) => void;
-  selectedTaskId: string | undefined;
-}) {
-  const [collapsed, setCollapsed] = useState(false);
-  const [editingName, setEditingName] = useState(false);
-  const [nameValue, setNameValue] = useState(groupName);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(false);
-  const nameInputRef = useRef<HTMLInputElement>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpen(false);
-      }
-    }
-    if (menuOpen) document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, [menuOpen]);
-
-  function startEditName() {
-    setNameValue(groupName);
-    setEditingName(true);
-    setMenuOpen(false);
-    focusLater(nameInputRef);
-  }
-
-  function commitEditName() {
-    const trimmed = nameValue.trim();
-    if (trimmed && trimmed !== groupName) onRename(groupName, trimmed);
-    setEditingName(false);
-  }
-
-  return (
-    <div
-      data-reorder-id={groupName}
-      data-group-id={groupName}
-      className={[
-        'group-section',
-        draggingTaskId ? 'group-section--dragging' : '',
-      ].filter(Boolean).join(' ')}
-    >
-      <div className={`group-header${editMode ? ' group-header--editing' : ''}`}>
-        <div className="nav-item-drag-zone">
-          <DragHandle show={editMode && !editingName} onPointerDown={(e) => startDrag(e, groupName, 'groups', 'group-section--dragging')} />
-          {editMode && !editingName && <span className="nav-item-drag-zone-divider" />}
-          <DeleteButton show={editMode && !editingName} onClick={() => setConfirmDelete(true)} title="Delete group" />
-        </div>
-        <button
-          className={`group-header-collapse${!collapsed ? ' group-header-collapse--expanded' : ''}`}
-          onClick={() => setCollapsed((p) => !p)}
-          aria-label={collapsed ? 'Expand group' : 'Collapse group'}
-        >
-          {collapsed ? <ChevronRight size={ICON_SIZE} /> : <ChevronDown size={ICON_SIZE} />}
-        </button>
-
-        {editingName ? (
-          <input
-            ref={nameInputRef}
-            className="group-header-name-input"
-            value={nameValue}
-            onChange={(e) => setNameValue(e.target.value)}
-            onBlur={commitEditName}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') commitEditName();
-              if (e.key === 'Escape') setEditingName(false);
-            }}
-          />
-        ) : (
-          <span className="group-header-name" onClick={() => setCollapsed((p) => !p)}>{groupName} <span className="group-header-count">({tasks.length})</span></span>
-        )}
-
-        <div className="group-header-menu" ref={menuRef}>
-          <button
-            className="group-header-menu-btn"
-            onClick={() => setMenuOpen((p) => !p)}
-            aria-label="Group actions"
-          >
-            <MoreHorizontal size={ICON_SIZE} />
-          </button>
-          <AnimatePresence>
-            {menuOpen && (
-              <motion.div
-                className="group-header-dropdown"
-                initial={{ opacity: 0, scale: 0.95, y: -4 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: -4 }}
-                transition={{ duration: 0.1 }}
-              >
-                <button className="group-header-dropdown-item" onClick={startEditName}>
-                  <Pencil size={ICON_SIZE} /> Rename
-                </button>
-                <button
-                  className="group-header-dropdown-item group-header-dropdown-item--danger"
-                  onClick={() => { setConfirmDelete(true); setMenuOpen(false); }}
-                >
-                  <Trash2 size={ICON_SIZE} /> Delete group
-                </button>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </div>
-
-      <AnimatePresence>
-        {!collapsed && (
-          <motion.div
-            className="group-section__body"
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1, overflow: 'visible' }}
-            exit={{ height: 0, opacity: 0, overflow: 'hidden' }}
-            transition={{ duration: 0.2, ease: ease.out }}
-            style={{ overflow: 'hidden' }}
-          >
-            <div data-reorder-context={groupName}>
-              {tasks.map((task) => (
-                <TaskRow
-                  key={task.id}
-                  task={task}
-                  editMode={editMode}
-                  today={today}
-                  dragging={task.id === draggingTaskId}
-                  onToggle={onToggle}
-                  onSelect={() => onSelect(task)}
-                  onDelete={() => onDelete(task)}
-                  isSelected={selectedTaskId === task.id}
-                  onReorderStart={(e) => startDrag(e, task.id, groupName, 'task-row--dragging')}
-                  onGroupDragStart={(e) => onGroupDragStart(e, task.id)}
-                />
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {confirmDelete && (
-          <motion.div
-            className="modal-backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-            onClick={() => setConfirmDelete(false)}
-          >
-            <motion.div
-              className="modal-popup"
-              initial={{ opacity: 0, scale: 0.94, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.94, y: 6 }}
-              transition={{ duration: 0.15, ease: [0, 0, 0.2, 1] }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h3 className="modal-popup__title">Delete "{groupName}"?</h3>
-              <p className="modal-popup__body">Items will be moved to the main list, not deleted.</p>
-              <div className="modal-popup__actions">
-                <button className="btn-danger-sm" onClick={() => { onDeleteGroup(groupName); setConfirmDelete(false); }}>Delete group</button>
-                <button className="btn-ghost-sm" onClick={() => setConfirmDelete(false)}>Cancel</button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
