@@ -58,7 +58,10 @@ export function useSync() {
 
   useEffect(() => {
     if (!syncEnabled) return;
-    countPending().then(setPendingCount);
+    let cancelled = false;
+    countPending().then((n) => {
+      if (!cancelled) setPendingCount(n);
+    });
     sync();
     const unregister = registerSyncHandler(sync);
     const onFocus = () => sync();
@@ -66,6 +69,7 @@ export function useSync() {
     window.addEventListener('focus', onFocus);
     document.addEventListener('visibilitychange', onVisibility);
     return () => {
+      cancelled = true;
       unregister();
       window.removeEventListener('focus', onFocus);
       document.removeEventListener('visibilitychange', onVisibility);
