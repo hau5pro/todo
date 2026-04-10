@@ -7,17 +7,18 @@ import { playComplete, hapticComplete } from '../utils/sound';
 import { formatTime } from '../utils/date';
 
 interface Props {
+  id: string;
   title: string;
   completed: boolean;
   dueDate?: string | null;
   dueTime?: string | null;
   today: string;
-  onToggle?: () => void;
+  onToggle?: (id: string) => void;
   onSelect?: () => void;
   isSelected?: boolean;
 }
 
-export const TaskItem = memo(function TaskItem({ title, completed, dueDate, dueTime, today, onToggle, onSelect, isSelected }: Props) {
+export const TaskItem = memo(function TaskItem({ id, title, completed, dueDate, dueTime, today, onToggle, onSelect, isSelected }: Props) {
   const isOverdue  = dueDate && dueDate < today;
   const isTomorrow = dueDate === dayjs(today).add(1, 'day').format('YYYY-MM-DD');
 
@@ -42,9 +43,9 @@ export const TaskItem = memo(function TaskItem({ title, completed, dueDate, dueT
       setFlashing(true);
       setPopping(true);
       setTimeout(() => { setFlashing(false); setPopping(false); }, 250);
-      onToggle();
+      onToggle(id);
     } else {
-      onToggle();
+      onToggle(id);
     }
   }
 

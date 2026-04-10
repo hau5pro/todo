@@ -46,7 +46,7 @@ function TaskRow({
   onToggle, onSelect, onDelete, isSelected, onReorderStart, onGroupDragStart,
 }: {
   task: Task; editMode: boolean; today: string; dragging: boolean;
-  onToggle: () => void; onSelect: () => void; onDelete: () => void; isSelected: boolean;
+  onToggle: (id: string) => void; onSelect: () => void; onDelete: () => void; isSelected: boolean;
   onReorderStart?: (e: React.PointerEvent) => void;
   onGroupDragStart?: (e: React.PointerEvent) => void;
 }) {
@@ -77,6 +77,7 @@ function TaskRow({
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <TaskItem
+          id={task.id}
           title={task.title}
           completed={task.completed}
           dueDate={task.due_date}
@@ -102,7 +103,7 @@ function GroupSection({
   draggingTaskId: string | null;
   startDrag: (e: React.PointerEvent, id: string, context: string, cls?: string) => void;
   onGroupDragStart: (e: React.PointerEvent, taskId: string) => void;
-  onToggle: (task: Task) => void;
+  onToggle: (id: string) => void;
   onSelect: (task: Task) => void;
   onDelete: (task: Task) => void;
   onRename: (oldName: string, newName: string) => void;
@@ -229,7 +230,7 @@ function GroupSection({
                   editMode={editMode}
                   today={today}
                   dragging={task.id === draggingTaskId}
-                  onToggle={() => onToggle(task)}
+                  onToggle={onToggle}
                   onSelect={() => onSelect(task)}
                   onDelete={() => onDelete(task)}
                   isSelected={selectedTaskId === task.id}
@@ -443,7 +444,9 @@ export function ListView() {
   const ghostLabel = ghostTask?.title ?? (dragId && allGroupNames.includes(dragId) ? dragId : null);
   const groupDragTask = draggingTaskId ? activeTasks.find((t) => t.id === draggingTaskId) : null;
 
-  async function handleToggle(task: typeof tasks[0]) {
+  async function handleToggle(id: string) {
+    const task = tasks.find((t) => t.id === id);
+    if (!task) return;
     if (task.recurrence_interval) {
       await advanceCyclicalTask(task.id, listId!);
     } else {
@@ -630,7 +633,7 @@ export function ListView() {
               editMode={taskEditMode}
               today={today}
               dragging={task.id === draggingTaskId}
-              onToggle={() => handleToggle(task)}
+              onToggle={handleToggle}
               onSelect={() => handleSelectTask(task)}
               onDelete={() => removeTask(task.id, listId!)}
               isSelected={detail?.task.id === task.id}
@@ -690,12 +693,13 @@ export function ListView() {
                       exit={{ opacity: 0, transition: { duration: 0.15, ease: 'easeIn' as const } }}
                     >
                       <TaskItem
+                        id={task.id}
                         title={task.title}
                         completed={true}
                         dueDate={task.due_date}
                         dueTime={task.due_time}
                         today={today}
-                        onToggle={() => handleToggle(task)}
+                        onToggle={handleToggle}
                         onSelect={() => handleSelectTask(task)}
                         isSelected={detail?.task.id === task.id}
                       />

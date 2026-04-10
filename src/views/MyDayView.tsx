@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useCallback } from 'react';
+import { useEffect, useMemo, useCallback, useRef } from 'react';
 import { Sun, Flame, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAppStore, HabitWithCompletion } from '../store';
@@ -94,7 +94,16 @@ export function MyDayView() {
   const sortedOverdue = useMemo(() => sortByDueDateTime(myDayOverdue), [myDayOverdue]);
   const sortedToday = useMemo(() => sortByDueDateTime(myDayToday), [myDayToday]);
 
-  const handleTaskToggle = useCallback(async (task: typeof myDayOverdue[0]) => {
+  // Ref so handleTaskToggle stays stable across renders without needing the task lists as deps.
+  const myDayTasksRef = useRef<Map<string, typeof myDayOverdue[0]>>(new Map());
+  myDayTasksRef.current = useMemo(
+    () => new Map([...myDayOverdue, ...myDayToday].map((t) => [t.id, t])),
+    [myDayOverdue, myDayToday],
+  );
+
+  const handleTaskToggle = useCallback(async (id: string) => {
+    const task = myDayTasksRef.current.get(id);
+    if (!task) return;
     if (task.recurrence_interval) {
       await advanceCyclicalTask(task.id, task.list_id);
     } else {
@@ -144,10 +153,11 @@ export function MyDayView() {
                   {section.habits.map(({ task, completedToday, streak }) => (
                     <HabitItem
                       key={task.id}
+                      id={task.id}
                       title={task.title}
                       completedToday={completedToday}
                       streak={streak}
-                      onToggle={() => handleHabitToggle(task.id)}
+                      onToggle={handleHabitToggle}
                     />
                   ))}
                 </div>
@@ -162,12 +172,13 @@ export function MyDayView() {
             {sortedOverdue.map((task) => (
               <TaskItem
                 key={task.id}
+                id={task.id}
                 title={task.title}
                 completed={task.completed}
                 dueDate={task.due_date}
                 dueTime={task.due_time}
                 today={today}
-                onToggle={() => handleTaskToggle(task)}
+                onToggle={handleTaskToggle}
               />
             ))}
           </motion.section>
@@ -179,12 +190,13 @@ export function MyDayView() {
             {sortedToday.map((task) => (
               <TaskItem
                 key={task.id}
+                id={task.id}
                 title={task.title}
                 completed={task.completed}
                 dueDate={task.due_date}
                 dueTime={task.due_time}
                 today={today}
-                onToggle={() => handleTaskToggle(task)}
+                onToggle={handleTaskToggle}
               />
             ))}
           </motion.section>

@@ -22,7 +22,7 @@ import { applyOrder } from '../utils/order';
 
 function HabitRow({ row, editMode, onToggle, onSelect, onDelete, isSelected, onReorderStart, onGroupDragStart, dragging }: {
   row: HabitRow; editMode: boolean;
-  onToggle: () => void; onSelect: () => void; onDelete: () => void; isSelected: boolean;
+  onToggle: (id: string) => void; onSelect: () => void; onDelete: () => void; isSelected: boolean;
   onReorderStart?: (e: React.PointerEvent) => void;
   onGroupDragStart?: (e: React.PointerEvent) => void;
   dragging?: boolean;
@@ -54,6 +54,7 @@ function HabitRow({ row, editMode, onToggle, onSelect, onDelete, isSelected, onR
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <HabitItem
+          id={row.task.id}
           title={row.task.title}
           completedToday={row.completedToday}
           streak={row.streak}
@@ -75,7 +76,7 @@ function HabitGroupSection({
   editMode: boolean;
   startDrag: (e: React.PointerEvent, id: string, context: string, cls?: string) => void;
   onGroupDragStart: (e: React.PointerEvent, taskId: string) => void;
-  onToggle: (row: HabitRow) => void;
+  onToggle: (id: string) => void;
   onSelect: (row: HabitRow) => void;
   onDelete: (row: HabitRow) => void;
   onRename: (oldName: string, newName: string) => void;
@@ -203,7 +204,7 @@ function HabitGroupSection({
                   key={row.task.id}
                   row={row}
                   editMode={editMode}
-                  onToggle={() => onToggle(row)}
+                  onToggle={onToggle}
                   onSelect={() => onSelect(row)}
                   onDelete={() => onDelete(row)}
                   isSelected={selectedTaskId === row.task.id}
@@ -490,7 +491,7 @@ export function DailyView() {
                   row={row}
                   editMode={habitEditMode}
                   dragging={row.task.id === draggingHabitId}
-                  onToggle={() => handleToggle(row.task.id)}
+                  onToggle={handleToggle}
                   onSelect={() => detail?.task.id === row.task.id ? closeDetail() : openDetail({ task: row.task })}
                   onDelete={() => removeTask(row.task.id, listId!).then(reload)}
                   isSelected={detail?.task.id === row.task.id}
@@ -510,7 +511,7 @@ export function DailyView() {
                 rows={groupMap.get(groupName) ?? []}
                 editMode={habitEditMode}
                 draggingHabitId={draggingHabitId}
-                onToggle={(row) => handleToggle(row.task.id)}
+                onToggle={handleToggle}
                 onSelect={(row) => detail?.task.id === row.task.id ? closeDetail() : openDetail({ task: row.task })}
                 onDelete={(row) => removeTask(row.task.id, listId!).then(reload)}
                 onRename={handleRenameGroup}
