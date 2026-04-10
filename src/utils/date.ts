@@ -1,9 +1,14 @@
+/** Format a local Date as "YYYY-MM-DD" without timezone conversion. */
+export function formatLocalDate(date: Date): string {
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, '0'),
+    String(date.getDate()).padStart(2, '0'),
+  ].join('-');
+}
+
 export function getTodayString(): string {
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, '0');
-  const d = String(now.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
+  return formatLocalDate(new Date());
 }
 
 /** Format "HH:MM" → "9:00 AM" */

@@ -1,4 +1,5 @@
 import { getDB, req, excludeDeleted } from './client';
+import { formatLocalDate } from '../utils/date';
 import type { HabitCompletion } from '../types';
 
 export async function getCompletionsForTask(taskId: string): Promise<HabitCompletion[]> {
@@ -88,11 +89,7 @@ export function calculateStreak(
   for (let i = 0; i < 365; i++) {
     const d = new Date(base);
     d.setDate(d.getDate() - i);
-    const dateStr = [
-      d.getFullYear(),
-      String(d.getMonth() + 1).padStart(2, '0'),
-      String(d.getDate()).padStart(2, '0'),
-    ].join('-');
+    const dateStr = formatLocalDate(d);
 
     if (activeDates.has(dateStr)) {
       streak++;

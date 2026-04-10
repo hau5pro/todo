@@ -1,5 +1,6 @@
 import { RRule } from 'rrule';
 import { getDB, req, excludeDeleted } from './client';
+import { formatLocalDate } from '../utils/date';
 import type { Task, RecurrenceUnit } from '../types';
 
 function advanceDueDate(dueDate: string, interval: number, unit: RecurrenceUnit): string {
@@ -9,11 +10,7 @@ function advanceDueDate(dueDate: string, interval: number, unit: RecurrenceUnit)
   if (unit === 'days') date.setDate(date.getDate() + interval);
   if (unit === 'weeks') date.setDate(date.getDate() + interval * 7);
   if (unit === 'months') date.setMonth(date.getMonth() + interval);
-  return [
-    date.getFullYear(),
-    String(date.getMonth() + 1).padStart(2, '0'),
-    String(date.getDate()).padStart(2, '0'),
-  ].join('-');
+  return formatLocalDate(date);
 }
 
 function nextOccurrenceFromRRule(currentDueDate: string, rruleStr: string): string | null {
@@ -186,8 +183,7 @@ export async function getMyDayTasks(today: string): Promise<{ overdue: Task[]; t
     if (!t.completed) return true;
     // Completed: only keep if it was completed today (compare in local time)
     if (t.completed_at == null) return false;
-    const c = new Date(t.completed_at);
-    const completedLocal = `${c.getFullYear()}-${String(c.getMonth() + 1).padStart(2, '0')}-${String(c.getDate()).padStart(2, '0')}`;
+    const completedLocal = formatLocalDate(new Date(t.completed_at));
     return completedLocal === today;
   });
   return {
