@@ -17,12 +17,18 @@ Offline-first PWA todo app. React 18 + TypeScript + Vite.
 | Settings shape | `src/contexts/SettingsContext.tsx` |
 | DB schema (IndexedDB) | `src/db/client.ts` |
 | Sidebar nav + edit mode | `src/components/Sidebar.tsx` |
+| Sidebar list row (sortable) | `src/components/SortableItem.tsx` |
+| Sidebar folder row | `src/components/FolderRow.tsx` |
 | Task list view | `src/views/ListView.tsx` |
+| Task list group section | `src/components/GroupSection.tsx` |
+| Habit group section | `src/components/HabitGroupSection.tsx` |
 | Task detail side panel | `src/components/TaskDetailPanel.tsx` |
 | Drag handle + delete button | `src/components/EditControls.tsx` |
 | Focus utilities | `src/utils/dom.ts` |
 | Keyboard nav / focus traps | `src/hooks/useKeyboardNav.ts` |
-| iOS PWA focus workaround | See "always-mounted" input comments in Sidebar.tsx + FolderRow |
+| iOS PWA focus workaround | See "always-mounted" input comments in `Sidebar.tsx` + `FolderRow.tsx` |
+| Soft-delete filter utility | `excludeDeleted<T>()` in `src/db/client.ts` |
+| Local date formatting | `formatLocalDate()` in `src/utils/date.ts` |
 
 ## Git
 
