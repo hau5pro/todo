@@ -517,7 +517,7 @@ export function ListView() {
       )}
     <div>
       <motion.div variants={headerVariants} initial="hidden" animate="show" className="view-header">
-        <motion.div variants={headerItemVariants}>
+        <motion.div variants={headerItemVariants} className="view-title-row">
           {isPinned ? (
             <span className="view-title-icon">
               {getListIcon(list, 20) ?? <List size={20} />}
@@ -549,8 +549,6 @@ export function ListView() {
               </AnimatePresence>
             </>
           )}
-        </motion.div>
-        <motion.div variants={headerItemVariants} className="view-title-row">
           {editingListName ? (
             <>
               <input
