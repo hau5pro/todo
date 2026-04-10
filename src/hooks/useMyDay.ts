@@ -6,13 +6,13 @@ import { getTasksByList } from '../db/tasks';
 import { getTodayCompletions, getCompletionsForTask, calculateStreak } from '../db/habits';
 import type { Task, List } from '../types';
 
-export interface HabitWithCompletion {
+interface HabitWithCompletion {
   task: Task;
   completedToday: boolean;
   streak: number;
 }
 
-export interface MyDayData {
+interface MyDayData {
   overdue: Task[];
   today: Task[];
   habits: HabitWithCompletion[];
