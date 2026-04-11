@@ -251,7 +251,7 @@ export function ListView() {
   if (!list || tasks === undefined) return null;
 
   const isPinned = pinnedOrder.includes(listId!);
-  const activeTasks = tasks.filter((t) => !t.completed && t.deleted_at === null);
+  const activeTasks = tasks.filter((t) => !t.completed && t.deleted_at === null).reverse();
   const completedTasks = tasks
     .filter((t) => t.completed && t.deleted_at === null)
     .sort((a, b) => b.updated_at.localeCompare(a.updated_at));
@@ -283,7 +283,7 @@ export function ListView() {
     submittingRef.current = true;
     try {
       const task = await addTask(listId!, newTitle.trim());
-      setListOrder(listId!, [...(listOrders[listId!] ?? []), task.id]);
+      setListOrder(listId!, [task.id, ...(listOrders[listId!] ?? [])]);
       setNewTitle('');
       if (!keepOpen) setAddOpen(false);
       closeDetail();
