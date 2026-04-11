@@ -4,11 +4,7 @@
 
 ## Bugs
 
-- issues with keyboard nav
-
 ## Improvements
-
-- generate screenshots for help sections?
 
 ---
 
