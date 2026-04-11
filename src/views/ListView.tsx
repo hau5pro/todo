@@ -278,13 +278,13 @@ export function ListView() {
   const ghostLabel = ghostTask?.title ?? (dragId && allGroupNames.includes(dragId) ? dragId : null);
   const groupDragTask = draggingTaskId ? activeTasks.find((t) => t.id === draggingTaskId) : null;
 
-  async function commitAdd() {
+  async function commitAdd(keepOpen = false) {
     if (!newTitle.trim() || submittingRef.current) return;
     submittingRef.current = true;
     try {
       await addTask(listId!, newTitle.trim());
       setNewTitle('');
-      setAddOpen(false);
+      if (!keepOpen) setAddOpen(false);
       closeDetail();
     } finally {
       submittingRef.current = false;
@@ -293,7 +293,7 @@ export function ListView() {
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
-    await commitAdd();
+    await commitAdd(true);
   }
 
   function startEditListName() {
