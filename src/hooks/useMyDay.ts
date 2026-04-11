@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { getMyDayTasks } from '../db/tasks';
 import { getLists } from '../db/lists';
 import { getTodayString } from '../utils/date';
@@ -6,13 +6,13 @@ import { getTasksByList } from '../db/tasks';
 import { getTodayCompletions, getCompletionsForTask, calculateStreak } from '../db/habits';
 import type { Task, List } from '../types';
 
-export interface HabitWithCompletion {
+interface HabitWithCompletion {
   task: Task;
   completedToday: boolean;
   streak: number;
 }
 
-export interface MyDayData {
+interface MyDayData {
   overdue: Task[];
   today: Task[];
   habits: HabitWithCompletion[];
@@ -21,6 +21,7 @@ export interface MyDayData {
 
 export function useMyDay(): MyDayData & { reload: () => void } {
   const [data, setData] = useState<MyDayData>({ overdue: [], today: [], habits: [], isLoading: true });
+  const cancelledRef = useRef(false);
 
   const load = useCallback(async () => {
     try {
@@ -49,14 +50,21 @@ export function useMyDay(): MyDayData & { reload: () => void } {
         })
       );
 
+      if (cancelledRef.current) return;
       setData({ overdue, today, habits, isLoading: false });
     } catch (err) {
       console.error('useMyDay load failed', err);
-      setData((prev) => ({ ...prev, isLoading: false }));
+      if (!cancelledRef.current) setData((prev) => ({ ...prev, isLoading: false }));
     }
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    cancelledRef.current = false;
+    load();
+    return () => {
+      cancelledRef.current = true;
+    };
+  }, []);
 
   return { ...data, reload: load };
 }

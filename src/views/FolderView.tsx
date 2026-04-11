@@ -107,14 +107,15 @@ export function FolderView() {
   const ghostList = dragId ? folderLists.find((l) => l.id === dragId) : null;
 
   function startEditName() {
-    setNameValue(folder!.name);
+    if (!folder) return;
+    setNameValue(folder.name);
     setEditingName(true);
     setTimeout(() => nameInputRef.current?.focus(), 0);
   }
 
   async function commitEditName() {
     const name = nameValue.trim();
-    if (name && name !== folder!.name) await renameFolder(folderId!, name);
+    if (name && folder && name !== folder.name) await renameFolder(folderId!, name);
     setEditingName(false);
   }
 

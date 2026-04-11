@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import type { DragControls } from 'framer-motion';
-import { GripVertical, Trash2 } from 'lucide-react';
+import { GripVertical, X } from 'lucide-react';
 import { ICON_SIZE } from '../config/constants';
 
 export function DragHandle({
@@ -52,7 +52,7 @@ export function DeleteButton({
           transition={{ duration: 0.15 }}
         >
           <button className="task-edit-delete" onClick={onClick} title={title}>
-            <Trash2 size={ICON_SIZE} />
+            <X size={ICON_SIZE} />
           </button>
         </motion.span>
       )}

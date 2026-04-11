@@ -1,18 +1,19 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { AnimatedCheckbox } from './AnimatedCheckbox';
 import { useSettings } from '../contexts/SettingsContext';
 import { playComplete, hapticComplete } from '../utils/sound';
 
 interface Props {
+  id: string;
   title: string;
   completedToday: boolean;
   streak: number;
-  onToggle: () => void;
+  onToggle: (id: string) => void;
   onSelect?: () => void;
   isSelected?: boolean;
 }
 
-export function HabitItem({ title, completedToday, streak, onToggle, onSelect, isSelected }: Props) {
+export const HabitItem = memo(function HabitItem({ id, title, completedToday, streak, onToggle, onSelect, isSelected }: Props) {
   const { soundEnabled, soundStyle, hapticEnabled } = useSettings();
   const [flashing, setFlashing] = useState(false);
   const [popping, setPopping] = useState(false);
@@ -25,7 +26,7 @@ export function HabitItem({ title, completedToday, streak, onToggle, onSelect, i
       setPopping(true);
       setTimeout(() => { setFlashing(false); setPopping(false); }, 650);
     }
-    onToggle();
+    onToggle(id);
   }
 
   return (
@@ -61,4 +62,4 @@ export function HabitItem({ title, completedToday, streak, onToggle, onSelect, i
       )}
     </div>
   );
-}
+});

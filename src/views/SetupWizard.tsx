@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { logOut } from '../supabase/auth';
-import { Check, Palette, AlignJustify, Sun, List, CalendarCheck, ShoppingCart, Sparkles, CloudUpload, Info } from 'lucide-react';
+import { Check, Palette, AlignJustify, Sun, ClipboardList, Flame, ShoppingCart, BrushCleaning, CloudUpload, Info } from 'lucide-react';
 import { ICON_SIZE } from '../config/constants';
 import { useSettings } from '../contexts/SettingsContext';
 import { createList } from '../db/lists';
@@ -10,10 +10,10 @@ import { ColorSwatchPicker } from '../components/ColorSwatchPicker';
 
 const LIST_OPTIONS: { key: string; label: string; icon: React.ReactNode }[] = [
   { key: 'My Day',    label: 'My Day',    icon: <Sun size={ICON_SIZE} /> },
-  { key: 'Tasks',     label: 'Tasks',     icon: <List size={ICON_SIZE} /> },
-  { key: 'Habits',    label: 'Habits',    icon: <CalendarCheck size={ICON_SIZE} /> },
+  { key: 'Tasks',     label: 'Tasks',     icon: <ClipboardList size={ICON_SIZE} /> },
+  { key: 'Habits',    label: 'Habits',    icon: <Flame size={ICON_SIZE} /> },
   { key: 'Groceries', label: 'Groceries', icon: <ShoppingCart size={ICON_SIZE} /> },
-  { key: 'Chores',    label: 'Chores',    icon: <Sparkles size={ICON_SIZE} /> },
+  { key: 'Chores',    label: 'Chores',    icon: <BrushCleaning size={ICON_SIZE} /> },
 ];
 
 const STEPS_FULL = [
@@ -61,17 +61,23 @@ export function SetupWizard() {
   }
 
   async function finish() {
+    if (saving) return;
     setSaving(true);
-    if (!lists['My Day']) toggleListVisibility('my-day');
-    const createdIds: string[] = [];
-    if (lists['Tasks'])     createdIds.push((await createList('Tasks', 'general')).id);
-    if (lists['Habits'])    createdIds.push((await createList('Habits', 'daily')).id);
-    if (lists['Groceries']) createdIds.push((await createList('Groceries', 'shopping')).id);
-    if (lists['Chores'])    createdIds.push((await createList('Chores', 'general')).id);
-    setPinnedOrder(['my-day', ...createdIds]);
-    if (!localOnly) setSyncEnabled(syncChoice);
-    await Promise.all([loadLists(), loadFolders(), loadMyDay()]);
-    markSetupDone();
+    try {
+      if (!lists['My Day']) toggleListVisibility('my-day');
+      const createdIds: string[] = [];
+      if (lists['Tasks'])     createdIds.push((await createList('Tasks', 'general')).id);
+      if (lists['Habits'])    createdIds.push((await createList('Habits', 'daily')).id);
+      if (lists['Groceries']) createdIds.push((await createList('Groceries', 'shopping')).id);
+      if (lists['Chores'])    createdIds.push((await createList('Chores', 'general')).id);
+      setPinnedOrder(['my-day', ...createdIds]);
+      if (!localOnly) setSyncEnabled(syncChoice);
+      await Promise.all([loadLists(), loadFolders(), loadMyDay()]);
+      markSetupDone();
+    } catch (err) {
+      console.error(err);
+      setSaving(false);
+    }
   }
 
   return (

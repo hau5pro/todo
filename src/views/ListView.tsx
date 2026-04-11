@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useState, useMemo, useRef, useEffect } from 'react';
-import { Pencil, Trash2, ChevronDown, ChevronRight, Copy, List, CheckCircle, MoreHorizontal, Smile, FolderInput } from 'lucide-react';
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import { Pencil, Trash2, ChevronDown, ChevronRight, Copy, List, CheckCircle, Smile, FolderInput } from 'lucide-react';
 import { DragHandle, DeleteButton } from '../components/EditControls';
 import { AnimatePresence, motion } from 'framer-motion';
 import { createPortal } from 'react-dom';
@@ -14,6 +14,7 @@ import { useTaskDetail } from '../contexts/TaskDetailContext';
 import { useSettings } from '../contexts/SettingsContext';
 import { TaskItem } from '../components/TaskItem';
 import { IconPicker } from '../components/IconPicker';
+import { GroupSection } from '../components/GroupSection';
 import { ICON_SIZE, COMPLETED_PAGE_SIZE, ADD_TASK_PLACEHOLDER, PINNED_LIST_SUBTITLES } from '../config/constants';
 import { LIST_TYPE_LABELS } from '../types';
 import { getListIcon } from '../config/listIcons';
@@ -46,13 +47,12 @@ function TaskRow({
   onToggle, onSelect, onDelete, isSelected, onReorderStart, onGroupDragStart,
 }: {
   task: Task; editMode: boolean; today: string; dragging: boolean;
-  onToggle: () => void; onSelect: () => void; onDelete: () => void; isSelected: boolean;
+  onToggle: (id: string) => void; onSelect: () => void; onDelete: () => void; isSelected: boolean;
   onReorderStart?: (e: React.PointerEvent) => void;
   onGroupDragStart?: (e: React.PointerEvent) => void;
 }) {
   return (
     <div
-      data-reorder-id={task.id}
       className={`task-row${editMode ? ' task-row--editing' : ''}`}
       style={{ cursor: 'default', opacity: dragging ? 0.4 : 1 }}
     >
@@ -77,6 +77,7 @@ function TaskRow({
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <TaskItem
+          id={task.id}
           title={task.title}
           completed={task.completed}
           dueDate={task.due_date}
@@ -87,189 +88,6 @@ function TaskRow({
           isSelected={!editMode && isSelected}
         />
       </div>
-    </div>
-  );
-}
-
-function GroupSection({
-  groupName, tasks, editMode, today, draggingTaskId,
-  startDrag, onGroupDragStart, onToggle, onSelect, onDelete, onRename, onDeleteGroup, selectedTaskId,
-}: {
-  groupName: string;
-  tasks: Task[];
-  editMode: boolean;
-  today: string;
-  draggingTaskId: string | null;
-  startDrag: (e: React.PointerEvent, id: string, context: string, cls?: string) => void;
-  onGroupDragStart: (e: React.PointerEvent, taskId: string) => void;
-  onToggle: (task: Task) => void;
-  onSelect: (task: Task) => void;
-  onDelete: (task: Task) => void;
-  onRename: (oldName: string, newName: string) => void;
-  onDeleteGroup: (name: string) => void;
-  selectedTaskId: string | undefined;
-}) {
-  const [collapsed, setCollapsed] = useState(false);
-  const [editingName, setEditingName] = useState(false);
-  const [nameValue, setNameValue] = useState(groupName);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(false);
-  const nameInputRef = useRef<HTMLInputElement>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpen(false);
-      }
-    }
-    if (menuOpen) document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, [menuOpen]);
-
-  function startEditName() {
-    setNameValue(groupName);
-    setEditingName(true);
-    setMenuOpen(false);
-    focusLater(nameInputRef);
-  }
-
-  function commitEditName() {
-    const trimmed = nameValue.trim();
-    if (trimmed && trimmed !== groupName) onRename(groupName, trimmed);
-    setEditingName(false);
-  }
-
-  return (
-    <div
-      data-reorder-id={groupName}
-      data-group-id={groupName}
-      className={[
-        'group-section',
-        draggingTaskId ? 'group-section--dragging' : '',
-      ].filter(Boolean).join(' ')}
-    >
-      <div className={`group-header${editMode ? ' group-header--editing' : ''}`}>
-        <div className="nav-item-drag-zone">
-          <DragHandle show={editMode && !editingName} onPointerDown={(e) => startDrag(e, groupName, 'groups', 'group-section--dragging')} />
-          {editMode && !editingName && <span className="nav-item-drag-zone-divider" />}
-          <DeleteButton show={editMode && !editingName} onClick={() => setConfirmDelete(true)} title="Delete group" />
-        </div>
-        <button
-          className={`group-header-collapse${!collapsed ? ' group-header-collapse--expanded' : ''}`}
-          onClick={() => setCollapsed((p) => !p)}
-          aria-label={collapsed ? 'Expand group' : 'Collapse group'}
-        >
-          {collapsed ? <ChevronRight size={ICON_SIZE} /> : <ChevronDown size={ICON_SIZE} />}
-        </button>
-
-        {editingName ? (
-          <input
-            ref={nameInputRef}
-            className="group-header-name-input"
-            value={nameValue}
-            onChange={(e) => setNameValue(e.target.value)}
-            onBlur={commitEditName}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') commitEditName();
-              if (e.key === 'Escape') setEditingName(false);
-            }}
-          />
-        ) : (
-          <span className="group-header-name" onClick={() => setCollapsed((p) => !p)}>{groupName} <span className="group-header-count">({tasks.length})</span></span>
-        )}
-
-        <div className="group-header-menu" ref={menuRef}>
-          <button
-            className="group-header-menu-btn"
-            onClick={() => setMenuOpen((p) => !p)}
-            aria-label="Group actions"
-          >
-            <MoreHorizontal size={ICON_SIZE} />
-          </button>
-          <AnimatePresence>
-            {menuOpen && (
-              <motion.div
-                className="group-header-dropdown"
-                initial={{ opacity: 0, scale: 0.95, y: -4 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: -4 }}
-                transition={{ duration: 0.1 }}
-              >
-                <button className="group-header-dropdown-item" onClick={startEditName}>
-                  <Pencil size={ICON_SIZE} /> Rename
-                </button>
-                <button
-                  className="group-header-dropdown-item group-header-dropdown-item--danger"
-                  onClick={() => { setConfirmDelete(true); setMenuOpen(false); }}
-                >
-                  <Trash2 size={ICON_SIZE} /> Delete group
-                </button>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </div>
-
-      <AnimatePresence>
-        {!collapsed && (
-          <motion.div
-            className="group-section__body"
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1, overflow: 'visible' }}
-            exit={{ height: 0, opacity: 0, overflow: 'hidden' }}
-            transition={{ duration: 0.2, ease: ease.out }}
-            style={{ overflow: 'hidden' }}
-          >
-            <div data-reorder-context={groupName}>
-              {tasks.map((task) => (
-                <TaskRow
-                  key={task.id}
-                  task={task}
-                  editMode={editMode}
-                  today={today}
-                  dragging={task.id === draggingTaskId}
-                  onToggle={() => onToggle(task)}
-                  onSelect={() => onSelect(task)}
-                  onDelete={() => onDelete(task)}
-                  isSelected={selectedTaskId === task.id}
-                  onReorderStart={(e) => startDrag(e, task.id, groupName, 'task-row--dragging')}
-                  onGroupDragStart={(e) => onGroupDragStart(e, task.id)}
-                />
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {confirmDelete && (
-          <motion.div
-            className="modal-backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-            onClick={() => setConfirmDelete(false)}
-          >
-            <motion.div
-              className="modal-popup"
-              initial={{ opacity: 0, scale: 0.94, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.94, y: 6 }}
-              transition={{ duration: 0.15, ease: [0, 0, 0.2, 1] }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h3 className="modal-popup__title">Delete "{groupName}"?</h3>
-              <p className="modal-popup__body">Items will be moved to the main list, not deleted.</p>
-              <div className="modal-popup__actions">
-                <button className="btn-danger-sm" onClick={() => { onDeleteGroup(groupName); setConfirmDelete(false); }}>Delete group</button>
-                <button className="btn-ghost-sm" onClick={() => setConfirmDelete(false)}>Cancel</button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
@@ -288,6 +106,9 @@ export function ListView() {
   const { listOrders, setListOrder, listGroupOrders, setListGroupOrder, customOrder, setCustomOrder, pinnedOrder } = useSettings();
 
   const [newTitle, setNewTitle] = useState('');
+  const [addOpen, setAddOpen] = useState(false);
+  const addInputRef = useRef<HTMLInputElement>(null);
+  const submittingRef = useRef(false);
   const [editingListName, setEditingListName] = useState(false);
   const [newListName, setNewListName] = useState('');
   const [confirmDeleteList, setConfirmDeleteList] = useState(false);
@@ -305,7 +126,7 @@ export function ListView() {
   const { dragId, startDrag, ghostRef, lineRef } = useLineDrag({
     scrollRef,
     onCommit: (_id, context, newIds) => {
-      if (context === 'ungrouped') {
+      if (context === 'task-ungrouped') {
         setListOrder(listId!, newIds);
       } else if (context === 'groups') {
         setListGroupOrder(listId!, newIds);
@@ -321,7 +142,9 @@ export function ListView() {
 
   useEffect(() => {
     setTaskEditMode(false);
+    setEditingListName(false);
     setCompletedVisible(COMPLETED_PAGE_SIZE);
+    setAddOpen(false);
   }, [listId]);
 
   useEffect(() => {
@@ -412,6 +235,19 @@ export function ListView() {
     }
   }, [tasks, listId]);
 
+  const tasksRef = useRef(tasks);
+  tasksRef.current = tasks;
+
+  const handleToggle = useCallback(async (id: string) => {
+    const task = tasksRef.current?.find((t) => t.id === id);
+    if (!task) return;
+    if (task.recurrence_interval) {
+      await advanceCyclicalTask(task.id, listId!);
+    } else {
+      await completeTask(task.id, listId!, !task.completed);
+    }
+  }, [advanceCyclicalTask, completeTask, listId]);
+
   if (!list || tasks === undefined) return null;
 
   const isPinned = pinnedOrder.includes(listId!);
@@ -428,7 +264,7 @@ export function ListView() {
   for (const task of orderedActive) {
     if (task.group) {
       if (!groupMap.has(task.group)) groupMap.set(task.group, []);
-      groupMap.get(task.group)!.push(task);
+      groupMap.get(task.group)!.push(task); // safe: set above if absent
     }
   }
 
@@ -442,28 +278,28 @@ export function ListView() {
   const ghostLabel = ghostTask?.title ?? (dragId && allGroupNames.includes(dragId) ? dragId : null);
   const groupDragTask = draggingTaskId ? activeTasks.find((t) => t.id === draggingTaskId) : null;
 
-  async function handleToggle(task: typeof tasks[0]) {
-    if (task.recurrence_interval) {
-      await advanceCyclicalTask(task.id, listId!);
-    } else {
-      await completeTask(task.id, listId!, !task.completed);
+  async function commitAdd(keepOpen = false) {
+    if (!newTitle.trim() || submittingRef.current) return;
+    submittingRef.current = true;
+    try {
+      const task = await addTask(listId!, newTitle.trim());
+      setListOrder(listId!, [task.id, ...(listOrders[listId!] ?? [])]);
+      setNewTitle('');
+      if (!keepOpen) setAddOpen(false);
+      closeDetail();
+    } finally {
+      submittingRef.current = false;
     }
-  }
-
-  async function commitAdd() {
-    if (!newTitle.trim()) return;
-    await addTask(listId!, newTitle.trim());
-    setNewTitle('');
-    closeDetail();
   }
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
-    await commitAdd();
+    await commitAdd(true);
   }
 
   function startEditListName() {
-    setNewListName(list!.name);
+    if (!list) return;
+    setNewListName(list.name);
     setEditingListName(true);
     setTaskEditMode(false);
     focusLater(listNameInputRef);
@@ -471,7 +307,7 @@ export function ListView() {
 
   async function commitEditListName() {
     const name = newListName.trim();
-    if (name && name !== list!.name) await renameList(listId!, name);
+    if (name && list && name !== list.name) await renameList(listId!, name);
     setEditingListName(false);
   }
 
@@ -564,10 +400,10 @@ export function ListView() {
                   <button
                     ref={iconBtnRef}
                     className={`view-title-action-btn${iconPickerAnchor ? ' view-title-action-btn--open' : ''}`}
-                    onClick={() => iconPickerAnchor
-                      ? setIconPickerAnchor(null)
-                      : setIconPickerAnchor(iconBtnRef.current!.getBoundingClientRect())
-                    }
+                    onClick={() => {
+                      if (iconPickerAnchor) { setIconPickerAnchor(null); return; }
+                      if (iconBtnRef.current) setIconPickerAnchor(iconBtnRef.current.getBoundingClientRect());
+                    }}
                     title="Change icon"
                     aria-label="Change icon"
                     aria-expanded={!!iconPickerAnchor}
@@ -610,33 +446,71 @@ export function ListView() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.2, ease: 'easeOut', delay: 0.21 }}
           onSubmit={handleAdd}
+          style={{ position: 'relative' }}
         >
+          <AnimatePresence initial={false}>
+            {!addOpen && (
+              <motion.button
+                key="add-trigger"
+                type="button"
+                className="add-task"
+                onClick={() => { setAddOpen(true); focusLater(addInputRef); }}
+                exit={{ opacity: 0, transition: { duration: 0.1 } }}
+                style={{ position: 'absolute', inset: 0, margin: 0, height: '100%' }}
+              >
+                {ADD_TASK_PLACEHOLDER}
+              </motion.button>
+            )}
+          </AnimatePresence>
           <input
+            ref={addInputRef}
             className="add-task-input"
             placeholder={ADD_TASK_PLACEHOLDER}
             aria-label="Add task"
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
-            onBlur={commitAdd}
+            onFocus={() => setAddOpen(true)}
+            onBlur={() => {
+              if (!newTitle.trim()) setAddOpen(false);
+              else commitAdd();
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') { setNewTitle(''); setAddOpen(false); }
+            }}
             data-add-task
+            style={{
+              opacity: addOpen ? 1 : 0,
+              transition: 'opacity 0.12s ease',
+              pointerEvents: addOpen ? 'auto' : 'none',
+            }}
           />
         </motion.form>
-        <div data-reorder-context="ungrouped">
-          {ungroupedTasks.map((task) => (
-            <TaskRow
-              key={task.id}
-              task={task}
-              editMode={taskEditMode}
-              today={today}
-              dragging={task.id === draggingTaskId}
-              onToggle={() => handleToggle(task)}
-              onSelect={() => handleSelectTask(task)}
-              onDelete={() => removeTask(task.id, listId!)}
-              isSelected={detail?.task.id === task.id}
-              onReorderStart={(e) => startDrag(e, task.id, 'ungrouped', 'task-row--dragging')}
-              onGroupDragStart={(e) => { e.preventDefault(); setDraggingTaskId(task.id); }}
-            />
-          ))}
+        <div data-reorder-context="task-ungrouped">
+          <AnimatePresence initial={false}>
+            {ungroupedTasks.map((task) => (
+              <motion.div
+                key={task.id}
+                data-reorder-id={task.id}
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto', transition: { duration: 0.08, ease: ease.snap } }}
+                exit={{ opacity: 0, height: 0, pointerEvents: 'none', transition: { duration: 0.07, ease: ease.in } }}
+                style={{ overflow: 'hidden' }}
+              >
+                <TaskRow
+                  task={task}
+                  editMode={taskEditMode}
+                  today={today}
+                  dragging={task.id === draggingTaskId}
+                  onToggle={handleToggle}
+                  onSelect={() => handleSelectTask(task)}
+                  onDelete={() => removeTask(task.id, listId!)}
+                  isSelected={detail?.task.id === task.id}
+                  onReorderStart={(e) => startDrag(e, task.id, 'task-ungrouped', 'task-row--dragging')}
+                  onGroupDragStart={(e) => { e.preventDefault(); setDraggingTaskId(task.id); }}
+                />
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
       </div>
 
@@ -686,15 +560,19 @@ export function ListView() {
                   {visibleCompleted.map((task) => (
                     <motion.div
                       key={task.id}
-                      exit={{ opacity: 0, transition: { duration: 0.15, ease: 'easeIn' as const } }}
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto', transition: { duration: 0.08, ease: ease.snap } }}
+                      exit={{ opacity: 0, height: 0, pointerEvents: 'none', transition: { duration: 0.07, ease: ease.in } }}
+                      style={{ overflow: 'hidden' }}
                     >
                       <TaskItem
+                        id={task.id}
                         title={task.title}
                         completed={true}
                         dueDate={task.due_date}
                         dueTime={task.due_time}
                         today={today}
-                        onToggle={() => handleToggle(task)}
+                        onToggle={handleToggle}
                         onSelect={() => handleSelectTask(task)}
                         isSelected={detail?.task.id === task.id}
                       />

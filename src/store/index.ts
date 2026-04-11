@@ -222,6 +222,8 @@ export const useAppStore = create<AppStore>((set, get) => ({
       tasksByList: Object.fromEntries(
         Object.entries(s.tasksByList).filter(([k]) => k !== id)
       ),
+      myDayOverdue: s.myDayOverdue.filter(t => t.list_id !== id),
+      myDayToday: s.myDayToday.filter(t => t.list_id !== id),
     }));
     requestSync();
   },

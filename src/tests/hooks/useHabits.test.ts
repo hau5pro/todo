@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { renderHook, waitFor } from '@testing-library/react';
+import { renderHook, waitFor, act } from '@testing-library/react';
 import { useHabits } from '../../hooks/useHabits';
 import { createList as dbCreateList } from '../../db/lists';
 import { createTask as dbCreateTask } from '../../db/tasks';
@@ -69,5 +69,23 @@ describe('useHabits', () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
     expect(result.current.today).toBe(getTodayString());
+  });
+
+  it('reload() re-fetches and reflects new tasks added after initial load', async () => {
+    const list = await dbCreateList('Reload Habits', 'daily');
+
+    const { result } = renderHook(() => useHabits(list.id));
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.rows).toHaveLength(0);
+
+    await dbCreateTask(list.id, 'New habit task');
+    await act(async () => {
+      result.current.reload();
+    });
+
+    await waitFor(() =>
+      expect(result.current.rows.some((r) => r.task.title === 'New habit task')).toBe(true)
+    );
   });
 });

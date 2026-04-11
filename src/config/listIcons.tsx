@@ -1,6 +1,6 @@
 import type { LucideIcon } from 'lucide-react';
 import {
-  List, ShoppingCart, CalendarCheck, Sparkles,
+  List, ClipboardList, ShoppingCart, CalendarCheck, Sparkles, BrushCleaning,
   Star, Heart, Bookmark, Flag, Tag,
   Package, CreditCard, Wallet,
   House, Car, Bike, Plane,
@@ -59,7 +59,7 @@ export const ICON_MAP: Record<string, LucideIcon> = {
   Bell, Rocket, Baby, Pill, TreePine,
   Gift, Zap,
   // Built-in list type icons (also selectable)
-  List, CalendarCheck, Sparkles,
+  List, CalendarCheck, Sparkles, BrushCleaning,
 };
 
 // Ordered list for the picker UI
@@ -87,7 +87,7 @@ export const PICKABLE_ICONS: string[] = [
   'Mail', 'Phone',
   'Users', 'CircleUser', 'Baby',
   'Diamond', 'Crown',
-  'Wrench', 'Hammer', 'Palette', 'Paintbrush', 'Scissors',
+  'Wrench', 'Hammer', 'BrushCleaning', 'Palette', 'Paintbrush', 'Scissors',
   'Smile', 'Rocket',
 ];
 
@@ -101,7 +101,7 @@ export function getListIcon(list: Pick<ListData, 'name' | 'type' | 'icon'>, size
   }
 
   // Name-based overrides
-  const nameMap: Record<string, LucideIcon> = { Tasks: List, Chores: Sparkles };
+  const nameMap: Record<string, LucideIcon> = { Tasks: ClipboardList, Chores: BrushCleaning };
   if (nameMap[list.name]) {
     const IconComp = nameMap[list.name];
     return <IconComp size={iconSize} />;
@@ -110,7 +110,7 @@ export function getListIcon(list: Pick<ListData, 'name' | 'type' | 'icon'>, size
   // Type-based defaults
   const typeMap: Partial<Record<string, LucideIcon>> = {
     shopping: ShoppingCart,
-    daily: CalendarCheck,
+    daily: Flame,
   };
   const TypeIcon = typeMap[list.type];
   return TypeIcon ? <TypeIcon size={iconSize} /> : null;

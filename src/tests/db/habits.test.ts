@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { toggleHabitCompletion, getCompletionsForTask, calculateStreak } from '../../db/habits';
+import { toggleHabitCompletion, getCompletionsForTask, getTodayCompletions, calculateStreak } from '../../db/habits';
 import { createList } from '../../db/lists';
 import { createTask } from '../../db/tasks';
 import type { HabitCompletion } from '../../types';
@@ -23,6 +23,57 @@ describe('habit completions', () => {
     expect(result).toBe('removed');
     const completions = await getCompletionsForTask(task.id);
     expect(completions.filter(c => c.deleted_at === null)).toHaveLength(0);
+  });
+
+  it('toggleHabitCompletion restore path: re-toggling a soft-deleted record sets deleted_at to null', async () => {
+    const list = await createList('Habits', 'daily');
+    const task = await createTask(list.id, 'Run');
+
+    // Add then remove (soft-delete)
+    await toggleHabitCompletion(task.id, '2026-04-05');
+    await toggleHabitCompletion(task.id, '2026-04-05');
+
+    // Re-toggle: should restore (set deleted_at back to null) and return 'added'
+    const result = await toggleHabitCompletion(task.id, '2026-04-05');
+    expect(result).toBe('added');
+
+    const completions = await getCompletionsForTask(task.id);
+    const active = completions.filter(c => c.deleted_at === null);
+    expect(active).toHaveLength(1);
+    expect(active[0].deleted_at).toBeNull();
+  });
+
+  it('getTodayCompletions returns active completions for the given date', async () => {
+    const list = await createList('Habits', 'daily');
+    const task1 = await createTask(list.id, 'Morning stretch');
+    const task2 = await createTask(list.id, 'Evening read');
+
+    await toggleHabitCompletion(task1.id, '2026-04-05');
+    await toggleHabitCompletion(task2.id, '2026-04-05');
+    // Also add one for a different date — should NOT appear
+    await toggleHabitCompletion(task1.id, '2026-04-04');
+
+    const todays = await getTodayCompletions('2026-04-05');
+    expect(todays).toHaveLength(2);
+    expect(todays.every(c => c.date === '2026-04-05')).toBe(true);
+    expect(todays.every(c => c.deleted_at === null)).toBe(true);
+  });
+
+  it('getTodayCompletions excludes soft-deleted completions', async () => {
+    const list = await createList('Habits', 'daily');
+    const task = await createTask(list.id, 'Yoga');
+
+    // Add then soft-delete
+    await toggleHabitCompletion(task.id, '2026-04-05');
+    await toggleHabitCompletion(task.id, '2026-04-05');
+
+    const todays = await getTodayCompletions('2026-04-05');
+    expect(todays).toHaveLength(0);
+  });
+
+  it('getTodayCompletions returns empty array when no completions exist for that date', async () => {
+    const todays = await getTodayCompletions('2026-04-05');
+    expect(todays).toHaveLength(0);
   });
 });
 

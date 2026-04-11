@@ -204,6 +204,14 @@ describe('tasks CRUD', () => {
     expect(result).toEqual([]);
   });
 
+  it('advanceCyclicalTask throws when task ID does not exist', async () => {
+    await expect(advanceCyclicalTask('nonexistent-id')).rejects.toThrow('nonexistent-id');
+  });
+
+  it('advanceRecurringTask throws when task ID does not exist', async () => {
+    await expect(advanceRecurringTask('nonexistent-id')).rejects.toThrow('nonexistent-id');
+  });
+
   it('purgeOldShoppingItems deletes soft-deleted items older than 30 days', async () => {
     const list = await createList('Groceries', 'shopping');
     const task = await createTask(list.id, 'Old eggs');

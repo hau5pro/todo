@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { getTasksByList } from '../db/tasks';
 import { getCompletionsForTask, getTodayCompletions, calculateStreak } from '../db/habits';
 import { getTodayString } from '../utils/date';
@@ -14,6 +14,7 @@ export function useHabits(listId: string) {
   const [rows, setRows] = useState<HabitRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const today = useMemo(() => getTodayString(), []);
+  const cancelledRef = useRef(false);
 
   const load = useCallback(async () => {
     try {
@@ -35,15 +36,22 @@ export function useHabits(listId: string) {
         })
       );
 
+      if (cancelledRef.current) return;
       setRows(rowsWithStreaks);
     } catch (err) {
       console.error('useHabits load failed', err);
     } finally {
-      setIsLoading(false);
+      if (!cancelledRef.current) setIsLoading(false);
     }
   }, [listId, today]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    cancelledRef.current = false;
+    load();
+    return () => {
+      cancelledRef.current = true;
+    };
+  }, [listId, today]);
 
   return { rows, isLoading, reload: load, today };
 }

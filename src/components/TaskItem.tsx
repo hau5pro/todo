@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import dayjs from 'dayjs';
 import { motion } from 'framer-motion';
 import { AnimatedCheckbox } from './AnimatedCheckbox';
@@ -7,17 +7,18 @@ import { playComplete, hapticComplete } from '../utils/sound';
 import { formatTime } from '../utils/date';
 
 interface Props {
+  id: string;
   title: string;
   completed: boolean;
   dueDate?: string | null;
   dueTime?: string | null;
   today: string;
-  onToggle?: () => void;
+  onToggle?: (id: string) => void;
   onSelect?: () => void;
   isSelected?: boolean;
 }
 
-export function TaskItem({ title, completed, dueDate, dueTime, today, onToggle, onSelect, isSelected }: Props) {
+export const TaskItem = memo(function TaskItem({ id, title, completed, dueDate, dueTime, today, onToggle, onSelect, isSelected }: Props) {
   const isOverdue  = dueDate && dueDate < today;
   const isTomorrow = dueDate === dayjs(today).add(1, 'day').format('YYYY-MM-DD');
 
@@ -31,7 +32,6 @@ export function TaskItem({ title, completed, dueDate, dueTime, today, onToggle, 
     return label;
   }
   const { soundEnabled, soundStyle, hapticEnabled } = useSettings();
-  const [flashing, setFlashing] = useState(false);
   const [popping, setPopping] = useState(false);
 
   function handleToggle() {
@@ -39,12 +39,11 @@ export function TaskItem({ title, completed, dueDate, dueTime, today, onToggle, 
     if (!completed) {
       if (soundEnabled) playComplete(soundStyle);
       if (hapticEnabled) hapticComplete();
-      setFlashing(true);
       setPopping(true);
-      setTimeout(() => { setFlashing(false); setPopping(false); }, 250);
-      onToggle();
+      setTimeout(() => setPopping(false), 250);
+      onToggle(id);
     } else {
-      onToggle();
+      onToggle(id);
     }
   }
 
@@ -54,7 +53,6 @@ export function TaskItem({ title, completed, dueDate, dueTime, today, onToggle, 
         'task-item',
         isSelected ? 'task-item--selected' : '',
         onSelect ? 'task-item--selectable' : '',
-        flashing ? 'task-item--flash' : '',
         !onToggle ? 'task-item--no-toggle' : '',
       ].filter(Boolean).join(' ')}
       tabIndex={0}
@@ -73,4 +71,4 @@ export function TaskItem({ title, completed, dueDate, dueTime, today, onToggle, 
       )}
     </motion.div>
   );
-}
+});

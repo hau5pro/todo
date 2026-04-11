@@ -280,6 +280,10 @@ body {
 }
 .nav-icon-btn:hover { color: var(--fg); background: var(--hover); }
 .nav-icon-btn--active { color: var(--accent); background: var(--accent-dim); }
+/* Re-assert active colors on hover: .nav-icon-btn:hover has specificity 0,2,0 which
+   outweighs .nav-icon-btn--active at 0,1,0, so hover would otherwise override the
+   accent color. This rule matches both classes and restores the intended appearance. */
+.nav-icon-btn--active:hover { color: var(--accent); background: var(--accent-dim); }
 .nav-icon-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 
 [data-tooltip] { position: relative; }
@@ -1067,6 +1071,7 @@ button.nav-section-label--button:hover { color: var(--fg); }
   touch-action: none;
   flex-shrink: 0;
 }
+.task-edit-drag:hover { color: var(--accent); }
 .task-edit-drag:active { cursor: grabbing; }
 .task-edit-delete {
   display: flex;

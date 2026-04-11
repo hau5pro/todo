@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { Keyboard, List, Sun, Repeat, ShoppingCart, Folder, WifiOff, Cloud, RotateCcw, Plus, Pencil, Copy, Smile, Trash2, FolderInput, GripVertical, Info, Zap, MousePointerClick } from 'lucide-react';
+import { Keyboard, List, Sun, Repeat, ShoppingCart, Folder, WifiOff, Cloud, RotateCcw, Plus, Pencil, Copy, Smile, Trash2, Info, Zap, MousePointerClick } from 'lucide-react';
 
 interface ShortcutRow {
   keys: string[];

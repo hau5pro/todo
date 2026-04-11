@@ -39,8 +39,9 @@ function parse(str: string): State {
     const o     = rule.options;
     // After normalization, nth weekdays live in bynweekday: Array<[weekday, n]>
     // plain weekdays stay in byweekday as numbers
-    const bynwd  = (o as any).bynweekday  as Array<[number, number]> | null;
-    const bynmd  = (o as any).bynmonthday as number[] | null;
+    // rrule types bynweekday as number[][] but at runtime each entry is a [weekday, n] tuple
+    const bynwd  = o.bynweekday as Array<[number, number]> | null;
+    const bynmd  = o.bynmonthday;
     const bywd   = (o.byweekday  ?? []) as unknown as number[];
     const bmd    = (o.bymonthday ?? []) as number[];
 

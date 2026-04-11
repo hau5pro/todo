@@ -59,4 +59,12 @@ describe('reinsert', () => {
   it('appends at end when insertAfter id is not found', () => {
     expect(reinsert(['a', 'b', 'c'], 'a', 'z')).toEqual(['b', 'c', 'a']);
   });
+
+  it('gracefully handles dragId not present in the array — appends it', () => {
+    expect(reinsert(['a', 'b', 'c'], 'x', 'b')).toEqual(['a', 'b', 'x', 'c']);
+  });
+
+  it('gracefully handles dragId not present and insertAfter is null — prepends it', () => {
+    expect(reinsert(['a', 'b', 'c'], 'x', null)).toEqual(['x', 'a', 'b', 'c']);
+  });
 });

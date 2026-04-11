@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { getLists, createList, updateList, deleteList } from '../../db/lists';
+import { getLists, getListById, createList, updateList, deleteList } from '../../db/lists';
 import { _resetForTesting } from '../../db/client';
 
 describe('lists CRUD', () => {
@@ -44,5 +44,18 @@ describe('lists CRUD', () => {
     await deleteList(list.id);
     const lists = await getLists();
     expect(lists).toHaveLength(0);
+  });
+
+  it('getListById returns the list when it exists', async () => {
+    const list = await createList('Found', 'general');
+    const found = await getListById(list.id);
+    expect(found).toBeDefined();
+    expect(found!.id).toBe(list.id);
+    expect(found!.name).toBe('Found');
+  });
+
+  it('getListById returns undefined when ID does not exist', async () => {
+    const found = await getListById('nonexistent-id');
+    expect(found).toBeUndefined();
   });
 });

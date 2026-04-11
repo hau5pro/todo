@@ -39,9 +39,21 @@ export function useSync() {
       const db = await getDB();
       await pushPending(db, supabase, user.id);
       await pullFromSupabase(db, supabase);
-      setPendingCount(0); // pushPending cleared all pending flags
+      try {
+        setPendingCount(await countPending());
+      } catch {
+        // DB unavailable after successful sync — ignore, count will refresh on next sync
+      }
     } catch (e) {
       setSyncError(e instanceof Error ? e : new Error(String(e)));
+      // pushPending may have partially succeeded (e.g. folders cleared but
+      // tasks errored) before throwing, so recompute from the source of truth
+      // instead of leaving the UI showing a stale count.
+      try {
+        setPendingCount(await countPending());
+      } catch {
+        // ignore — DB unavailable, count stays as-is
+      }
     } finally {
       syncingRef.current = false;
       setIsSyncing(false);
@@ -50,7 +62,10 @@ export function useSync() {
 
   useEffect(() => {
     if (!syncEnabled) return;
-    countPending().then(setPendingCount);
+    let cancelled = false;
+    countPending().then((n) => {
+      if (!cancelled) setPendingCount(n);
+    });
     sync();
     const unregister = registerSyncHandler(sync);
     const onFocus = () => sync();
@@ -58,6 +73,7 @@ export function useSync() {
     window.addEventListener('focus', onFocus);
     document.addEventListener('visibilitychange', onVisibility);
     return () => {
+      cancelled = true;
       unregister();
       window.removeEventListener('focus', onFocus);
       document.removeEventListener('visibilitychange', onVisibility);

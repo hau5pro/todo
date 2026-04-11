@@ -1,4 +1,4 @@
-import { getDB, req } from './client';
+import { getDB, req, excludeDeleted } from './client';
 import type { List, ListType } from '../types';
 
 export async function getLists(): Promise<List[]> {
@@ -6,8 +6,7 @@ export async function getLists(): Promise<List[]> {
   const all = await req<List[]>(
     db.transaction('lists').objectStore('lists').getAll()
   );
-  return all
-    .filter((l) => l.deleted_at === null)
+  return excludeDeleted(all)
     .map((l) => ({ ...l, icon: l.icon ?? null, folder_id: l.folder_id ?? null }));
 }
 
@@ -37,7 +36,8 @@ export async function updateList(id: string, changes: Partial<Pick<List, 'name' 
   const db = await getDB();
   const tx = db.transaction('lists', 'readwrite');
   const store = tx.objectStore('lists');
-  const existing = await req<List>(store.get(id));
+  const existing = await req<List | undefined>(store.get(id));
+  if (!existing) throw new Error(`List ${id} not found`);
   const updated: List = {
     ...existing,
     folder_id: existing.folder_id ?? null,
@@ -53,7 +53,8 @@ export async function deleteList(id: string): Promise<void> {
   const db = await getDB();
   const tx = db.transaction('lists', 'readwrite');
   const store = tx.objectStore('lists');
-  const existing = await req<List>(store.get(id));
+  const existing = await req<List | undefined>(store.get(id));
+  if (!existing) throw new Error(`List ${id} not found`);
   await req(
     store.put({
       ...existing,

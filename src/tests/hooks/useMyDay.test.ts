@@ -1,10 +1,11 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { useMyDay } from '../../hooks/useMyDay';
 import { createList as dbCreateList } from '../../db/lists';
 import { createTask as dbCreateTask } from '../../db/tasks';
 import { toggleHabitCompletion } from '../../db/habits';
 import { getTodayString } from '../../utils/date';
+import * as tasksDb from '../../db/tasks';
 
 function yesterday(): string {
   const d = new Date();
@@ -17,6 +18,10 @@ function tomorrow(): string {
   d.setDate(d.getDate() + 1);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 describe('useMyDay', () => {
   it('starts with isLoading true', () => {
@@ -95,5 +100,24 @@ describe('useMyDay', () => {
     await waitFor(() =>
       expect(result.current.today.some((t) => t.title === 'New today task')).toBe(true)
     );
+  });
+
+  it('sets isLoading false and preserves existing data when a DB call throws', async () => {
+    const list = await dbCreateList('Tasks', 'general');
+    await dbCreateTask(list.id, 'Existing task', { due_date: getTodayString() });
+
+    // First render with real DB so we have populated data
+    const { result } = renderHook(() => useMyDay());
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.today.some((t) => t.title === 'Existing task')).toBe(true);
+
+    // Make the next DB call throw, then trigger a reload
+    vi.spyOn(tasksDb, 'getMyDayTasks').mockRejectedValueOnce(new Error('DB failure'));
+    result.current.reload();
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    // Existing data must still be intact
+    expect(result.current.today.some((t) => t.title === 'Existing task')).toBe(true);
   });
 });

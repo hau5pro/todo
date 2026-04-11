@@ -1,5 +1,5 @@
-import { useEffect, useMemo } from 'react';
-import { Sun, CalendarCheck, Clock } from 'lucide-react';
+import { useEffect, useMemo, useCallback, useRef } from 'react';
+import { Sun, Flame, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAppStore, HabitWithCompletion } from '../store';
 import { useSettings } from '../contexts/SettingsContext';
@@ -53,26 +53,12 @@ export function MyDayView() {
 
   useEffect(() => { loadMyDay(); }, []);
 
-  async function handleTaskToggle(task: typeof myDayOverdue[0]) {
-    if (task.recurrence_interval) {
-      await advanceCyclicalTask(task.id, task.list_id);
-    } else {
-      await completeTask(task.id, task.list_id, !task.completed);
-    }
-  }
-
-  async function handleHabitToggle(taskId: string) {
-    await toggleHabitCompletion(taskId, today);
-    loadMyDay();
-    requestSync();
-  }
-
   const habitSections = useMemo((): HabitSection[] => {
     const byList = new Map<string, typeof myDayHabits>();
     for (const h of myDayHabits) {
       const id = h.task.list_id;
       if (!byList.has(id)) byList.set(id, []);
-      byList.get(id)!.push(h);
+      byList.get(id)!.push(h); // safe: set above if absent
     }
 
     const sections: HabitSection[] = [];
@@ -85,7 +71,7 @@ export function MyDayView() {
       for (const h of ordered) {
         if (h.task.group) {
           if (!groupMap.has(h.task.group)) groupMap.set(h.task.group, []);
-          groupMap.get(h.task.group)!.push(h);
+          groupMap.get(h.task.group)!.push(h); // safe: set above if absent
         }
       }
 
@@ -105,12 +91,36 @@ export function MyDayView() {
     return sections;
   }, [myDayHabits, listOrders, listGroupOrders, lists]);
 
+  const sortedOverdue = useMemo(() => sortByDueDateTime(myDayOverdue), [myDayOverdue]);
+  const sortedToday = useMemo(() => sortByDueDateTime(myDayToday), [myDayToday]);
+
+  // Ref so handleTaskToggle stays stable across renders without needing the task lists as deps.
+  const myDayTasksRef = useRef<Map<string, typeof myDayOverdue[0]>>(new Map());
+  const taskMap = useMemo(
+    () => new Map([...myDayOverdue, ...myDayToday].map((t) => [t.id, t])),
+    [myDayOverdue, myDayToday],
+  );
+  myDayTasksRef.current = taskMap;
+
+  const handleTaskToggle = useCallback(async (id: string) => {
+    const task = myDayTasksRef.current.get(id);
+    if (!task) return;
+    if (task.recurrence_interval) {
+      await advanceCyclicalTask(task.id, task.list_id);
+    } else {
+      await completeTask(task.id, task.list_id, !task.completed);
+    }
+  }, [advanceCyclicalTask, completeTask]);
+
+  const handleHabitToggle = useCallback(async (taskId: string) => {
+    await toggleHabitCompletion(taskId, today);
+    loadMyDay();
+    requestSync();
+  }, [today, loadMyDay]);
+
   if (!myDayLoaded) return null;
 
   const hasAnything = myDayOverdue.length > 0 || myDayToday.length > 0 || myDayHabits.length > 0;
-
-  const sortedOverdue = sortByDueDateTime(myDayOverdue);
-  const sortedToday = sortByDueDateTime(myDayToday);
 
   return (
     <div>
@@ -126,7 +136,7 @@ export function MyDayView() {
       {!hasAnything && <motion.p variants={itemVariants} className="empty-state">Nothing due today.</motion.p>}
         {habitSections.length > 0 && (
           <motion.section variants={sectionVariants}>
-            <div className="section-heading"><CalendarCheck size={ICON_SIZE} />Habits</div>
+            <div className="section-heading"><Flame size={ICON_SIZE} />Habits</div>
             {(() => {
               const multipleListsPresent = new Set(habitSections.map((s) => s.listId)).size > 1;
               const firstIndexByList = new Map<string, number>();
@@ -144,10 +154,11 @@ export function MyDayView() {
                   {section.habits.map(({ task, completedToday, streak }) => (
                     <HabitItem
                       key={task.id}
+                      id={task.id}
                       title={task.title}
                       completedToday={completedToday}
                       streak={streak}
-                      onToggle={() => handleHabitToggle(task.id)}
+                      onToggle={handleHabitToggle}
                     />
                   ))}
                 </div>
@@ -162,12 +173,13 @@ export function MyDayView() {
             {sortedOverdue.map((task) => (
               <TaskItem
                 key={task.id}
+                id={task.id}
                 title={task.title}
                 completed={task.completed}
                 dueDate={task.due_date}
                 dueTime={task.due_time}
                 today={today}
-                onToggle={() => handleTaskToggle(task)}
+                onToggle={handleTaskToggle}
               />
             ))}
           </motion.section>
@@ -179,12 +191,13 @@ export function MyDayView() {
             {sortedToday.map((task) => (
               <TaskItem
                 key={task.id}
+                id={task.id}
                 title={task.title}
                 completed={task.completed}
                 dueDate={task.due_date}
                 dueTime={task.due_time}
                 today={today}
-                onToggle={() => handleTaskToggle(task)}
+                onToggle={handleTaskToggle}
               />
             ))}
           </motion.section>

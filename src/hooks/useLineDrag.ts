@@ -13,6 +13,12 @@ interface UseLineDragReturn {
   lineRef: React.RefObject<HTMLDivElement | null>;
 }
 
+// DOM refs are used for the drag line indicator and ghost element instead of
+// React state because imperative style mutations (style.top, style.opacity) on
+// every pointermove avoid triggering React re-renders on every frame. Framer
+// Motion's Reorder.Group animates item positions via JavaScript on each move
+// event, causing layout recalculations across the whole list — this approach
+// keeps the hot path entirely outside React's reconciler.
 export function useLineDrag({ scrollRef, onCommit }: UseLineDragOptions): UseLineDragReturn {
   const [dragId, setDragId] = useState<string | null>(null);
   const contextRef = useRef<string | null>(null);
@@ -96,6 +102,7 @@ export function useLineDrag({ scrollRef, onCommit }: UseLineDragOptions): UseLin
           if (after) lineY = after.el.getBoundingClientRect().bottom;
         }
         if (lineY !== null) {
+          // safe: group was checked `if (!group) return` earlier in this effect
           const groupRect = group!.getBoundingClientRect();
           lineRef.current.style.opacity = '1';
           lineRef.current.style.top = `${lineY}px`;
