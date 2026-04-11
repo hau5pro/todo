@@ -1,5 +1,5 @@
-import { useParams, useNavigate } from 'react-router-dom';
-import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useState, useMemo, useRef, useEffect, useLayoutEffect, useCallback } from 'react';
 import { Pencil, Trash2, ChevronDown, ChevronRight, Copy, List, CheckCircle, Smile, FolderInput } from 'lucide-react';
 import { DragHandle, DeleteButton } from '../components/EditControls';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -95,6 +95,7 @@ function TaskRow({
 export function ListView() {
   const { listId } = useParams<{ listId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const today = useMemo(() => getTodayString(), []);
 
   const list = useAppStore((s) => s.lists.find((l) => l.id === listId));
@@ -234,6 +235,19 @@ export function ListView() {
       setListGroupOrder(listId!, [...saved, ...newOnes]);
     }
   }, [tasks, listId]);
+
+  // Focus first row when navigated here via keyboard (e.g. from FolderView)
+  const focusedForKey = useRef<string | null>(null);
+  useLayoutEffect(() => {
+    if (!location.state?.focusFirstRow) return;
+    if (tasks === undefined) return;
+    if (focusedForKey.current === location.key) return;
+    focusedForKey.current = location.key;
+    const target =
+      document.querySelector<HTMLElement>('[data-nav-row]') ??
+      document.querySelector<HTMLElement>('[data-add-task]');
+    target?.focus();
+  }, [listId, tasks !== undefined, location.key]);
 
   const tasksRef = useRef(tasks);
   tasksRef.current = tasks;
