@@ -5,6 +5,7 @@ import { createTask as dbCreateTask } from '../../db/tasks';
 import { createFolder as dbCreateFolder } from '../../db/folders';
 import { getTasksByList } from '../../db/tasks';
 import { getLists } from '../../db/lists';
+import { getTodayString } from '../../utils/date';
 
 beforeEach(() => {
   useAppStore.getState().reset();
@@ -180,7 +181,7 @@ describe('store: duplicateFolder', () => {
 
 describe('store: loadMyDay', () => {
   it('sets myDayLoaded and populates myDayToday with a due-today task', async () => {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = getTodayString();
     const list = await dbCreateList('General', 'general');
     await dbCreateTask(list.id, 'Due today task', { due_date: today });
     await useAppStore.getState().loadLists();
@@ -307,7 +308,7 @@ describe('store: deleteList side-effects on myDay slices', () => {
 
 describe('store: updateTaskFields side-effects', () => {
   it('calls loadMyDay when myDayLoaded is true', async () => {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = getTodayString();
     const list = await dbCreateList('Fields', 'general');
     const task = await dbCreateTask(list.id, 'Scheduled task');
     await useAppStore.getState().loadTasks(list.id);
