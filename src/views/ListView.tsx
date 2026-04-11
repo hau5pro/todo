@@ -485,7 +485,7 @@ export function ListView() {
             }}
           />
         </motion.form>
-        <div data-reorder-context="ungrouped">
+        <div data-reorder-context="task-ungrouped">
           <AnimatePresence initial={false}>
             {ungroupedTasks.map((task) => (
               <motion.div
