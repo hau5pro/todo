@@ -1071,7 +1071,7 @@ button.nav-section-label--button:hover { color: var(--fg); }
   touch-action: none;
   flex-shrink: 0;
 }
-.task-edit-drag:hover { color: var(--fg); }
+.task-edit-drag:hover { color: var(--accent); }
 .task-edit-drag:active { cursor: grabbing; }
 .task-edit-delete {
   display: flex;
