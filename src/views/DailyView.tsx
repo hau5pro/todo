@@ -93,7 +93,7 @@ export function DailyView() {
   const { dragId, startDrag, ghostRef, lineRef } = useLineDrag({
     scrollRef,
     onCommit: (_id, context, newIds) => {
-      if (context === 'ungrouped') {
+      if (context === 'task-ungrouped') {
         setListOrder(listId!, newIds);
       } else if (context === 'groups') {
         setListGroupOrder(listId!, newIds);
@@ -299,7 +299,7 @@ export function DailyView() {
                 onBlur={commitAdd}
               />
             </form>
-            <div data-reorder-context="ungrouped">
+            <div data-reorder-context="task-ungrouped">
               {ungroupedRows.map((row) => (
                 <HabitRow
                   key={row.task.id}
@@ -310,7 +310,7 @@ export function DailyView() {
                   onSelect={() => detail?.task.id === row.task.id ? closeDetail() : openDetail({ task: row.task })}
                   onDelete={() => removeTask(row.task.id, listId!).then(reload)}
                   isSelected={detail?.task.id === row.task.id}
-                  onReorderStart={(e) => startDrag(e, row.task.id, 'ungrouped', 'task-row--dragging')}
+                  onReorderStart={(e) => startDrag(e, row.task.id, 'task-ungrouped', 'task-row--dragging')}
                   onGroupDragStart={(e) => { e.preventDefault(); setDraggingHabitId(row.task.id); }}
                 />
               ))}

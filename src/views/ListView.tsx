@@ -126,7 +126,7 @@ export function ListView() {
   const { dragId, startDrag, ghostRef, lineRef } = useLineDrag({
     scrollRef,
     onCommit: (_id, context, newIds) => {
-      if (context === 'ungrouped') {
+      if (context === 'task-ungrouped') {
         setListOrder(listId!, newIds);
       } else if (context === 'groups') {
         setListGroupOrder(listId!, newIds);
@@ -505,7 +505,7 @@ export function ListView() {
                   onSelect={() => handleSelectTask(task)}
                   onDelete={() => removeTask(task.id, listId!)}
                   isSelected={detail?.task.id === task.id}
-                  onReorderStart={(e) => startDrag(e, task.id, 'ungrouped', 'task-row--dragging')}
+                  onReorderStart={(e) => startDrag(e, task.id, 'task-ungrouped', 'task-row--dragging')}
                   onGroupDragStart={(e) => { e.preventDefault(); setDraggingTaskId(task.id); }}
                 />
               </motion.div>
