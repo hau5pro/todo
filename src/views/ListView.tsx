@@ -282,7 +282,8 @@ export function ListView() {
     if (!newTitle.trim() || submittingRef.current) return;
     submittingRef.current = true;
     try {
-      await addTask(listId!, newTitle.trim());
+      const task = await addTask(listId!, newTitle.trim());
+      setListOrder(listId!, [...(listOrders[listId!] ?? []), task.id]);
       setNewTitle('');
       if (!keepOpen) setAddOpen(false);
       closeDetail();
