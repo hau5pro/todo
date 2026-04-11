@@ -251,7 +251,7 @@ export function ListView() {
   if (!list || tasks === undefined) return null;
 
   const isPinned = pinnedOrder.includes(listId!);
-  const activeTasks = tasks.filter((t) => !t.completed && t.deleted_at === null).reverse();
+  const activeTasks = tasks.filter((t) => !t.completed && t.deleted_at === null);
   const completedTasks = tasks
     .filter((t) => t.completed && t.deleted_at === null)
     .sort((a, b) => b.updated_at.localeCompare(a.updated_at));
