@@ -63,7 +63,18 @@ function SortableListItem({
           <span className="folder-view-list-name">{list.name}</span>
         </div>
       ) : (
-        <NavLink to={`/list/${list.id}`} className="folder-view-list-item" data-nav-row>
+        <NavLink
+          to={`/list/${list.id}`}
+          className="folder-view-list-item"
+          data-nav-row
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              e.stopPropagation();
+              navigate(`/list/${list.id}`, { state: { focusFirstRow: true } });
+            }
+          }}
+        >
           <span className="folder-view-list-icon">
             {getListIcon(list, ICON_SIZE) ?? <List size={ICON_SIZE} />}
           </span>

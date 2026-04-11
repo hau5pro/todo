@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { Keyboard, List, Sun, Repeat, ShoppingCart, Folder, WifiOff, Cloud, RotateCcw, Plus, Pencil, Copy, Smile, Trash2, Info, Zap, MousePointerClick } from 'lucide-react';
 
@@ -13,7 +14,7 @@ interface Section {
 
 const sections: Section[] = [
   {
-    title: 'Sidebar',
+    title: '① Sidebar',
     rows: [
       { keys: ['Tab', '↓'], description: 'Next list' },
       { keys: ['Shift Tab', '↑'], description: 'Previous list' },
@@ -21,7 +22,7 @@ const sections: Section[] = [
     ],
   },
   {
-    title: 'Task / Habit list',
+    title: '② Task / Habit list',
     rows: [
       { keys: ['Tab', '↓'], description: 'Next item' },
       { keys: ['Shift Tab', '↑'], description: 'Previous item' },
@@ -32,7 +33,7 @@ const sections: Section[] = [
     ],
   },
   {
-    title: 'Detail panel',
+    title: '③ Detail panel',
     rows: [
       { keys: ['Tab'], description: 'Next field' },
       { keys: ['Shift Tab'], description: 'Previous field' },
@@ -121,6 +122,59 @@ function ItemRow({ icon: ItemIcon, heading, body }: { icon: LucideIcon; heading:
   );
 }
 
+function KeyboardDiagram() {
+  const badge: CSSProperties = {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    background: 'var(--accent)',
+    color: '#fff',
+    fontSize: '0.6rem',
+    borderRadius: 3,
+    padding: '1px 4px',
+    fontWeight: 700,
+  };
+  const row: CSSProperties = {
+    background: 'var(--border)',
+    height: 7,
+    borderRadius: 3,
+    marginTop: 3,
+  };
+  return (
+    <div style={{ border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden', marginBottom: '1.25rem', fontSize: '0.72rem' }}>
+      <div style={{ background: 'var(--surface)', padding: '0.3rem 0.6rem', borderBottom: '1px solid var(--border)', color: 'var(--fg-muted)', fontSize: '0.68rem', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+        TO DO — app layout
+      </div>
+      <div style={{ display: 'flex', height: 90 }}>
+        {/* Sidebar */}
+        <div style={{ width: 90, borderRight: '1px solid var(--border)', padding: '0.5rem', flexShrink: 0, position: 'relative' }}>
+          <span style={badge}>① Sidebar</span>
+          <div style={{ ...row, marginTop: 20 }} />
+          <div style={{ ...row, opacity: 0.35, background: 'var(--accent)' }} />
+          <div style={{ ...row, opacity: 0.6 }} />
+          <div style={{ ...row, opacity: 0.4 }} />
+        </div>
+        {/* Task list */}
+        <div style={{ flex: 1, borderRight: '1px solid var(--border)', padding: '0.5rem', position: 'relative' }}>
+          <span style={badge}>② Task list</span>
+          <div style={{ ...row, marginTop: 20, width: '80%' }} />
+          <div style={{ ...row, opacity: 0.35, background: 'var(--accent)', width: '60%' }} />
+          <div style={{ ...row, opacity: 0.6, width: '70%' }} />
+          <div style={{ ...row, opacity: 0.4, width: '50%' }} />
+        </div>
+        {/* Detail panel */}
+        <div style={{ width: 110, padding: '0.5rem', flexShrink: 0, position: 'relative' }}>
+          <span style={badge}>③ Detail</span>
+          <div style={{ ...row, marginTop: 20 }} />
+          <div style={{ ...row, opacity: 0.6, width: '70%' }} />
+          <div style={{ ...row, opacity: 0.4, width: '50%' }} />
+          <div style={{ ...row, opacity: 0.3, width: '60%' }} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ButtonRow({ icon: BtnIcon, label, body }: ButtonItem) {
   return (
     <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
@@ -194,6 +248,7 @@ export function DocsView() {
           Keyboard shortcuts
         </div>
         <p className="view-subtitle" style={{ marginBottom: '1.5rem', marginTop: '0.25rem', textTransform: 'none', letterSpacing: 0 }}>Navigate without touching your mouse.</p>
+        <KeyboardDiagram />
         {sections.map((section) => (
           <div key={section.title} style={{ marginBottom: '1.5rem' }}>
             <p style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--fg-muted)', marginBottom: '0.5rem' }}>{section.title}</p>
