@@ -157,12 +157,8 @@ export const useAppStore = create<AppStore>((set, get) => ({
   loadMyDay: async () => {
     const todayDate = getTodayString();
 
-    // Reuse already-loaded lists or fetch them
-    let { lists } = get();
-    if (!get().listsLoaded) {
-      lists = await getLists();
-      set({ lists, listsLoaded: true });
-    }
+    const lists = await getLists();
+    set({ lists, listsLoaded: true });
 
     const [{ overdue, today }, todayCompletions] = await Promise.all([
       getMyDayTasks(todayDate),

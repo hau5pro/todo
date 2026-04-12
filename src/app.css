@@ -3004,6 +3004,12 @@ button.nav-section-label--button:hover { color: var(--fg); }
   justify-content: space-between;
 }
 
+.rrule-interval-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .rrule-stepper {
   display: flex;
   align-items: stretch;
