@@ -151,28 +151,30 @@ export function RecurrencePicker({ value, dueDate, onChange }: Props) {
           {/* Interval */}
           <div className="rrule-interval-row">
             <span className="rrule-muted">Every</span>
-            <div className="rrule-stepper">
-              <button
-                type="button"
-                className="rrule-stepper__btn"
-                onClick={() => update({ interval: Math.max(1, s.interval - 1) })}
-                aria-label="Decrease interval"
-              >−</button>
-              <input
-                type="number"
-                className="rrule-interval-input"
-                value={s.interval}
-                min={1}
-                onChange={(e) => update({ interval: Math.max(1, parseInt(e.target.value) || 1) })}
-              />
-              <button
-                type="button"
-                className="rrule-stepper__btn"
-                onClick={() => update({ interval: s.interval + 1 })}
-                aria-label="Increase interval"
-              >+</button>
+            <div className="rrule-interval-right">
+              <div className="rrule-stepper">
+                <button
+                  type="button"
+                  className="rrule-stepper__btn"
+                  onClick={() => update({ interval: Math.max(1, s.interval - 1) })}
+                  aria-label="Decrease interval"
+                >−</button>
+                <input
+                  type="number"
+                  className="rrule-interval-input"
+                  value={s.interval}
+                  min={1}
+                  onChange={(e) => update({ interval: Math.max(1, parseInt(e.target.value) || 1) })}
+                />
+                <button
+                  type="button"
+                  className="rrule-stepper__btn"
+                  onClick={() => update({ interval: s.interval + 1 })}
+                  aria-label="Increase interval"
+                >+</button>
+              </div>
+              <span className="rrule-muted">{unitLabel(s.freq, s.interval)}</span>
             </div>
-            <span className="rrule-muted">{unitLabel(s.freq, s.interval)}</span>
           </div>
 
           {/* Frequency pills */}
