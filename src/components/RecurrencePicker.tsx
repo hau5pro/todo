@@ -150,8 +150,8 @@ export function RecurrencePicker({ value, dueDate, onChange }: Props) {
 
           {/* Interval */}
           <div className="rrule-interval-row">
-            <span className="rrule-muted">Every</span>
-            <div className="rrule-interval-right">
+            <div className="rrule-interval-left">
+              <span className="rrule-muted">Every</span>
               <div className="rrule-stepper">
                 <button
                   type="button"
@@ -173,8 +173,8 @@ export function RecurrencePicker({ value, dueDate, onChange }: Props) {
                   aria-label="Increase interval"
                 >+</button>
               </div>
-              <span className="rrule-muted">{unitLabel(s.freq, s.interval)}</span>
             </div>
+            <span className="rrule-muted">{unitLabel(s.freq, s.interval)}</span>
           </div>
 
           {/* Frequency pills */}
