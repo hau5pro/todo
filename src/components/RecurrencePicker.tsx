@@ -96,6 +96,14 @@ function build(s: State): string {
   return line(new RRule({ freq: s.freq, interval: s.interval }));
 }
 
+function unitLabel(freq: number, interval: number): string {
+  const singular = freq === RRule.DAILY   ? 'day'
+                 : freq === RRule.WEEKLY  ? 'week'
+                 : freq === RRule.MONTHLY ? 'month'
+                 : 'year';
+  return interval === 1 ? singular : singular + 's';
+}
+
 interface Props {
   value: string | null;
   dueDate: string | null;
@@ -164,6 +172,7 @@ export function RecurrencePicker({ value, dueDate, onChange }: Props) {
                 aria-label="Increase interval"
               >+</button>
             </div>
+            <span className="rrule-muted">{unitLabel(s.freq, s.interval)}</span>
           </div>
 
           {/* Frequency pills */}
