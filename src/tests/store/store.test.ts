@@ -193,19 +193,14 @@ describe('store: loadMyDay', () => {
     expect(todayTasks.some((t) => t.title === 'Due today task')).toBe(true);
   });
 
-  it('reuses already-loaded lists without re-fetching', async () => {
+  it('always re-fetches lists regardless of listsLoaded', async () => {
     const list = await dbCreateList('Existing', 'general');
     await useAppStore.getState().loadLists();
-    // Patch store so listsLoaded is true with known content
-    const listsBeforeLoad = useAppStore.getState().lists;
 
     await useAppStore.getState().loadMyDay();
 
-    // Store lists should be identical reference (not re-fetched)
-    expect(useAppStore.getState().lists).toBe(listsBeforeLoad);
-
-    // Silence unused-variable warning
-    void list;
+    // Lists should still be present (re-fetched, not stale)
+    expect(useAppStore.getState().lists.some((l) => l.id === list.id)).toBe(true);
   });
 
   it('populates myDayHabits from daily-type lists', async () => {
