@@ -124,14 +124,15 @@ export function MyDayView() {
     requestSync();
   }, [today, loadMyDay]);
 
-  async function commitAdd() {
+  async function commitAdd(keepOpen = false) {
     if (!newTitle.trim() || submittingRef.current || !tasksList) return;
     submittingRef.current = true;
     try {
       const task = await addTask(tasksList.id, newTitle.trim(), null, today);
       setListOrder(tasksList.id, [task.id, ...(listOrders[tasksList.id] ?? [])]);
       setNewTitle('');
-      setAddOpen(false);
+      if (!keepOpen) setAddOpen(false);
+      else focusLater(addInputRef);
     } finally {
       submittingRef.current = false;
     }
@@ -140,7 +141,7 @@ export function MyDayView() {
   function handleAdd(e: React.FormEvent) {
     e.preventDefault();
     if (!newTitle.trim() || submittingRef.current || !tasksList) return;
-    void commitAdd();
+    void commitAdd(true);
   }
 
   if (!myDayLoaded) return null;
