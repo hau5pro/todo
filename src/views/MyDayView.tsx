@@ -32,7 +32,7 @@ type HabitSection = {
   habits: HabitWithCompletion[];
 };
 
-function sortByDueDateTime<T extends { due_date?: string | null; due_time?: string | null }>(tasks: T[]): T[] {
+function sortByDueDateTime<T extends { due_date?: string | null; due_time?: string | null; updated_at?: string }>(tasks: T[]): T[] {
   return [...tasks].sort((a, b) => {
     if (!a.due_date) return 1;
     if (!b.due_date) return -1;
@@ -42,6 +42,8 @@ function sortByDueDateTime<T extends { due_date?: string | null; due_time?: stri
     if (a.due_time && !b.due_time) return -1;
     if (!a.due_time && b.due_time) return 1;
     if (a.due_time && b.due_time) return a.due_time.localeCompare(b.due_time);
+    // Same date and time: most recently created first (matches optimistic prepend order)
+    if (a.updated_at && b.updated_at) return b.updated_at.localeCompare(a.updated_at);
     return 0;
   });
 }
