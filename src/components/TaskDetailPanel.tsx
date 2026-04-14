@@ -207,6 +207,21 @@ export function TaskDetailPanel() {
           }}
         />
 
+        {/* Note */}
+        <div className="task-detail-section">
+          <span className="task-detail-section__heading">Note</span>
+          <div className="task-detail-section__fields">
+            <textarea
+              className="task-detail-note-input"
+              value={noteInput}
+              onChange={(e) => setNoteInput(e.target.value)}
+              onBlur={commitNote}
+              placeholder="Add a note…"
+              rows={3}
+            />
+          </div>
+        </div>
+
         {/* Schedule: due date + recurrence — hidden for habit tasks */}
         {!isHabitTask && (
           <div className="task-detail-section">
@@ -386,21 +401,6 @@ export function TaskDetailPanel() {
               <span>{currentGroup ?? 'Add to group'}</span>
             </button>
           )}
-          </div>
-        </div>
-
-        {/* Note */}
-        <div className="task-detail-section">
-          <span className="task-detail-section__heading">Note</span>
-          <div className="task-detail-section__fields">
-            <textarea
-              className="task-detail-note-input"
-              value={noteInput}
-              onChange={(e) => setNoteInput(e.target.value)}
-              onBlur={commitNote}
-              placeholder="Add a note…"
-              rows={3}
-            />
           </div>
         </div>
       </div>
