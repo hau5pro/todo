@@ -136,9 +136,10 @@ export function MyDayView() {
     }
   }
 
-  async function handleAdd(e: React.FormEvent) {
+  function handleAdd(e: React.FormEvent) {
     e.preventDefault();
-    await commitAdd();
+    if (!newTitle.trim() || submittingRef.current || !tasksList) return;
+    void commitAdd();
   }
 
   if (!myDayLoaded) return null;
