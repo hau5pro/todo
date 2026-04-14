@@ -3,6 +3,7 @@ import { useAppStore } from '../../store/index';
 import { createList as dbCreateList } from '../../db/lists';
 import { createTask as dbCreateTask } from '../../db/tasks';
 import { getTasksByList } from '../../db/tasks';
+import { getTodayString } from '../../utils/date';
 
 beforeEach(() => {
   useAppStore.getState().reset();
@@ -28,6 +29,34 @@ describe('store: addTask', () => {
     const task = await useAppStore.getState().addTask(list.id, 'Groceries');
     const dbTasks = await getTasksByList(list.id);
     expect(dbTasks.find((t) => t.id === task.id)).toBeDefined();
+  });
+});
+
+describe('store: addTask with due_date', () => {
+  it('sets due_date on the created task', async () => {
+    const list = await dbCreateList('Tasks', 'general');
+    const today = getTodayString();
+    const task = await useAppStore.getState().addTask(list.id, 'Quick task', null, today);
+    expect(task.due_date).toBe(today);
+  });
+
+  it('adds task to myDayToday when due_date is today', async () => {
+    const list = await dbCreateList('Tasks', 'general');
+    const today = getTodayString();
+    const task = await useAppStore.getState().addTask(list.id, 'Quick task', null, today);
+    expect(useAppStore.getState().myDayToday.find((t) => t.id === task.id)).toBeDefined();
+  });
+
+  it('does not add to myDayToday when due_date is a future date', async () => {
+    const list = await dbCreateList('Tasks', 'general');
+    const task = await useAppStore.getState().addTask(list.id, 'Future task', null, '2099-01-01');
+    expect(useAppStore.getState().myDayToday.find((t) => t.id === task.id)).toBeUndefined();
+  });
+
+  it('does not add to myDayToday when due_date is omitted', async () => {
+    const list = await dbCreateList('Tasks', 'general');
+    const task = await useAppStore.getState().addTask(list.id, 'No date task');
+    expect(useAppStore.getState().myDayToday.find((t) => t.id === task.id)).toBeUndefined();
   });
 });
 

@@ -1,16 +1,17 @@
-import { useEffect, useMemo, useCallback, useRef } from 'react';
+import { useEffect, useMemo, useCallback, useRef, useState } from 'react';
 import { Sun, Flame, Clock } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAppStore, HabitWithCompletion } from '../store';
 import { useSettings } from '../contexts/SettingsContext';
 import { TaskItem } from '../components/TaskItem';
 import { HabitItem } from '../components/HabitItem';
 import { toggleHabitCompletion } from '../db/habits';
 import { requestSync } from '../sync/orchestrator';
-import { ICON_SIZE } from '../config/constants';
+import { ICON_SIZE, ADD_TASK_PLACEHOLDER } from '../config/constants';
 import { ease } from '../utils/easing';
 import { applyOrder } from '../utils/order';
 import { getTodayString } from '../utils/date';
+import { focusLater } from '../utils/dom';
 
 const itemVariants = {
   hidden: { opacity: 0, y: 6 },
@@ -31,7 +32,7 @@ type HabitSection = {
   habits: HabitWithCompletion[];
 };
 
-function sortByDueDateTime<T extends { due_date?: string | null; due_time?: string | null }>(tasks: T[]): T[] {
+function sortByDueDateTime<T extends { due_date?: string | null; due_time?: string | null; updated_at?: string }>(tasks: T[]): T[] {
   return [...tasks].sort((a, b) => {
     if (!a.due_date) return 1;
     if (!b.due_date) return -1;
@@ -41,6 +42,8 @@ function sortByDueDateTime<T extends { due_date?: string | null; due_time?: stri
     if (a.due_time && !b.due_time) return -1;
     if (!a.due_time && b.due_time) return 1;
     if (a.due_time && b.due_time) return a.due_time.localeCompare(b.due_time);
+    // Same date and time: most recently created first (matches optimistic prepend order)
+    if (a.updated_at && b.updated_at) return b.updated_at.localeCompare(a.updated_at);
     return 0;
   });
 }
@@ -48,8 +51,13 @@ function sortByDueDateTime<T extends { due_date?: string | null; due_time?: stri
 export function MyDayView() {
   const today = useMemo(() => getTodayString(), []);
   const todayLabel = useMemo(() => new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }), []);
-  const { myDayOverdue, myDayToday, myDayHabits, myDayLoaded, loadMyDay, completeTask, advanceCyclicalTask, lists } = useAppStore();
-  const { listOrders, listGroupOrders } = useSettings();
+  const { myDayOverdue, myDayToday, myDayHabits, myDayLoaded, loadMyDay, completeTask, advanceCyclicalTask, lists, addTask } = useAppStore();
+  const tasksList = useMemo(() => lists.find((l) => l.name === 'Tasks') ?? null, [lists]);
+  const [newTitle, setNewTitle] = useState('');
+  const [addOpen, setAddOpen] = useState(false);
+  const submittingRef = useRef(false);
+  const addInputRef = useRef<HTMLInputElement>(null);
+  const { listOrders, listGroupOrders, setListOrder } = useSettings();
 
   useEffect(() => { loadMyDay(); }, []);
 
@@ -118,9 +126,29 @@ export function MyDayView() {
     requestSync();
   }, [today, loadMyDay]);
 
+  async function commitAdd(keepOpen = false) {
+    if (!newTitle.trim() || submittingRef.current || !tasksList) return;
+    submittingRef.current = true;
+    try {
+      const task = await addTask(tasksList.id, newTitle.trim(), null, today);
+      setListOrder(tasksList.id, [task.id, ...(listOrders[tasksList.id] ?? [])]);
+      setNewTitle('');
+      if (!keepOpen) setAddOpen(false);
+      else focusLater(addInputRef);
+    } finally {
+      submittingRef.current = false;
+    }
+  }
+
+  function handleAdd(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newTitle.trim() || submittingRef.current || !tasksList) return;
+    void commitAdd(true);
+  }
+
   if (!myDayLoaded) return null;
 
-  const hasAnything = myDayOverdue.length > 0 || myDayToday.length > 0 || myDayHabits.length > 0;
+  const hasAnything = myDayOverdue.length > 0 || myDayToday.length > 0 || myDayHabits.length > 0 || !!tasksList;
 
   return (
     <div>
@@ -185,23 +213,61 @@ export function MyDayView() {
           </motion.section>
         )}
 
-        {myDayToday.length > 0 && (
-          <motion.section variants={sectionVariants}>
-            <div className="section-heading"><Sun size={ICON_SIZE} />Today</div>
-            {sortedToday.map((task) => (
-              <TaskItem
-                key={task.id}
-                id={task.id}
-                title={task.title}
-                completed={task.completed}
-                dueDate={task.due_date}
-                dueTime={task.due_time}
-                today={today}
-                onToggle={handleTaskToggle}
+        <motion.section variants={sectionVariants}>
+          <div className="section-heading"><Sun size={ICON_SIZE} />Today</div>
+          {tasksList && (
+            <form onSubmit={handleAdd} style={{ position: 'relative' }}>
+              <AnimatePresence initial={false}>
+                {!addOpen && (
+                  <motion.button
+                    key="add-trigger"
+                    type="button"
+                    className="add-task"
+                    onClick={() => { setAddOpen(true); focusLater(addInputRef); }}
+                    exit={{ opacity: 0, transition: { duration: 0.1 } }}
+                    style={{ position: 'absolute', inset: 0, margin: 0, height: '100%' }}
+                  >
+                    {ADD_TASK_PLACEHOLDER}
+                  </motion.button>
+                )}
+              </AnimatePresence>
+              <input
+                ref={addInputRef}
+                className="add-task-input"
+                placeholder={ADD_TASK_PLACEHOLDER}
+                aria-label="Add task"
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                onFocus={() => setAddOpen(true)}
+                onBlur={() => {
+                  if (!newTitle.trim()) setAddOpen(false);
+                  else commitAdd();
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') { setNewTitle(''); setAddOpen(false); }
+                }}
+                data-add-task
+                style={{
+                  opacity: addOpen ? 1 : 0,
+                  transition: 'opacity 0.12s ease',
+                  pointerEvents: addOpen ? 'auto' : 'none',
+                }}
               />
-            ))}
-          </motion.section>
-        )}
+            </form>
+          )}
+          {sortedToday.map((task) => (
+            <TaskItem
+              key={task.id}
+              id={task.id}
+              title={task.title}
+              completed={task.completed}
+              dueDate={task.due_date}
+              dueTime={task.due_time}
+              today={today}
+              onToggle={handleTaskToggle}
+            />
+          ))}
+        </motion.section>
       </div>
       </motion.div>
 
