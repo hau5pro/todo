@@ -18,9 +18,14 @@ function DetailSlot() {
   useEffect(() => { close(); }, [pathname, close]);
 
   return (
-    <AnimatePresence>
-      {detail && <TaskDetailPanel />}
-    </AnimatePresence>
+    <>
+      <AnimatePresence>
+        {detail && <div className="detail-backdrop" onClick={close} />}
+      </AnimatePresence>
+      <AnimatePresence>
+        {detail && <TaskDetailPanel />}
+      </AnimatePresence>
+    </>
   );
 }
 

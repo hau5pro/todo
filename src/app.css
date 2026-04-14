@@ -2178,6 +2178,20 @@ button.nav-section-label--button:hover { color: var(--fg); }
 }
 
 /* ── Task detail panel ───────────────────────────────────── */
+.detail-backdrop {
+  position: absolute;
+  inset: 0;
+  right: 335px;
+  z-index: 1;
+  cursor: default;
+}
+
+@media (max-width: 640px) {
+  .detail-backdrop {
+    display: none;
+  }
+}
+
 .task-detail-panel {
   position: absolute;
   right: 0;
