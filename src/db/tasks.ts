@@ -44,6 +44,7 @@ export async function createTask(listId: string, title: string, opts: CreateTask
     recurrence_unit: opts.recurrence_unit ?? null,
     rrule: opts.rrule ?? null,
     group: opts.group ?? null,
+    note: null,
     updated_at: new Date().toISOString(),
     deleted_at: null,
     pending_sync: true,
@@ -157,7 +158,7 @@ export async function bulkUpdateTaskGroup(listId: string, oldGroup: string | nul
   return updated;
 }
 
-export async function updateTask(id: string, changes: Partial<Pick<Task, 'title' | 'due_date' | 'due_time' | 'recurrence_interval' | 'recurrence_unit' | 'rrule' | 'group'>>): Promise<Task> {
+export async function updateTask(id: string, changes: Partial<Pick<Task, 'title' | 'due_date' | 'due_time' | 'recurrence_interval' | 'recurrence_unit' | 'rrule' | 'group' | 'note'>>): Promise<Task> {
   const db = await getDB();
   const tx = db.transaction('tasks', 'readwrite');
   const store = tx.objectStore('tasks');
