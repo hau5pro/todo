@@ -6,6 +6,7 @@ import { playComplete, hapticComplete } from '../utils/sound';
 interface Props {
   id: string;
   title: string;
+  note: string | null;
   completedToday: boolean;
   streak: number;
   onToggle: (id: string) => void;
@@ -13,7 +14,7 @@ interface Props {
   isSelected?: boolean;
 }
 
-export const HabitItem = memo(function HabitItem({ id, title, completedToday, streak, onToggle, onSelect, isSelected }: Props) {
+export const HabitItem = memo(function HabitItem({ id, title, note, completedToday, streak, onToggle, onSelect, isSelected }: Props) {
   const { soundEnabled, soundStyle, hapticEnabled } = useSettings();
   const [flashing, setFlashing] = useState(false);
   const [popping, setPopping] = useState(false);
@@ -49,9 +50,14 @@ export const HabitItem = memo(function HabitItem({ id, title, completedToday, st
         variant="habit"
         streak={streak}
       />
-      <span className={`habit-item__title${completedToday ? ' habit-item__title--completed' : ''}`}>
-        {title}
-      </span>
+      <div className="habit-item__title-wrap">
+        <span className={`habit-item__title${completedToday ? ' habit-item__title--completed' : ''}`}>
+          {title}
+        </span>
+        {note && (
+          <span className="habit-item__note">{note}</span>
+        )}
+      </div>
       {streak > 0 && (
         <span className={`habit-item__streak${streak >= 7 ? ' habit-item__streak--hot' : ''}`} aria-label={`${streak} day streak`}>
           <svg className="habit-item__streak-flame" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
