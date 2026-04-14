@@ -10,7 +10,7 @@ export function excludeDeleted<T extends { deleted_at: string | null }>(records:
   return records.filter((r) => r.deleted_at === null);
 }
 
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 let dbName = 'todo-app-local';
 let dbPromise: Promise<IDBDatabase> | null = null;
@@ -90,6 +90,22 @@ function openDB(name: string): Promise<IDBDatabase> {
           if (!listsStore.indexNames.contains('folder_id')) {
             listsStore.createIndex('folder_id', 'folder_id');
           }
+        }
+      }
+
+      // v3: add note field to existing task records
+      if (oldVersion < 3) {
+        if (db.objectStoreNames.contains('tasks')) {
+          const tasksStore = tx.objectStore('tasks');
+          tasksStore.openCursor().onsuccess = function (e) {
+            const cursor = (e.target as IDBRequest<IDBCursorWithValue | null>).result;
+            if (!cursor) return;
+            const record = cursor.value;
+            if (record.note === undefined) {
+              cursor.update({ ...record, note: null });
+            }
+            cursor.continue();
+          };
         }
       }
     };

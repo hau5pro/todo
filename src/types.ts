@@ -40,6 +40,7 @@ export interface Task {
   recurrence_unit: RecurrenceUnit | null;
   rrule: string | null;                // task-level recurrence, e.g. 'FREQ=WEEKLY;INTERVAL=1;BYDAY=MO'
   group: string | null;                // optional group/section name within the list
+  note: string | null;                 // free-form note or duration hint
   updated_at: string;
   deleted_at: string | null;
   pending_sync: boolean;
