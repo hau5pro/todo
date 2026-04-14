@@ -54,6 +54,7 @@ function HabitRow({ row, editMode, onToggle, onSelect, onDelete, isSelected, onR
         <HabitItem
           id={row.task.id}
           title={row.task.title}
+          note={row.task.note}
           completedToday={row.completedToday}
           streak={row.streak}
           onToggle={onToggle}

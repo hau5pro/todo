@@ -6,7 +6,7 @@ import { playComplete, hapticComplete } from '../utils/sound';
 interface Props {
   id: string;
   title: string;
-  note: string | null;
+  note?: string | null;
   completedToday: boolean;
   streak: number;
   onToggle: (id: string) => void;

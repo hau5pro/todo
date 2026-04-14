@@ -184,6 +184,7 @@ export function MyDayView() {
                       key={task.id}
                       id={task.id}
                       title={task.title}
+                      note={task.note}
                       completedToday={completedToday}
                       streak={streak}
                       onToggle={handleHabitToggle}
