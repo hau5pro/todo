@@ -1,8 +1,11 @@
-# To Do
+# TO DO
 
 A privacy-first, offline-capable task manager and habit tracker. All data lives in your browser — cloud sync is optional.
 
-![Dark theme, indigo accent](https://placehold.co/1200x600/111118/6366f1?text=To+Do)
+**Live site: [todo.hau5.pro](https://todo.hau5.pro)**
+
+<img src="docs/screenshots/desktop.png" alt="Desktop — task list with detail panel" width="720">
+<img src="docs/screenshots/mobile.png" alt="Mobile — My Day view" width="248">
 
 ---
 
@@ -138,6 +141,7 @@ npm run dev        # Start dev server (HMR)
 npm run build      # Type-check + production build
 npm run preview    # Serve production build locally
 npm test           # Run tests in watch mode
+npm run test:run   # Run tests once (CI)
 npm run typecheck  # Type-check without emitting
 ```
 
@@ -162,3 +166,9 @@ mutation → pending_sync = true → requestSync() (debounced 500ms)
                               pullFromSupabase() ← fetches rows updated since last sync
                                                    last-write-wins on conflict
 ```
+
+---
+
+## License
+
+[MIT](LICENSE) © hau5pro
