@@ -2181,7 +2181,7 @@ button.nav-section-label--button:hover { color: var(--fg); }
   inset: 0;
   right: 335px;
   z-index: 1;
-  cursor: default;
+  cursor: pointer;
 }
 
 @media (max-width: 640px) {

@@ -19,7 +19,18 @@ function DetailSlot() {
 
   return (
     <>
-      {detail && <div className="detail-backdrop" onClick={close} />}
+      <AnimatePresence>
+        {detail && (
+          <motion.div
+            className="detail-backdrop"
+            onClick={close}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+          />
+        )}
+      </AnimatePresence>
       <AnimatePresence>
         {detail && <TaskDetailPanel />}
       </AnimatePresence>
