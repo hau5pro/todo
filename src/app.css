@@ -1280,11 +1280,9 @@ button.nav-section-label--button:hover { color: var(--fg); }
 .habit-item__note {
   font-size: 0.75rem;
   color: var(--fg-muted);
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  -webkit-box-orient: vertical;
   overflow: hidden;
-  opacity: 0.75;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .habit-item__title--completed {
   opacity: 0.45;
