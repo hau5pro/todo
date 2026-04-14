@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { getLists, getListById, createList, updateList, deleteList } from '../../db/lists';
+import { createTask, getTasksByList } from '../../db/tasks';
 import { _resetForTesting } from '../../db/client';
 
 describe('lists CRUD', () => {
@@ -44,6 +45,18 @@ describe('lists CRUD', () => {
     await deleteList(list.id);
     const lists = await getLists();
     expect(lists).toHaveLength(0);
+  });
+
+  it('deleteList soft-deletes all tasks in the list', async () => {
+    const list = await createList('Doomed', 'general');
+    await createTask(list.id, 'Task 1');
+    await createTask(list.id, 'Task 2');
+    await deleteList(list.id);
+    const tasks = await getTasksByList(list.id, { includeDeleted: false });
+    expect(tasks).toHaveLength(0);
+    const allTasks = await getTasksByList(list.id, { includeDeleted: true });
+    expect(allTasks).toHaveLength(2);
+    expect(allTasks.every((t) => t.deleted_at !== null)).toBe(true);
   });
 
   it('getListById returns the list when it exists', async () => {
