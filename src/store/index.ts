@@ -348,7 +348,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
         ...s.tasksByList,
         [listId]: [...(s.tasksByList[listId] ?? []), task],
       },
-      ...(due_date === today ? { myDayToday: [...s.myDayToday, task] } : {}),
+      ...(due_date === today ? { myDayToday: [task, ...s.myDayToday] } : {}),
     }));
     requestSync();
     return task;
