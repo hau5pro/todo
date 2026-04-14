@@ -50,14 +50,12 @@ export const HabitItem = memo(function HabitItem({ id, title, note, completedTod
         variant="habit"
         streak={streak}
       />
-      <div className="habit-item__title-wrap">
-        <span className={`habit-item__title${completedToday ? ' habit-item__title--completed' : ''}`}>
-          {title}
-        </span>
-        {note && (
-          <span className="habit-item__note">{note}</span>
-        )}
-      </div>
+      <span className={`habit-item__title${completedToday ? ' habit-item__title--completed' : ''}`}>
+        {title}
+      </span>
+      {note && (
+        <span className="habit-item__note">{note}</span>
+      )}
       {streak > 0 && (
         <span className={`habit-item__streak${streak >= 7 ? ' habit-item__streak--hot' : ''}`} aria-label={`${streak} day streak`}>
           <svg className="habit-item__streak-flame" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
