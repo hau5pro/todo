@@ -55,7 +55,7 @@ export function MyDayView() {
   const [addOpen, setAddOpen] = useState(false);
   const submittingRef = useRef(false);
   const addInputRef = useRef<HTMLInputElement>(null);
-  const { listOrders, listGroupOrders } = useSettings();
+  const { listOrders, listGroupOrders, setListOrder } = useSettings();
 
   useEffect(() => { loadMyDay(); }, []);
 
@@ -128,7 +128,8 @@ export function MyDayView() {
     if (!newTitle.trim() || submittingRef.current || !tasksList) return;
     submittingRef.current = true;
     try {
-      await addTask(tasksList.id, newTitle.trim(), null, today);
+      const task = await addTask(tasksList.id, newTitle.trim(), null, today);
+      setListOrder(tasksList.id, [task.id, ...(listOrders[tasksList.id] ?? [])]);
       setNewTitle('');
       setAddOpen(false);
     } finally {
