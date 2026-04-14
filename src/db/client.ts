@@ -97,7 +97,9 @@ function openDB(name: string): Promise<IDBDatabase> {
       if (oldVersion < 3) {
         if (db.objectStoreNames.contains('tasks')) {
           const tasksStore = tx.objectStore('tasks');
-          tasksStore.openCursor().onsuccess = function (e) {
+          const cursorReq = tasksStore.openCursor();
+          cursorReq.onerror = () => { throw cursorReq.error; };
+          cursorReq.onsuccess = function (e) {
             const cursor = (e.target as IDBRequest<IDBCursorWithValue | null>).result;
             if (!cursor) return;
             const record = cursor.value;

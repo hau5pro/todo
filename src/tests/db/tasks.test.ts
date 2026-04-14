@@ -212,6 +212,27 @@ describe('tasks CRUD', () => {
     await expect(advanceRecurringTask('nonexistent-id')).rejects.toThrow('nonexistent-id');
   });
 
+  it('createTask includes note: null by default', async () => {
+    const list = await createList('Test', 'general');
+    const task = await createTask(list.id, 'Meditate');
+    expect(task.note).toBeNull();
+  });
+
+  it('updateTask persists a note value', async () => {
+    const list = await createList('Test', 'general');
+    const task = await createTask(list.id, 'Meditate');
+    const updated = await updateTask(task.id, { note: '30 min' });
+    expect(updated.note).toBe('30 min');
+  });
+
+  it('updateTask clears note when set to null', async () => {
+    const list = await createList('Test', 'general');
+    const task = await createTask(list.id, 'Meditate');
+    await updateTask(task.id, { note: '30 min' });
+    const cleared = await updateTask(task.id, { note: null });
+    expect(cleared.note).toBeNull();
+  });
+
   it('purgeOldShoppingItems deletes soft-deleted items older than 30 days', async () => {
     const list = await createList('Groceries', 'shopping');
     const task = await createTask(list.id, 'Old eggs');
