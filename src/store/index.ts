@@ -106,7 +106,7 @@ interface AppStore {
   duplicateFolder: (id: string) => Promise<ListFolder>;
 
   // Task mutations
-  addTask: (listId: string, title: string, group?: string | null) => Promise<Task>;
+  addTask: (listId: string, title: string, group?: string | null, due_date?: string) => Promise<Task>;
   renameTask: (id: string, listId: string, title: string) => Promise<Task>;
   updateTaskFields: (id: string, listId: string, fields: Partial<Pick<Task, 'due_date' | 'due_time' | 'rrule'>>) => Promise<Task>;
   moveTaskToGroup: (id: string, listId: string, group: string | null) => Promise<Task>;
@@ -340,13 +340,15 @@ export const useAppStore = create<AppStore>((set, get) => ({
 
   // ── Task mutations ─────────────────────────────────────────────────────────
 
-  addTask: async (listId, title, group) => {
-    const task = await dbCreateTask(listId, title, { group: group ?? null });
+  addTask: async (listId, title, group, due_date) => {
+    const task = await dbCreateTask(listId, title, { group: group ?? null, due_date: due_date ?? null });
+    const today = getTodayString();
     set((s) => ({
       tasksByList: {
         ...s.tasksByList,
         [listId]: [...(s.tasksByList[listId] ?? []), task],
       },
+      ...(due_date === today ? { myDayToday: [...s.myDayToday, task] } : {}),
     }));
     requestSync();
     return task;
