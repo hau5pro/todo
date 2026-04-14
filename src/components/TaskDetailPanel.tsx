@@ -58,6 +58,7 @@ export function TaskDetailPanel() {
   const [calOpen, setCalOpen] = useState(false);
   const [editingGroup, setEditingGroup] = useState(false);
   const [groupInput, setGroupInput] = useState('');
+  const [noteInput, setNoteInput] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [highlightIdx, setHighlightIdx] = useState(-1);
 
@@ -73,6 +74,7 @@ export function TaskDetailPanel() {
     if (detail) {
       setEditTitle(detail.task.title);
       setGroupInput(detail.task.group ?? '');
+      setNoteInput(detail.task.note ?? '');
       setCalOpen(false);
       setEditingTime(false);
       setEditingGroup(false);
@@ -155,6 +157,14 @@ export function TaskDetailPanel() {
       }
     }
     setEditingGroup(false);
+  }
+
+  async function commitNote() {
+    if (!task) return;
+    const note = noteInput.trim() || null;
+    if (note === (task.note ?? null)) return;
+    const updated = await updateTaskFields(task.id, task.list_id, { note });
+    updateCtx(updated);
   }
 
   async function executeDelete() {
@@ -375,6 +385,21 @@ export function TaskDetailPanel() {
               <span>{currentGroup ?? 'Add to group'}</span>
             </button>
           )}
+          </div>
+        </div>
+
+        {/* Note */}
+        <div className="task-detail-section">
+          <span className="task-detail-section__heading">Note</span>
+          <div className="task-detail-section__fields">
+            <textarea
+              className="task-detail-note-input"
+              value={noteInput}
+              onChange={(e) => setNoteInput(e.target.value)}
+              onBlur={commitNote}
+              placeholder="Add a note…"
+              rows={3}
+            />
           </div>
         </div>
       </div>
