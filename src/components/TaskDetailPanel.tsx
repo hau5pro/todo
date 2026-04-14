@@ -165,6 +165,7 @@ export function TaskDetailPanel() {
     if (note === (task.note ?? null)) return;
     const updated = await updateTaskFields(task.id, task.list_id, { note });
     updateCtx(updated);
+    setNoteInput(updated.note ?? '');
   }
 
   async function executeDelete() {
