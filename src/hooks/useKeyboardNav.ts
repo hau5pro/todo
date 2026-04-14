@@ -37,7 +37,7 @@ export function useKeyboardNav() {
           // safe: inDetailPanel already confirmed .task-detail-panel contains active
           const panel = document.querySelector('.task-detail-panel')!;
           const focusable = Array.from(
-            panel.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled])')
+            panel.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled]), textarea:not([disabled])')
           );
           // safe: active is non-null — inDetailPanel check confirmed it
           const idx = focusable.indexOf(active!);
