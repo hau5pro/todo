@@ -19,9 +19,7 @@ function DetailSlot() {
 
   return (
     <>
-      <AnimatePresence>
-        {detail && <div className="detail-backdrop" onClick={close} />}
-      </AnimatePresence>
+      {detail && <div className="detail-backdrop" onClick={close} />}
       <AnimatePresence>
         {detail && <TaskDetailPanel />}
       </AnimatePresence>

@@ -2203,6 +2203,7 @@ button.nav-section-label--button:hover { color: var(--fg); }
   flex-direction: column;
   overflow-y: auto;
   background: var(--surface);
+  z-index: 2;
 }
 
 @media (max-width: 640px) {
