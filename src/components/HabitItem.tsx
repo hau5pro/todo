@@ -49,6 +49,7 @@ export const HabitItem = memo(function HabitItem({ id, title, note, completedTod
         popping={popping}
         variant="habit"
         streak={streak}
+        habitId={id}
       />
       <span className={`habit-item__title${completedToday ? ' habit-item__title--completed' : ''}`}>
         {title}

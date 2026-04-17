@@ -9,9 +9,10 @@ interface Props {
   popping?: boolean;
   variant?: 'habit';
   streak?: number;
+  habitId?: string;
 }
 
-export function AnimatedCheckbox({ checked, onChange, popping = false, variant, streak = 0 }: Props) {
+export function AnimatedCheckbox({ checked, onChange, popping = false, variant, streak = 0, habitId }: Props) {
   const isHabit = variant === 'habit';
   const angles = isHabit && streak >= 7 ? ANGLES_12 : ANGLES_8;
   const doubleRing = isHabit && streak >= 7;
@@ -28,6 +29,7 @@ export function AnimatedCheckbox({ checked, onChange, popping = false, variant, 
         isHabit ? 'animated-checkbox--habit' : '',
       ].filter(Boolean).join(' ')}
       tabIndex={-1}
+      data-habit-id={habitId}
       onClick={(e) => { e.stopPropagation(); onChange(); }}
     >
       <svg width={24} height={24} viewBox="0 0 16 16" overflow="visible">
