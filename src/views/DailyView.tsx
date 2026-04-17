@@ -198,7 +198,7 @@ export function DailyView() {
     const el = document.querySelector(`[data-habit-id="${taskId}"]`);
     if (el instanceof HTMLElement) burstFromElement(el);
 
-    if (freshRows.every((r) => r.completedToday)) {
+    if (freshRows.length > 0 && freshRows.every((r) => r.completedToday)) {
       burstFullScreen();
     }
   }, [today, reload, confettiEnabled, rows]);
