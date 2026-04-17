@@ -12,6 +12,7 @@ import { HabitItem } from '../components/HabitItem';
 import { HabitGroupSection } from '../components/HabitGroupSection';
 import { toggleHabitCompletion } from '../db/habits';
 import { requestSync } from '../sync/orchestrator';
+import { burstFromElement, burstFullScreen } from '../utils/confetti';
 import { LIST_TYPE_LABELS } from '../types';
 import { getListIcon } from '../config/listIcons';
 import { ICON_SIZE } from '../config/constants';
@@ -76,7 +77,7 @@ export function DailyView() {
   const [draggingHabitId, setDraggingHabitId] = useState<string | null>(null);
 
   const { detail, open: openDetail, close: closeDetail } = useTaskDetail();
-  const { listOrders, setListOrder, listGroupOrders, setListGroupOrder } = useSettings();
+  const { listOrders, setListOrder, listGroupOrders, setListGroupOrder, confettiEnabled } = useSettings();
   const prevDetail = useRef(detail);
   useEffect(() => {
     if (prevDetail.current !== null && detail === null) reload();
@@ -187,10 +188,20 @@ export function DailyView() {
   }, [rows, listId]);
 
   const handleToggle = useCallback(async (taskId: string) => {
+    const wasCompletion = !rows.find((r) => r.task.id === taskId)?.completedToday;
     await toggleHabitCompletion(taskId, today);
-    reload();
+    const freshRows = await reload();
     requestSync();
-  }, [today, reload]);
+
+    if (!confettiEnabled || !wasCompletion) return;
+
+    const el = document.querySelector(`[data-habit-id="${taskId}"]`);
+    if (el instanceof HTMLElement) burstFromElement(el);
+
+    if (freshRows.every((r) => r.completedToday)) {
+      burstFullScreen();
+    }
+  }, [today, reload, confettiEnabled, rows]);
 
   if (isLoading) return null;
 
