@@ -42,6 +42,7 @@ export interface Settings {
   listGroupOrders: Record<string, string[]>;  // ordered group names per list id
   syncEnabled: boolean;
   localOnly: boolean;
+  confettiEnabled: boolean;
 }
 
 interface SettingsContextValue extends Settings {
@@ -63,6 +64,7 @@ interface SettingsContextValue extends Settings {
   setListGroupOrder: (listId: string, groups: string[]) => void;
   setSyncEnabled: (v: boolean) => void;
   setLocalOnly: (v: boolean) => void;
+  setConfettiEnabled: (v: boolean) => void;
 }
 
 const STORAGE_KEY = 'todo_settings';
@@ -88,6 +90,7 @@ const DEFAULTS: Settings = {
   listGroupOrders: {},
   syncEnabled: true,
   localOnly: false,
+  confettiEnabled: true,
 };
 
 function loadSettings(): Settings {
@@ -296,6 +299,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       update((prev) => ({ ...prev, listGroupOrders: { ...prev.listGroupOrders, [listId]: groups } })),
     setSyncEnabled: (syncEnabled) => update({ syncEnabled }),
     setLocalOnly: (v) => update({ localOnly: v, syncEnabled: v ? false : true }),
+    setConfettiEnabled: (confettiEnabled) => update({ confettiEnabled }),
   }), [settings, update]);
 
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;
