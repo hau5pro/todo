@@ -88,4 +88,22 @@ describe('useHabits', () => {
       expect(result.current.rows.some((r) => r.task.title === 'New habit task')).toBe(true)
     );
   });
+
+  it('reload() returns the fresh HabitRow[]', async () => {
+    const list = await dbCreateList('Return Test', 'daily');
+    const task = await dbCreateTask(list.id, 'Stretch');
+
+    const { result } = renderHook(() => useHabits(list.id));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    // Complete the task then reload — returned rows should reflect the change
+    await toggleHabitCompletion(task.id, getTodayString());
+
+    let returnedRows: import('../../hooks/useHabits').HabitRow[] = [];
+    await act(async () => {
+      returnedRows = await result.current.reload();
+    });
+
+    expect(returnedRows.find((r) => r.task.id === task.id)?.completedToday).toBe(true);
+  });
 });
