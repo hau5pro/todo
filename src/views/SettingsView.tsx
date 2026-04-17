@@ -56,6 +56,7 @@ export function SettingsView() {
     soundEnabled, setSoundEnabled,
     soundStyle, setSoundStyle,
     hapticEnabled, setHapticEnabled,
+    confettiEnabled, setConfettiEnabled,
     syncEnabled, setSyncEnabled,
     localOnly, setLocalOnly,
   } = useSettings();
@@ -221,6 +222,12 @@ export function SettingsView() {
           sublabel="vibrate on completion"
           checked={hapticEnabled}
           onChange={() => setHapticEnabled(!hapticEnabled)}
+        />
+        <SettingsRow
+          label="Confetti"
+          sublabel="celebrate completed habits"
+          checked={confettiEnabled}
+          onChange={() => setConfettiEnabled(!confettiEnabled)}
         />
         {soundEnabled && (
           <div className="theme-btn-group theme-btn-group--vertical" style={{ marginTop: '0.625rem' }}>
