@@ -29,6 +29,7 @@
   "homepage": "https://github.com/hau5pro/todo#readme",
   "dependencies": {
     "@supabase/supabase-js": "^2.101.1",
+    "canvas-confetti": "^1.9.4",
     "dayjs": "^1.11.20",
     "framer-motion": "^12.38.0",
     "lucide-react": "^1.7.0",
@@ -42,6 +43,7 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
+    "@types/canvas-confetti": "^1.9.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^4.7.0",
