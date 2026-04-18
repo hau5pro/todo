@@ -506,8 +506,8 @@ export function ListView() {
                 key={task.id}
                 data-reorder-id={task.id}
                 initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto', transition: { duration: 0.08, ease: ease.snap } }}
-                exit={{ opacity: 0, height: 0, pointerEvents: 'none', transition: { duration: 0.07, ease: ease.in } }}
+                animate={{ opacity: 1, height: 'auto', overflow: 'visible', transition: { duration: 0.08, ease: ease.snap } }}
+                exit={{ opacity: 0, height: 0, overflow: 'hidden', pointerEvents: 'none', transition: { duration: 0.07, ease: ease.in } }}
                 style={{ overflow: 'hidden' }}
               >
                 <TaskRow
@@ -575,8 +575,8 @@ export function ListView() {
                     <motion.div
                       key={task.id}
                       initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto', transition: { duration: 0.08, ease: ease.snap } }}
-                      exit={{ opacity: 0, height: 0, pointerEvents: 'none', transition: { duration: 0.07, ease: ease.in } }}
+                      animate={{ opacity: 1, height: 'auto', overflow: 'visible', transition: { duration: 0.08, ease: ease.snap } }}
+                      exit={{ opacity: 0, height: 0, overflow: 'hidden', pointerEvents: 'none', transition: { duration: 0.07, ease: ease.in } }}
                       style={{ overflow: 'hidden' }}
                     >
                       <TaskItem
