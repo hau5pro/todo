@@ -12,7 +12,7 @@ import { HabitItem } from '../components/HabitItem';
 import { HabitGroupSection } from '../components/HabitGroupSection';
 import { toggleHabitCompletion } from '../db/habits';
 import { requestSync } from '../sync/orchestrator';
-import { burstFromElement, burstFullScreen } from '../utils/confetti';
+import { burstFullScreen } from '../utils/confetti';
 import { LIST_TYPE_LABELS } from '../types';
 import { getListIcon } from '../config/listIcons';
 import { ICON_SIZE } from '../config/constants';
@@ -194,9 +194,6 @@ export function DailyView() {
     requestSync();
 
     if (!confettiEnabled || !wasCompletion) return;
-
-    const el = document.querySelector(`[data-habit-id="${taskId}"]`);
-    if (el instanceof HTMLElement) burstFromElement(el);
 
     if (freshRows.length > 0 && freshRows.every((r) => r.completedToday)) {
       burstFullScreen();

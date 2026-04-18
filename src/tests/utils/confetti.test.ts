@@ -31,7 +31,7 @@ describe('confetti utils', () => {
 
       expect(mockConfetti).toHaveBeenCalledWith(expect.objectContaining({
         origin: { x: 0.112, y: 0.265 },
-        particleCount: 30,
+        particleCount: 15,
       }));
       vi.doUnmock('canvas-confetti');
     });
@@ -47,16 +47,21 @@ describe('confetti utils', () => {
       globalThis.window = original;
     });
 
-    it('calls confetti twice with left and right origins', async () => {
+    it('calls confetti three times with staggered origins', async () => {
+      vi.useFakeTimers();
       const mockConfetti = vi.fn();
+      mockConfetti.shapeFromText = vi.fn(() => 'mock-shape');
       vi.doMock('canvas-confetti', () => ({ default: mockConfetti }));
       const { burstFullScreen } = await import('../../utils/confetti');
 
       burstFullScreen();
+      vi.runAllTimers();
 
-      expect(mockConfetti).toHaveBeenCalledTimes(2);
-      expect(mockConfetti).toHaveBeenCalledWith(expect.objectContaining({ origin: { x: 0, y: 0.65 } }));
-      expect(mockConfetti).toHaveBeenCalledWith(expect.objectContaining({ origin: { x: 1, y: 0.65 } }));
+      expect(mockConfetti).toHaveBeenCalledTimes(3);
+      expect(mockConfetti).toHaveBeenCalledWith(expect.objectContaining({ origin: { x: 0.5,  y: 0.4  } }));
+      expect(mockConfetti).toHaveBeenCalledWith(expect.objectContaining({ origin: { x: 0.22, y: 0.3  } }));
+      expect(mockConfetti).toHaveBeenCalledWith(expect.objectContaining({ origin: { x: 0.78, y: 0.22 } }));
+      vi.useRealTimers();
       vi.doUnmock('canvas-confetti');
     });
   });

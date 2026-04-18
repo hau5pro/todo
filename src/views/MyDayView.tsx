@@ -12,6 +12,7 @@ import { ease } from '../utils/easing';
 import { applyOrder } from '../utils/order';
 import { getTodayString } from '../utils/date';
 import { focusLater } from '../utils/dom';
+import { burstFullScreen } from '../utils/confetti';
 
 const itemVariants = {
   hidden: { opacity: 0, y: 6 },
@@ -57,7 +58,7 @@ export function MyDayView() {
   const [addOpen, setAddOpen] = useState(false);
   const submittingRef = useRef(false);
   const addInputRef = useRef<HTMLInputElement>(null);
-  const { listOrders, listGroupOrders, setListOrder } = useSettings();
+  const { listOrders, listGroupOrders, setListOrder, confettiEnabled } = useSettings();
 
   useEffect(() => { loadMyDay(); }, []);
 
@@ -121,10 +122,17 @@ export function MyDayView() {
   }, [advanceCyclicalTask, completeTask]);
 
   const handleHabitToggle = useCallback(async (taskId: string) => {
+    const wasCompletion = !myDayHabits.find((h) => h.task.id === taskId)?.completedToday;
     await toggleHabitCompletion(taskId, today);
-    loadMyDay();
+    await loadMyDay();
     requestSync();
-  }, [today, loadMyDay]);
+
+    if (!confettiEnabled || !wasCompletion) return;
+
+    if (myDayHabits.length > 0 && myDayHabits.every((h) => h.task.id === taskId ? true : h.completedToday)) {
+      burstFullScreen();
+    }
+  }, [today, loadMyDay, confettiEnabled, myDayHabits]);
 
   async function commitAdd(keepOpen = false) {
     if (!newTitle.trim() || submittingRef.current || !tasksList) return;
