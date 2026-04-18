@@ -70,7 +70,7 @@ function HabitRow({ row, editMode, onToggle, onSelect, onDelete, isSelected, onR
 export function DailyView() {
   const { listId } = useParams<{ listId: string }>();
   const list = useAppStore((s) => s.lists.find((l) => l.id === listId));
-  const { addTask, removeTask, moveTaskToGroup, renameGroup, deleteGroup } = useAppStore();
+  const { addTask, removeTask, moveTaskToGroup, renameGroup, deleteGroup, loadTasks } = useAppStore();
   const { rows, isLoading, reload, today } = useHabits(listId!);
   const [newTitle, setNewTitle] = useState('');
   const [habitEditMode, setHabitEditMode] = useState(false);
@@ -86,6 +86,10 @@ export function DailyView() {
 
   useEffect(() => {
     setHabitEditMode(false);
+  }, [listId]);
+
+  useEffect(() => {
+    loadTasks(listId!);
   }, [listId]);
 
   const scrollRef = useRef<HTMLElement>(null);

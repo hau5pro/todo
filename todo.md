@@ -3,14 +3,16 @@
 ## Features
 
 - ~~confetti.js on completing all daily habits. make it a setting.~~ ✓
+- only one part of settings view animates
+- animate help/docs view?
 
 ## Bugs
 
 - ~~when i click off of details and i happen to hit another task, details should just switch to that task and not collapse~~ ✓
 - ~~elipsis habit note should have tooltip~~ ✓
-- toggle two habits back and forth, eventually the other one 'toggles' weird sm thing?
-- maybe make my day not persist the items
-- groups dont persist on new load (the ones in the current view)
+- ~~toggle two habits back and forth, eventually the other one 'toggles' weird sm thing?~~ ✓
+- ~~maybe make my day not persist the items~~ ✓
+- ~~groups dont persist on new load (the ones in the current view)~~ ✓
 - ~~add task no underline??~~ ✓
 
 ## Improvements
