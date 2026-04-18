@@ -23,7 +23,18 @@ function DetailSlot() {
         {detail && (
           <motion.div
             className="detail-backdrop"
-            onClick={close}
+            onClick={(e) => {
+              // If the click landed on a task element below the backdrop, route to it
+              const els = document.elementsFromPoint(e.clientX, e.clientY);
+              for (const el of els) {
+                if (el === e.currentTarget) continue;
+                const cb = (el as HTMLElement).closest?.('button[role="checkbox"]');
+                if (cb) { (cb as HTMLElement).click(); return; }
+                const nr = (el as HTMLElement).closest?.('[data-nav-row]');
+                if (nr) { (nr as HTMLElement).click(); return; }
+              }
+              close();
+            }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
