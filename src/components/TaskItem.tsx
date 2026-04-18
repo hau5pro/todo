@@ -60,8 +60,10 @@ export const TaskItem = memo(function TaskItem({ id, title, completed, dueDate, 
       onClick={onSelect}
     >
       <AnimatedCheckbox checked={completed} onChange={handleToggle} popping={popping} />
-      <span className={`task-item__title${completed ? ' task-item__title--completed' : ''}`}>
-        {title}
+      <span className="task-item__title-wrap" data-tooltip={title}>
+        <span className={`task-item__title${completed ? ' task-item__title--completed' : ''}`}>
+          {title}
+        </span>
       </span>
       {dueDate && (
         <span className={`task-item__date${isOverdue ? ' task-item__date--overdue' : ''}`}>
