@@ -3,8 +3,9 @@
 ## Features
 
 - ~~confetti.js on completing all daily habits. make it a setting.~~ ✓
-- only one part of settings view animates
-- animate help/docs view?
+- ~~only one part of settings view animates~~ ✓
+- ~~animate help/docs view?~~ ✓
+- ~~pinned section in settings: Reorder.Item layout animation fires on page entrance~~ ✓
 
 ## Bugs
 
