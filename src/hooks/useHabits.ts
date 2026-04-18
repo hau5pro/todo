@@ -15,8 +15,10 @@ export function useHabits(listId: string) {
   const [isLoading, setIsLoading] = useState(true);
   const today = useMemo(() => getTodayString(), []);
   const cancelledRef = useRef(false);
+  const loadGenRef = useRef(0);
 
   const load = useCallback(async (): Promise<HabitRow[]> => {
+    const gen = ++loadGenRef.current;
     try {
       const [tasks, todayCompletions] = await Promise.all([
         getTasksByList(listId),
@@ -36,14 +38,14 @@ export function useHabits(listId: string) {
         })
       );
 
-      if (cancelledRef.current) return [];
+      if (cancelledRef.current || gen !== loadGenRef.current) return [];
       setRows(rowsWithStreaks);
       return rowsWithStreaks;
     } catch (err) {
       console.error('useHabits load failed', err);
       return [];
     } finally {
-      if (!cancelledRef.current) setIsLoading(false);
+      if (!cancelledRef.current && gen === loadGenRef.current) setIsLoading(false);
     }
   }, [listId, today]);
 
