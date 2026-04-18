@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { Trash2, CircleUser, Paintbrush, Volume2, Pin, TriangleAlert, GripVertical, HelpCircle, LogOut } from 'lucide-react';
 import { ICON_SIZE } from '../config/constants';
 import { Reorder, useDragControls } from 'framer-motion';
@@ -15,6 +16,14 @@ import { SettingsRow } from '../components/SettingsRow';
 import type { List } from '../types';
 import { LIST_TYPE_LABELS } from '../types';
 import { PINNED_LIST_SUBTITLES } from '../config/constants';
+
+function sectionAnim(i: number) {
+  return {
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    transition: { duration: 0.2, delay: 0.05 + i * 0.05 },
+  };
+}
 
 const MY_DAY_SENTINEL = { id: 'my-day' as const };
 type PinnedItem = List | typeof MY_DAY_SENTINEL;
@@ -101,7 +110,7 @@ export function SettingsView() {
       </div>
 
       {/* Help */}
-      <section className="settings-section">
+      <motion.section className="settings-section" {...sectionAnim(0)}>
         <div className="settings-section-title">
           <HelpCircle size={16} />
           Help
@@ -109,10 +118,10 @@ export function SettingsView() {
         <NavLink to="/docs" className="settings-link-row">
           Documentation & tips
         </NavLink>
-      </section>
+      </motion.section>
 
       {/* Account */}
-      <section className="settings-section">
+      <motion.section className="settings-section" {...sectionAnim(1)}>
         <div className="settings-section-title">
           <CircleUser size={16} />
           Account
@@ -137,11 +146,11 @@ export function SettingsView() {
             Sign out
           </button>
         )}
-      </section>
+      </motion.section>
 
       {/* Pinned items */}
       {pinnedItems.length > 0 && (
-        <section className="settings-section">
+        <motion.section className="settings-section" {...sectionAnim(2)}>
           <div className="settings-section-title">
             <Pin size={16} />
             Pinned
@@ -170,11 +179,11 @@ export function SettingsView() {
                   />
             )}
           </Reorder.Group>
-        </section>
+        </motion.section>
       )}
 
       {/* Appearance */}
-      <section className="settings-section">
+      <motion.section className="settings-section" {...sectionAnim(3)}>
         <div className="settings-section-title">
           <Paintbrush size={16} />
           Appearance
@@ -199,10 +208,10 @@ export function SettingsView() {
             </div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Sound */}
-      <section className="settings-section">
+      <motion.section className="settings-section" {...sectionAnim(4)}>
         <div className="settings-section-title">
           <Volume2 size={16} />
           Sound
@@ -242,10 +251,10 @@ export function SettingsView() {
             ))}
           </div>
         )}
-      </section>
+      </motion.section>
 
       {/* Danger zone */}
-      <section className="settings-section">
+      <motion.section className="settings-section" {...sectionAnim(5)}>
         <div className="settings-section-title settings-section-title--danger">
           <TriangleAlert size={16} />
           Danger zone
@@ -287,7 +296,7 @@ export function SettingsView() {
             </>
           )}
         </div>
-      </section>
+      </motion.section>
 
     </div>
   );

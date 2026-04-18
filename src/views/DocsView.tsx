@@ -1,6 +1,17 @@
 import type { CSSProperties } from 'react';
+import { motion } from 'framer-motion';
 import type { LucideIcon } from 'lucide-react';
 import { Keyboard, List, Sun, Repeat, ShoppingCart, Folder, WifiOff, Cloud, RotateCcw, Plus, Pencil, Copy, Smile, Trash2, Info, Zap, MousePointerClick } from 'lucide-react';
+import { ease } from '../utils/easing';
+
+const containerVariants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.05, delayChildren: 0.05 } },
+};
+const sectionVariants = {
+  hidden: { opacity: 0, y: 6 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.18, ease: ease.out } },
+};
 
 interface ShortcutRow {
   keys: string[];
@@ -191,13 +202,13 @@ function ButtonRow({ icon: BtnIcon, label, body }: ButtonItem) {
 
 export function DocsView() {
   return (
-    <div style={{ maxWidth: 480, margin: '0 auto' }}>
+    <motion.div style={{ maxWidth: 480, margin: '0 auto' }} variants={containerVariants} initial="hidden" animate="show">
       <div className="view-title-row" style={{ marginBottom: '2rem' }}>
         <h1 className="view-title">Help</h1>
         <span style={{ fontSize: '0.75rem', color: 'var(--fg-muted)', opacity: 0.6, alignSelf: 'flex-end', paddingBottom: '0.2rem' }}>v{__APP_VERSION__}</span>
       </div>
 
-      <section className="settings-section">
+      <motion.section className="settings-section" variants={sectionVariants}>
         <div className="settings-section-title">
           <Info size={16} />
           About
@@ -205,9 +216,9 @@ export function DocsView() {
         <p style={{ fontSize: '0.85rem', color: 'var(--fg-muted)', marginTop: '0.25rem' }}>
           A minimal, offline-first task manager.
         </p>
-      </section>
+      </motion.section>
 
-      <section className="settings-section">
+      <motion.section className="settings-section" variants={sectionVariants}>
         <div className="settings-section-title">
           <Zap size={16} />
           Features
@@ -215,9 +226,9 @@ export function DocsView() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '0.25rem' }}>
           {features.map((item) => <ItemRow key={item.heading} {...item} />)}
         </div>
-      </section>
+      </motion.section>
 
-      <section className="settings-section">
+      <motion.section className="settings-section" variants={sectionVariants}>
         <div className="settings-section-title">
           <List size={16} />
           Lists
@@ -225,9 +236,9 @@ export function DocsView() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '0.25rem' }}>
           {listSubSections.map((item) => <ItemRow key={item.heading} {...item} />)}
         </div>
-      </section>
+      </motion.section>
 
-      <section className="settings-section">
+      <motion.section className="settings-section" variants={sectionVariants}>
         <div className="settings-section-title">
           <MousePointerClick size={16} />
           Action buttons
@@ -240,9 +251,9 @@ export function DocsView() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
           {listViewButtons.map((b) => <ButtonRow key={b.label} {...b} />)}
         </div>
-      </section>
+      </motion.section>
 
-      <section className="settings-section">
+      <motion.section className="settings-section" variants={sectionVariants}>
         <div className="settings-section-title">
           <Keyboard size={16} />
           Keyboard shortcuts
@@ -269,8 +280,8 @@ export function DocsView() {
             </div>
           </div>
         ))}
-      </section>
+      </motion.section>
 
-    </div>
+    </motion.div>
   );
 }
