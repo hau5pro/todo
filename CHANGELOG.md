@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.0.1] — 2026-04-18
+
+### Features
+
+- Confetti burst on completing all daily habits; togglable in Settings
+- Triple-pop confetti animation with My Day support
+
+### Fixes
+
+- Backdrop clicks route through to task rows and habit checkboxes when detail panel is open
+- Truncated task titles, habit titles, and habit notes now show hover tooltips
+- Tooltip clipping fixed — overflow visible after row enter animation
+- Add-task row border and tooltip direction corrected
+- Completed tasks hide from My Day immediately on toggle
+- Stale reload no longer overwrites habit state on rapid toggle
+- Habit detail panel shows existing group as a suggestion
+- Reorder.Item layout animation no longer fires on settings page entrance (caused by async email load shifting the pinned section)
+
+### Animations
+
+- Settings sections fade in with staggered opacity on page entrance
+- Help/docs sections fade in with staggered opacity on page entrance
+- Route entrance animation moved to CSS to decouple from framer-motion layout system
+
 ## [1.0.0] — 2026-04-14
 
 ### Core
