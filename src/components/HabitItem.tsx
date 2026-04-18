@@ -55,7 +55,7 @@ export const HabitItem = memo(function HabitItem({ id, title, note, completedTod
         {title}
       </span>
       {note && (
-        <span className="habit-item__note">{note}</span>
+        <span className="habit-item__note" title={note}>{note}</span>
       )}
       {streak > 0 && (
         <span className={`habit-item__streak${streak >= 7 ? ' habit-item__streak--hot' : ''}`} aria-label={`${streak} day streak`}>
