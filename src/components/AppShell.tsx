@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { Outlet, useLocation, NavLink } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
+import { ease } from '../utils/easing';
 import { Sidebar } from './Sidebar';
 import { SyncDot } from './SyncDot';
 import { TaskDetailPanel } from './TaskDetailPanel';
@@ -110,9 +111,14 @@ export function AppShell() {
           </header>
           <div className="app-body">
             <main className="app-main">
-              <div key={pathname} className="route-enter">
+              <motion.div
+                key={pathname}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.18, ease: ease.out }}
+              >
                 <Outlet />
-              </div>
+              </motion.div>
             </main>
             <DetailSlot />
           </div>

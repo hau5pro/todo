@@ -149,14 +149,6 @@ body {
 
 .app-body { display: flex; flex: 1; overflow: hidden; position: relative; }
 
-@keyframes route-enter {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.route-enter {
-  animation: route-enter 0.18s cubic-bezier(0, 0, 0.2, 1) both;
-}
-
 .app-main {
   flex: 1;
   overflow-y: auto;
