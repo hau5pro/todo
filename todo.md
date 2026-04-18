@@ -11,7 +11,7 @@
 - toggle two habits back and forth, eventually the other one 'toggles' weird sm thing?
 - maybe make my day not persist the items
 - groups dont persist on new load (the ones in the current view)
-- add task no underline??
+- ~~add task no underline??~~ ✓
 
 ## Improvements
 
