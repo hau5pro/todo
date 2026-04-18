@@ -129,42 +129,15 @@ describe('tasks CRUD', () => {
     expect(today[0].title).toBe('Today');
   });
 
-  it('getMyDayTasks keeps tasks completed today visible', async () => {
+  it('getMyDayTasks hides completed tasks immediately', async () => {
     const todayDate = getTodayString();
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayDate = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
     const list = await createList('Chores', 'general');
-    const overdueTask = await createTask(list.id, 'Overdue done today', { due_date: yesterdayDate });
-    const todayTask = await createTask(list.id, 'Today done today', { due_date: todayDate });
+    const todayTask = await createTask(list.id, 'Today done', { due_date: todayDate });
     await createTask(list.id, 'Still active', { due_date: todayDate });
-    await setTaskCompleted(overdueTask.id, true);
     await setTaskCompleted(todayTask.id, true);
-    const { overdue, today } = await getMyDayTasks(todayDate);
-    // Completed-today tasks remain visible
-    expect(overdue.some((t) => t.title === 'Overdue done today')).toBe(true);
-    expect(today.some((t) => t.title === 'Today done today')).toBe(true);
+    const { today } = await getMyDayTasks(todayDate);
+    expect(today.some((t) => t.title === 'Today done')).toBe(false);
     expect(today.some((t) => t.title === 'Still active')).toBe(true);
-  });
-
-  it('getMyDayTasks hides tasks completed on a prior day', async () => {
-    const list = await createList('Chores', 'general');
-    const task = await createTask(list.id, 'Old done', { due_date: '2026-04-01' });
-    // Manually set completed_at to yesterday
-    await setTaskCompleted(task.id, true);
-    // Overwrite completed_at to simulate it was completed yesterday
-    const db = await (await import('../../db/client')).getDB();
-    const tx = db.transaction('tasks', 'readwrite');
-    const store = tx.objectStore('tasks');
-    const req2 = store.get(task.id);
-    await new Promise((res) => { req2.onsuccess = res; });
-    await new Promise((res, rej) => {
-      const put = store.put({ ...req2.result, completed_at: '2026-04-04T12:00:00.000Z' });
-      put.onsuccess = res;
-      put.onerror = rej;
-    });
-    const { overdue } = await getMyDayTasks('2026-04-05');
-    expect(overdue.some((t) => t.title === 'Old done')).toBe(false);
   });
 
   it('updateTask changes title and sets pending_sync', async () => {

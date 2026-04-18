@@ -180,12 +180,8 @@ export async function getMyDayTasks(today: string): Promise<{ overdue: Task[]; t
   const db = await getDB();
   const all = await req<Task[]>(db.transaction('tasks').objectStore('tasks').getAll());
   const relevant = all.filter((t) => {
-    if (t.due_date === null || t.deleted_at !== null) return false;
-    if (!t.completed) return true;
-    // Completed: only keep if it was completed today (compare in local time)
-    if (t.completed_at == null) return false;
-    const completedLocal = formatLocalDate(new Date(t.completed_at));
-    return completedLocal === today;
+    if (t.due_date === null || t.deleted_at !== null || t.completed) return false;
+    return true;
   });
   return {
     overdue: relevant.filter((t) => t.due_date! < today),
