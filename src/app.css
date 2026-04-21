@@ -1346,6 +1346,10 @@ button.nav-section-label--button:hover { color: var(--fg); }
   0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, #f97316 0%, transparent); }
   50%       { box-shadow: 0 0 6px 1px color-mix(in srgb, #f97316 40%, transparent); }
 }
+.habit-item__streak--pending {
+  opacity: 0.5;
+  border-style: dashed;
+}
 
 /* Habit checkbox differentiation */
 .animated-checkbox--habit .animated-checkbox__circle {

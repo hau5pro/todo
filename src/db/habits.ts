@@ -101,6 +101,10 @@ export function calculateStreak(
 
     if (activeDates.has(dateStr)) {
       streak++;
+    } else if (i === 0) {
+      // Today not yet completed — skip it and keep counting from yesterday
+      // so the streak stays alive until the day rolls over
+      continue;
     } else {
       break;
     }

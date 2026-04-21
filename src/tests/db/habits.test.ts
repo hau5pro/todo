@@ -121,11 +121,18 @@ describe('calculateStreak', () => {
     expect(calculateStreak(completions, 'task-1', '2026-04-05')).toBe(0);
   });
 
-  it('returns 0 when today is not done but yesterday was', () => {
-    // Gap on today means the active streak is 0 (user hasn't completed it yet today)
+  it('returns streak from yesterday when today is not yet done', () => {
+    // Today is skipped — streak stays alive based on yesterday so the badge shows before completion
     const completions: HabitCompletion[] = [
       { id: '1', task_id: 'task-1', date: '2026-04-04', created_at: '', deleted_at: null, pending_sync: false },
       { id: '2', task_id: 'task-1', date: '2026-04-03', created_at: '', deleted_at: null, pending_sync: false },
+    ];
+    expect(calculateStreak(completions, 'task-1', '2026-04-05')).toBe(2);
+  });
+
+  it('returns 0 when today and yesterday are both not done', () => {
+    const completions: HabitCompletion[] = [
+      { id: '1', task_id: 'task-1', date: '2026-04-03', created_at: '', deleted_at: null, pending_sync: false },
     ];
     expect(calculateStreak(completions, 'task-1', '2026-04-05')).toBe(0);
   });
