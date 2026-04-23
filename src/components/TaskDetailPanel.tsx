@@ -8,13 +8,11 @@ import { useSettings } from '../contexts/SettingsContext';
 import { ICON_SIZE } from '../config/constants';
 import { ease } from '../utils/easing';
 import { focusLater } from '../utils/dom';
-import { formatTime } from '../utils/date';
+import { formatTime, getTodayString } from '../utils/date';
 import { CalendarPicker } from './CalendarPicker';
 import { RecurrencePicker } from './RecurrencePicker';
-import type { Task } from '../types';
+import type { Task, HabitSession } from '../types';
 import { getSessionsForTaskDate, startSession, stopSession, updateSession, deleteSession } from '../db/sessions';
-import { getTodayString } from '../utils/date';
-import type { HabitSession } from '../types';
 
 const EMPTY_TASKS: Task[] = [];
 
@@ -248,6 +246,7 @@ export function TaskDetailPanel() {
   }
 
   function startEditingField(session: HabitSession, field: 'start' | 'end') {
+    setEditingGroup(false);
     const activeSession = sessions.find((s) => s.ended_at === null);
     if (activeSession) return; // no editing while timer running
     setEditingField({ sessionId: session.id, field });
@@ -597,7 +596,7 @@ export function TaskDetailPanel() {
             <button
               type="button"
               className={`task-detail-field-btn${currentGroup ? ' task-detail-field-btn--set' : ''}`}
-              onClick={() => { setCalOpen(false); setEditingTime(false); setEditingGroup(true); focusLater(groupInputRef); }}
+              onClick={() => { setCalOpen(false); setEditingTime(false); setEditingGroup(true); setEditingField(null); focusLater(groupInputRef); }}
               title={currentGroup ? 'Change group' : 'Assign to a group'}
             >
               <Folder size={ICON_SIZE} />
