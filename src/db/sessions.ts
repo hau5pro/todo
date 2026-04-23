@@ -1,18 +1,22 @@
 import { getDB, req, excludeDeleted } from './client';
+import { requestSync } from '../sync/orchestrator';
 import type { HabitSession } from '../types';
 
 export async function startSession(taskId: string, date: string): Promise<HabitSession> {
   const db = await getDB();
+  const now = new Date().toISOString();
   const session: HabitSession = {
     id: crypto.randomUUID(),
     task_id: taskId,
     date,
-    started_at: new Date().toISOString(),
+    started_at: now,
     ended_at: null,
     deleted_at: null,
+    updated_at: now,
     pending_sync: true,
   };
   await req(db.transaction('habit_sessions', 'readwrite').objectStore('habit_sessions').add(session));
+  requestSync();
   return session;
 }
 
@@ -22,8 +26,10 @@ export async function stopSession(sessionId: string): Promise<HabitSession> {
   const store = tx.objectStore('habit_sessions');
   const existing = await req<HabitSession | undefined>(store.get(sessionId));
   if (!existing) throw new Error(`Session not found: ${sessionId}`);
-  const updated: HabitSession = { ...existing, ended_at: new Date().toISOString(), pending_sync: true };
+  const now = new Date().toISOString();
+  const updated: HabitSession = { ...existing, ended_at: now, updated_at: now, pending_sync: true };
   await req(store.put(updated));
+  requestSync();
   return updated;
 }
 
@@ -37,8 +43,16 @@ export async function updateSession(
   const store = tx.objectStore('habit_sessions');
   const existing = await req<HabitSession | undefined>(store.get(sessionId));
   if (!existing) throw new Error(`Session not found: ${sessionId}`);
-  const updated: HabitSession = { ...existing, started_at: startedAt, ended_at: endedAt, pending_sync: true };
+  const now = new Date().toISOString();
+  const updated: HabitSession = {
+    ...existing,
+    started_at: startedAt,
+    ended_at: endedAt,
+    updated_at: now,
+    pending_sync: true,
+  };
   await req(store.put(updated));
+  requestSync();
   return updated;
 }
 
@@ -48,7 +62,9 @@ export async function deleteSession(sessionId: string): Promise<void> {
   const store = tx.objectStore('habit_sessions');
   const existing = await req<HabitSession | undefined>(store.get(sessionId));
   if (!existing) throw new Error(`Session not found: ${sessionId}`);
-  await req(store.put({ ...existing, deleted_at: new Date().toISOString(), pending_sync: true }));
+  const now = new Date().toISOString();
+  await req(store.put({ ...existing, deleted_at: now, updated_at: now, pending_sync: true }));
+  requestSync();
 }
 
 export async function getSessionsForTaskDate(taskId: string, date: string): Promise<HabitSession[]> {

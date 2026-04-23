@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
   startSession,
   stopSession,
@@ -9,6 +9,13 @@ import {
 } from '../../db/sessions';
 import { createList } from '../../db/lists';
 import { createTask } from '../../db/tasks';
+import { requestSync } from '../../sync/orchestrator';
+
+vi.mock('../../sync/orchestrator', () => ({ requestSync: vi.fn() }));
+
+beforeEach(() => {
+  vi.clearAllMocks();
+});
 
 describe('startSession', () => {
   it('creates a session with ended_at null', async () => {
@@ -20,6 +27,19 @@ describe('startSession', () => {
     expect(session.ended_at).toBeNull();
     expect(session.deleted_at).toBeNull();
     expect(session.pending_sync).toBe(true);
+  });
+  it('sets updated_at as a valid ISO timestamp', async () => {
+    const list = await createList('Habits', 'daily');
+    const task = await createTask(list.id, 'Meditate');
+    const session = await startSession(task.id, '2026-04-23');
+    expect(typeof session.updated_at).toBe('string');
+    expect(Number.isNaN(new Date(session.updated_at).getTime())).toBe(false);
+  });
+  it('calls requestSync', async () => {
+    const list = await createList('Habits', 'daily');
+    const task = await createTask(list.id, 'Meditate');
+    await startSession(task.id, '2026-04-23');
+    expect(requestSync).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -36,6 +56,22 @@ describe('stopSession', () => {
 
   it('throws when session does not exist', async () => {
     await expect(stopSession('non-existent-id')).rejects.toThrow('Session not found: non-existent-id');
+  });
+  it('sets updated_at on stop', async () => {
+    const list = await createList('Habits', 'daily');
+    const task = await createTask(list.id, 'Exercise');
+    const session = await startSession(task.id, '2026-04-23');
+    const stopped = await stopSession(session.id);
+    expect(typeof stopped.updated_at).toBe('string');
+    expect(Number.isNaN(new Date(stopped.updated_at).getTime())).toBe(false);
+  });
+  it('calls requestSync', async () => {
+    const list = await createList('Habits', 'daily');
+    const task = await createTask(list.id, 'Exercise');
+    const session = await startSession(task.id, '2026-04-23');
+    vi.clearAllMocks();
+    await stopSession(session.id);
+    expect(requestSync).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -55,6 +91,24 @@ describe('updateSession', () => {
   it('throws when session does not exist', async () => {
     await expect(updateSession('non-existent-id', '2026-04-23T08:00:00.000Z', '2026-04-23T08:30:00.000Z')).rejects.toThrow('Session not found: non-existent-id');
   });
+  it('sets updated_at on update', async () => {
+    const list = await createList('Habits', 'daily');
+    const task = await createTask(list.id, 'Read');
+    const session = await startSession(task.id, '2026-04-23');
+    const stopped = await stopSession(session.id);
+    const result = await updateSession(stopped.id, '2026-04-23T08:00:00.000Z', '2026-04-23T08:30:00.000Z');
+    expect(typeof result.updated_at).toBe('string');
+    expect(Number.isNaN(new Date(result.updated_at).getTime())).toBe(false);
+  });
+  it('calls requestSync', async () => {
+    const list = await createList('Habits', 'daily');
+    const task = await createTask(list.id, 'Read');
+    const session = await startSession(task.id, '2026-04-23');
+    const stopped = await stopSession(session.id);
+    vi.clearAllMocks();
+    await updateSession(stopped.id, '2026-04-23T08:00:00.000Z', '2026-04-23T08:30:00.000Z');
+    expect(requestSync).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe('deleteSession', () => {
@@ -70,6 +124,15 @@ describe('deleteSession', () => {
 
   it('throws when session does not exist', async () => {
     await expect(deleteSession('non-existent-id')).rejects.toThrow('Session not found: non-existent-id');
+  });
+  it('calls requestSync', async () => {
+    const list = await createList('Habits', 'daily');
+    const task = await createTask(list.id, 'Yoga');
+    const session = await startSession(task.id, '2026-04-23');
+    await stopSession(session.id);
+    vi.clearAllMocks();
+    await deleteSession(session.id);
+    expect(requestSync).toHaveBeenCalledTimes(1);
   });
 });
 

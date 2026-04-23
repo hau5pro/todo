@@ -62,5 +62,6 @@ export interface HabitSession {
   started_at: string;   // ISO timestamp
   ended_at: string | null;  // null while running
   deleted_at: string | null;
+  updated_at: string;   // ISO timestamp — set on every write
   pending_sync: boolean;
 }
