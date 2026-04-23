@@ -3489,6 +3489,7 @@ button.nav-section-label--button:hover { color: var(--fg); }
   display: flex;
   align-items: baseline;
   justify-content: space-between;
+  padding-right: 26px; /* aligns total with session duration column (20px delete btn + 6px gap) */
 }
 
 .habit-timer__sessions-label {
