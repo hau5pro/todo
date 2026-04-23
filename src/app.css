@@ -3399,3 +3399,20 @@ button.nav-section-label--button:hover { color: var(--fg); }
   color: var(--fg-muted);
   padding: 0.75rem 0 0.375rem;
 }
+
+/* ── Habit active session dot ── */
+.habit-item__active-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--success) 25%, transparent);
+  animation: habit-dot-pulse 1.8s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes habit-dot-pulse {
+  0%, 100% { box-shadow: 0 0 0 2px color-mix(in srgb, var(--success) 25%, transparent); }
+  50%       { box-shadow: 0 0 0 5px color-mix(in srgb, var(--success) 10%, transparent); }
+}

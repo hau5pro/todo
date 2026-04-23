@@ -9,12 +9,13 @@ interface Props {
   note?: string | null;
   completedToday: boolean;
   streak: number;
+  hasActiveSession?: boolean;
   onToggle: (id: string) => void;
   onSelect?: () => void;
   isSelected?: boolean;
 }
 
-export const HabitItem = memo(function HabitItem({ id, title, note, completedToday, streak, onToggle, onSelect, isSelected }: Props) {
+export const HabitItem = memo(function HabitItem({ id, title, note, completedToday, streak, hasActiveSession, onToggle, onSelect, isSelected }: Props) {
   const { soundEnabled, soundStyle, hapticEnabled } = useSettings();
   const [flashing, setFlashing] = useState(false);
   const [popping, setPopping] = useState(false);
@@ -56,6 +57,9 @@ export const HabitItem = memo(function HabitItem({ id, title, note, completedTod
           {title}
         </span>
       </span>
+      {hasActiveSession && (
+        <span className="habit-item__active-dot" aria-label="Timer running" />
+      )}
       {note && (
         <span className="habit-item__note-wrap" data-tooltip={note}>
           <span className="habit-item__note">{note}</span>

@@ -58,6 +58,7 @@ function HabitRow({ row, editMode, onToggle, onSelect, onDelete, isSelected, onR
           note={row.task.note}
           completedToday={row.completedToday}
           streak={row.streak}
+          hasActiveSession={row.hasActiveSession}
           onToggle={onToggle}
           onSelect={editMode ? undefined : onSelect}
           isSelected={!editMode && isSelected}

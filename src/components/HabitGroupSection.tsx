@@ -47,6 +47,7 @@ function HabitRowItem({ row, editMode, onToggle, onSelect, onDelete, isSelected,
           note={row.task.note}
           completedToday={row.completedToday}
           streak={row.streak}
+          hasActiveSession={row.hasActiveSession}
           onToggle={onToggle}
           onSelect={editMode ? undefined : onSelect}
           isSelected={!editMode && isSelected}
