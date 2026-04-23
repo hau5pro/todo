@@ -77,13 +77,18 @@ export function DailyView() {
   const [habitEditMode, setHabitEditMode] = useState(false);
   const [draggingHabitId, setDraggingHabitId] = useState<string | null>(null);
 
-  const { detail, open: openDetail, close: closeDetail } = useTaskDetail();
+  const { detail, open: openDetail, close: closeDetail, sessionChangeKey } = useTaskDetail();
   const { listOrders, setListOrder, listGroupOrders, setListGroupOrder, confettiEnabled } = useSettings();
   const prevDetail = useRef(detail);
   useEffect(() => {
     if (prevDetail.current !== null && detail === null) reload();
     prevDetail.current = detail;
   }, [detail]);
+
+  useEffect(() => {
+    if (sessionChangeKey === 0) return; // skip initial mount
+    reload();
+  }, [sessionChangeKey]);
 
   useEffect(() => {
     setHabitEditMode(false);

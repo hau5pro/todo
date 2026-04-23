@@ -10,18 +10,25 @@ interface ContextValue {
   open: (d: Detail) => void;
   close: () => void;
   updateTask: (t: Task) => void;
+  sessionChangeKey: number;
+  notifySessionChange: () => void;
 }
 
 const Ctx = createContext<ContextValue | null>(null);
 
 export function TaskDetailProvider({ children }: { children: React.ReactNode }) {
   const [detail, setDetail] = useState<Detail | null>(null);
+  const [sessionChangeKey, setSessionChangeKey] = useState(0);
 
   const open = useCallback((d: Detail) => setDetail(d), []);
   const close = useCallback(() => setDetail(null), []);
   const updateTask = useCallback((t: Task) => setDetail((prev) => prev ? { ...prev, task: t } : null), []);
+  const notifySessionChange = useCallback(() => setSessionChangeKey((k) => k + 1), []);
 
-  const value = useMemo(() => ({ detail, open, close, updateTask }), [detail, open, close, updateTask]);
+  const value = useMemo(
+    () => ({ detail, open, close, updateTask, sessionChangeKey, notifySessionChange }),
+    [detail, open, close, updateTask, sessionChangeKey, notifySessionChange],
+  );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
