@@ -57,9 +57,9 @@ function formatElapsed(startedAt: string): string {
 
 /** Duration of a completed session, formatted as "17m" or "1h 5m". */
 function sessionDuration(session: { started_at: string; ended_at: string }): string {
-  const secs = Math.floor(
+  const secs = Math.max(0, Math.floor(
     (new Date(session.ended_at).getTime() - new Date(session.started_at).getTime()) / 1000,
-  );
+  ));
   const h = Math.floor(secs / 3600);
   const m = Math.floor((secs % 3600) / 60);
   if (h > 0) return `${h}h ${m}m`;
@@ -341,7 +341,6 @@ export function TaskDetailPanel() {
                 </div>
                 {sessions.length > 0 && (
                   <>
-                    <span className="habit-timer__sessions-label">Sessions today</span>
                     <div className="habit-timer__session-list">
                       {sessions.map((s) => {
                         const isActive = s.ended_at === null;
