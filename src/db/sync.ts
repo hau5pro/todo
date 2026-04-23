@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { List, ListFolder, Task, HabitCompletion } from '../types';
+import type { List, ListFolder, Task, HabitCompletion, HabitSession } from '../types';
 import { req } from './client';
 
 const LAST_SYNC_KEY = 'todo_last_sync';
@@ -89,6 +89,26 @@ export async function pushPending(db: IDBDatabase, supabase: SupabaseClient, use
       const store = tx.objectStore('habit_completions');
       await Promise.all(
         pendingHabits.map((h) => req(store.put({ ...h, pending_sync: false })))
+      );
+    }
+  }
+
+  // Habit sessions
+  const allSessions = await req<HabitSession[]>(
+    db.transaction('habit_sessions').objectStore('habit_sessions').getAll()
+  );
+  const pendingSessions = allSessions.filter((s) => s.pending_sync);
+  if (pendingSessions.length > 0) {
+    const { error } = await supabase
+      .from('habit_sessions')
+      .upsert(pendingSessions.map((s) => toRemote(s, userId)), { onConflict: 'id' });
+    if (error) {
+      errors.push(`habit_sessions: ${error.message}`);
+    } else {
+      const tx = db.transaction('habit_sessions', 'readwrite');
+      const store = tx.objectStore('habit_sessions');
+      await Promise.all(
+        pendingSessions.map((s) => req(store.put({ ...s, pending_sync: false })))
       );
     }
   }

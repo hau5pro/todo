@@ -4,7 +4,9 @@ import { pushPending, pullFromSupabase, initialSync, deleteAllCloudData } from '
 import { createList, getLists } from '../../db/lists';
 import { createFolder, getFolders } from '../../db/folders';
 import { createTask, getTasksByList } from '../../db/tasks';
-import { getDB } from '../../db/client';
+import { startSession } from '../../db/sessions';
+import { getDB, req } from '../../db/client';
+import type { HabitSession } from '../../types';
 
 function makeMockSupabase(upsertData: unknown[] = []) {
   const upsertMock = vi.fn().mockResolvedValue({ error: null, data: upsertData });
@@ -125,6 +127,32 @@ describe('pushPending', () => {
     // pending_sync must still be true — the failed upsert must not have cleared it
     const lists = await getLists();
     expect(lists.every((l) => l.pending_sync === true)).toBe(true);
+  });
+
+  it('upserts pending sessions to Supabase', async () => {
+    const list = await createList('Habits', 'daily');
+    const task = await createTask(list.id, 'Exercise');
+    const session = await startSession(task.id, '2026-04-23');
+    const mockSupa = makeMockSupabase();
+    await pushPending(await getDB(), mockSupa as never, 'user-123');
+    expect(mockSupa.from).toHaveBeenCalledWith('habit_sessions');
+    expect(mockSupa._upsertMock).toHaveBeenCalledWith(
+      expect.arrayContaining([expect.objectContaining({ id: session.id, user_id: 'user-123' })]),
+      expect.any(Object)
+    );
+  });
+
+  it('clears pending_sync on sessions after successful upsert', async () => {
+    const list = await createList('Habits', 'daily');
+    const task = await createTask(list.id, 'Exercise');
+    await startSession(task.id, '2026-04-23');
+    const mockSupa = makeMockSupabase();
+    const db = await getDB();
+    await pushPending(db, mockSupa as never, 'user-123');
+    const all = await req<HabitSession[]>(
+      db.transaction('habit_sessions').objectStore('habit_sessions').getAll()
+    );
+    expect(all.every((s) => s.pending_sync === false)).toBe(true);
   });
 });
 
