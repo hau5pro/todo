@@ -54,3 +54,13 @@ export interface HabitCompletion {
   deleted_at: string | null;
   pending_sync: boolean;
 }
+
+export interface HabitSession {
+  id: string;
+  task_id: string;
+  date: string;         // 'YYYY-MM-DD' — local date the session was started
+  started_at: string;   // ISO timestamp
+  ended_at: string | null;  // null while running
+  deleted_at: string | null;
+  pending_sync: boolean;
+}

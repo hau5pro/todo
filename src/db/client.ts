@@ -10,7 +10,7 @@ export function excludeDeleted<T extends { deleted_at: string | null }>(records:
   return records.filter((r) => r.deleted_at === null);
 }
 
-const DB_VERSION = 3;
+const DB_VERSION = 4;
 
 let dbName = 'todo-app-local';
 let dbPromise: Promise<IDBDatabase> | null = null;
@@ -41,11 +41,12 @@ export function clearAllLocalData(): Promise<void> {
   return getDB().then(
     (db) =>
       new Promise((resolve, reject) => {
-        const tx = db.transaction(['lists', 'tasks', 'habit_completions', 'folders'], 'readwrite');
+        const tx = db.transaction(['lists', 'tasks', 'habit_completions', 'folders', 'habit_sessions'], 'readwrite');
         tx.objectStore('lists').clear();
         tx.objectStore('tasks').clear();
         tx.objectStore('habit_completions').clear();
         tx.objectStore('folders').clear();
+        tx.objectStore('habit_sessions').clear();
         tx.oncomplete = () => resolve();
         tx.onerror = () => reject(tx.error);
       }),
@@ -109,6 +110,14 @@ function openDB(name: string): Promise<IDBDatabase> {
             cursor.continue();
           };
         }
+      }
+
+      // v4: habit_sessions store
+      if (oldVersion < 4) {
+        const sessions = db.createObjectStore('habit_sessions', { keyPath: 'id' });
+        sessions.createIndex('task_id', 'task_id');
+        sessions.createIndex('date', 'date');
+        sessions.createIndex('task_id_date', ['task_id', 'date']);
       }
     };
 
