@@ -187,7 +187,7 @@ export function MyDayView() {
                   {section.groupName && (
                     <div className="my-day-group-label">{section.groupName}</div>
                   )}
-                  {section.habits.map(({ task, completedToday, streak }) => (
+                  {section.habits.map(({ task, completedToday, streak, hasActiveSession }) => (
                     <HabitItem
                       key={task.id}
                       id={task.id}
@@ -195,6 +195,7 @@ export function MyDayView() {
                       note={task.note}
                       completedToday={completedToday}
                       streak={streak}
+                      hasActiveSession={hasActiveSession}
                       onToggle={handleHabitToggle}
                     />
                   ))}

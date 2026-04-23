@@ -24,6 +24,7 @@ import {
   getMyDayTasks,
 } from '../db/tasks';
 import { getTodayCompletions, getCompletionsForTask, calculateStreak } from '../db/habits';
+import { getActiveSessionsForDate } from '../db/sessions';
 import { getTodayString } from '../utils/date';
 import type { List, ListFolder, Task, ListType } from '../types';
 
@@ -31,6 +32,7 @@ export interface HabitWithCompletion {
   task: Task;
   completedToday: boolean;
   streak: number;
+  hasActiveSession: boolean;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -160,10 +162,12 @@ export const useAppStore = create<AppStore>((set, get) => ({
     const lists = await getLists();
     set({ lists, listsLoaded: true });
 
-    const [{ overdue, today }, todayCompletions] = await Promise.all([
+    const [{ overdue, today }, todayCompletions, activeSessions] = await Promise.all([
       getMyDayTasks(todayDate),
       getTodayCompletions(todayDate),
+      getActiveSessionsForDate(todayDate),
     ]);
+    const activeTaskIds = new Set(activeSessions.map((s) => s.task_id));
 
     const dailyLists = lists.filter((l) => l.type === 'daily');
     const habitTasks = (
@@ -179,6 +183,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
           task,
           completedToday: completedIds.has(task.id),
           streak: calculateStreak(completions, task.id, todayDate),
+          hasActiveSession: activeTaskIds.has(task.id),
         };
       })
     );
