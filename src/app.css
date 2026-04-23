@@ -3469,19 +3469,19 @@ button.nav-section-label--button:hover { color: var(--fg); }
 }
 
 .habit-timer__stop-square {
-  width: 8px;
-  height: 8px;
+  width: 11px;
+  height: 11px;
   background: var(--success);
-  border-radius: 1px;
+  border-radius: 2px;
   flex-shrink: 0;
 }
 
 .habit-timer__start-tri {
   width: 0;
   height: 0;
-  border-top: 5px solid transparent;
-  border-bottom: 5px solid transparent;
-  border-left: 8px solid currentColor;
+  border-top: 7px solid transparent;
+  border-bottom: 7px solid transparent;
+  border-left: 11px solid currentColor;
   flex-shrink: 0;
 }
 
@@ -3492,61 +3492,93 @@ button.nav-section-label--button:hover { color: var(--fg); }
   color: var(--fg-muted);
 }
 
-.habit-timer__total-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 4px 8px;
-  padding-right: 26px; /* aligns value with session duration column (20px delete btn + 6px gap) */
-  margin-top: 2px;
+.habit-timer__card {
+  background: var(--bg);
+  border-radius: 10px;
+  padding: 6px 0;
+  margin-top: 4px;
+  overflow: hidden;
+}
+
+.habit-timer__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.habit-timer__th {
+  font-size: 0.65rem;
+  font-weight: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--fg-muted);
+  text-align: left;
+  padding: 2px 0 5px;
+  border-bottom: 1px solid var(--border);
+}
+
+.habit-timer__th--right { text-align: right; }
+.habit-timer__th--action { width: 32px; }
+
+.habit-timer__table th:first-child,
+.habit-timer__table td:first-child { padding-left: 12px; }
+.habit-timer__table th:last-child,
+.habit-timer__table td:last-child { padding-right: 12px; }
+
+.habit-timer__tr:hover { background: var(--hover); }
+.habit-timer__tr--total:hover { background: none; }
+
+.habit-timer__td {
+  padding: 9px 0;
+  vertical-align: middle;
+}
+
+.habit-timer__td--duration {
+  text-align: right;
+  color: var(--fg-muted);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.habit-timer__td--action {
+  width: 32px;
+  padding-top: 0;
+  padding-bottom: 0;
+  text-align: center;
+}
+
+.habit-timer__tr--total .habit-timer__td {
+  padding: 5px 0;
   border-top: 1px solid var(--border);
 }
 
-.habit-timer__total-label {
+.habit-timer__td--total-label {
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--fg-muted);
 }
 
-.habit-timer__total-value {
-  font-size: 0.75rem;
-  color: var(--fg-muted);
-  font-variant-numeric: tabular-nums;
-}
-
-.habit-timer__session-list {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.habit-timer__session-row {
+.habit-timer__times {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 8px;
-  border-radius: 7px;
-  font-size: 0.8rem;
-  transition: background 0.12s;
+  gap: 4px;
+  min-width: 0;
 }
-
-.habit-timer__session-row:hover { background: var(--hover); }
-
-.habit-timer__session-row--active { opacity: 0.8; }
 
 .habit-timer__time {
   font-variant-numeric: tabular-nums;
   color: var(--fg);
   cursor: text;
-  padding: 2px 4px;
+  padding: 2px 0;
   border-radius: 4px;
   border: 1px solid transparent;
   transition: border-color 0.12s, background 0.12s;
   white-space: nowrap;
 }
 
-.habit-timer__session-row:hover .habit-timer__time:not(.habit-timer__time--active) {
+.habit-timer__tr:hover .habit-timer__time:not(.habit-timer__time--active) {
   border-color: var(--border);
 }
 
@@ -3561,32 +3593,25 @@ button.nav-section-label--button:hover { color: var(--fg); }
   flex-shrink: 0;
 }
 
-.habit-timer__duration {
-  margin-left: auto;
-  color: var(--fg-muted);
-  font-size: 0.75rem;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
 
 .habit-timer__delete {
-  width: 20px;
-  height: 20px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 4px;
+  border-radius: 6px;
   background: none;
   border: none;
   color: var(--fg-muted);
-  font-size: 14px;
+  font-size: 16px;
   cursor: pointer;
   opacity: 0;
   transition: opacity 0.1s, color 0.1s;
   flex-shrink: 0;
 }
 
-.habit-timer__session-row:hover .habit-timer__delete { opacity: 1; }
+.habit-timer__tr:hover .habit-timer__delete { opacity: 1; }
 .habit-timer__delete:hover { color: var(--danger); }
 
 .habit-timer__time-input {

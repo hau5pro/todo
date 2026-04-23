@@ -340,79 +340,92 @@ export function TaskDetailPanel() {
                   )}
                 </div>
                 {sessions.some((s) => s.ended_at !== null) && (
-                  <>
-                    <div className="habit-timer__session-list">
-                      {sessions.filter((s) => s.ended_at !== null).map((s) => {
-                        const isActive = false;
-                        const editStart = editingField?.sessionId === s.id && editingField.field === 'start';
-                        const editEnd = editingField?.sessionId === s.id && editingField.field === 'end';
-                        return (
-                          <div
-                            key={s.id}
-                            className={`habit-timer__session-row${isActive ? ' habit-timer__session-row--active' : ''}`}
-                          >
-                            {editStart ? (
-                              <input
-                                className="habit-timer__time-input"
-                                value={fieldInput}
-                                onChange={(e) => setFieldInput(e.target.value)}
-                                onBlur={() => commitFieldEdit(s)}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') e.currentTarget.blur();
-                                  if (e.key === 'Escape') setEditingField(null);
-                                }}
-                                autoFocus
-                              />
-                            ) : (
-                              <span
-                                className={`habit-timer__time${isActive ? ' habit-timer__time--active' : ''}`}
-                                onClick={() => startEditingField(s, 'start')}
-                              >
-                                {formatSessionTime(s.started_at)}
-                              </span>
-                            )}
-                            {!isActive && <span className="habit-timer__sep">–</span>}
-                            {isActive ? null : editEnd ? (
-                              <input
-                                className="habit-timer__time-input"
-                                value={fieldInput}
-                                onChange={(e) => setFieldInput(e.target.value)}
-                                onBlur={() => commitFieldEdit(s)}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') e.currentTarget.blur();
-                                  if (e.key === 'Escape') setEditingField(null);
-                                }}
-                                autoFocus
-                              />
-                            ) : (
-                              <span
-                                className="habit-timer__time"
-                                onClick={() => startEditingField(s, 'end')}
-                              >
-                                {formatSessionTime(s.ended_at!)}
-                              </span>
-                            )}
-                            <span className="habit-timer__duration">
-                              {isActive ? formatElapsed(s.started_at) : sessionDuration(s as { started_at: string; ended_at: string })}
-                            </span>
-                            {!isActive && !activeSession && (
-                              <button
-                                className="habit-timer__delete"
-                                onClick={() => handleSessionDelete(s.id)}
-                                title="Delete session"
-                              >
-                                ×
-                              </button>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                    <div className="habit-timer__total-row">
-                      <span className="habit-timer__total-label">Total</span>
-                      <span className="habit-timer__total-value">{totalLabel}</span>
-                    </div>
-                  </>
+                  <div className="habit-timer__card">
+                    <table className="habit-timer__table">
+                      <thead>
+                        <tr>
+                          <th className="habit-timer__th">Session</th>
+                          <th className="habit-timer__th habit-timer__th--right">Duration</th>
+                          <th className="habit-timer__th habit-timer__th--action" />
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {sessions.filter((s) => s.ended_at !== null).map((s) => {
+                          const editStart = editingField?.sessionId === s.id && editingField.field === 'start';
+                          const editEnd = editingField?.sessionId === s.id && editingField.field === 'end';
+                          return (
+                            <tr key={s.id} className="habit-timer__tr">
+                              <td className="habit-timer__td">
+                                <div className="habit-timer__times">
+                                  {editStart ? (
+                                    <input
+                                      className="habit-timer__time-input"
+                                      value={fieldInput}
+                                      onChange={(e) => setFieldInput(e.target.value)}
+                                      onBlur={() => commitFieldEdit(s)}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter') e.currentTarget.blur();
+                                        if (e.key === 'Escape') setEditingField(null);
+                                      }}
+                                      autoFocus
+                                    />
+                                  ) : (
+                                    <span
+                                      className="habit-timer__time"
+                                      onClick={() => startEditingField(s, 'start')}
+                                    >
+                                      {formatSessionTime(s.started_at)}
+                                    </span>
+                                  )}
+                                  <span className="habit-timer__sep">–</span>
+                                  {editEnd ? (
+                                    <input
+                                      className="habit-timer__time-input"
+                                      value={fieldInput}
+                                      onChange={(e) => setFieldInput(e.target.value)}
+                                      onBlur={() => commitFieldEdit(s)}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter') e.currentTarget.blur();
+                                        if (e.key === 'Escape') setEditingField(null);
+                                      }}
+                                      autoFocus
+                                    />
+                                  ) : (
+                                    <span
+                                      className="habit-timer__time"
+                                      onClick={() => startEditingField(s, 'end')}
+                                    >
+                                      {formatSessionTime(s.ended_at!)}
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="habit-timer__td habit-timer__td--duration">
+                                {sessionDuration(s as { started_at: string; ended_at: string })}
+                              </td>
+                              <td className="habit-timer__td habit-timer__td--action">
+                                <button
+                                  className="habit-timer__delete"
+                                  style={activeSession ? { visibility: 'hidden' } : undefined}
+                                  onClick={() => handleSessionDelete(s.id)}
+                                  title="Delete session"
+                                >
+                                  ×
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                      <tfoot>
+                        <tr className="habit-timer__tr habit-timer__tr--total">
+                          <td className="habit-timer__td habit-timer__td--total-label">Total</td>
+                          <td className="habit-timer__td habit-timer__td--duration">{totalLabel}</td>
+                          <td className="habit-timer__td" />
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
                 )}
               </div>
             </div>
