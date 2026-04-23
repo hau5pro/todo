@@ -3544,11 +3544,6 @@ button.nav-section-label--button:hover { color: var(--fg); }
   cursor: default;
 }
 
-.habit-timer__time--muted {
-  color: var(--fg-muted);
-  cursor: default;
-}
-
 .habit-timer__sep {
   color: var(--fg-muted);
   font-size: 0.75rem;

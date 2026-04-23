@@ -375,10 +375,8 @@ export function TaskDetailPanel() {
                                 {formatSessionTime(s.started_at)}
                               </span>
                             )}
-                            <span className="habit-timer__sep">–</span>
-                            {isActive ? (
-                              <span className="habit-timer__time habit-timer__time--muted">–</span>
-                            ) : editEnd ? (
+                            {!isActive && <span className="habit-timer__sep">–</span>}
+                            {isActive ? null : editEnd ? (
                               <input
                                 className="habit-timer__time-input"
                                 value={fieldInput}
