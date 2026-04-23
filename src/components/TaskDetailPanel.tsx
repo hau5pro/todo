@@ -256,7 +256,7 @@ export function TaskDetailPanel() {
   async function commitFieldEdit(session: HabitSession) {
     if (!editingField || editingField.sessionId !== session.id) return;
     setEditingField(null);
-    const hhmm = parseTimeInput(fieldInput.replace(':', ''));
+    const hhmm = parseTimeInput(fieldInput);
     if (!hhmm) return;
     const newISO = timeOnDateToISO(session.date, hhmm);
     const newStartedAt = editingField.field === 'start' ? newISO : session.started_at;

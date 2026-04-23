@@ -83,12 +83,12 @@ export function DailyView() {
   useEffect(() => {
     if (prevDetail.current !== null && detail === null) reload();
     prevDetail.current = detail;
-  }, [detail]);
+  }, [detail, reload]);
 
   useEffect(() => {
     if (sessionChangeKey === 0) return; // skip initial mount
     reload();
-  }, [sessionChangeKey]);
+  }, [sessionChangeKey, reload]);
 
   useEffect(() => {
     setHabitEditMode(false);
