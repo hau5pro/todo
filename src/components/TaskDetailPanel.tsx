@@ -309,24 +309,18 @@ export function TaskDetailPanel() {
           }}
         />
 
-        {/* Note */}
-        <div className="task-detail-section">
-          <span className="task-detail-section__heading">Note</span>
-          <div className="task-detail-section__fields">
-            <textarea
-              className="task-detail-note-input"
-              value={noteInput}
-              onChange={(e) => setNoteInput(e.target.value)}
-              onBlur={commitNote}
-              placeholder="Add a note…"
-              rows={3}
-            />
-          </div>
-        </div>
-
         {/* Timer — habit tasks only */}
         {isHabitTask && (() => {
           const activeSession = sessions.find((s) => s.ended_at === null) ?? null;
+          const totalSecs = sessions.reduce((sum, s) => {
+            if (s.ended_at === null) {
+              return sum + Math.floor((Date.now() - new Date(s.started_at).getTime()) / 1000);
+            }
+            return sum + Math.floor((new Date(s.ended_at).getTime() - new Date(s.started_at).getTime()) / 1000);
+          }, 0);
+          const totalH = Math.floor(totalSecs / 3600);
+          const totalM = Math.floor((totalSecs % 3600) / 60);
+          const totalLabel = totalH > 0 ? `${totalH}h ${totalM}m` : totalM > 0 ? `${totalM}m` : `${totalSecs}s`;
           return (
             <div className="task-detail-section">
               <span className="task-detail-section__heading">Timer</span>
@@ -347,7 +341,10 @@ export function TaskDetailPanel() {
                 </div>
                 {sessions.length > 0 && (
                   <>
-                    <span className="habit-timer__sessions-label">Sessions today</span>
+                    <div className="habit-timer__sessions-header">
+                      <span className="habit-timer__sessions-label">Sessions today</span>
+                      <span className="habit-timer__sessions-total">{totalLabel}</span>
+                    </div>
                     <div className="habit-timer__session-list">
                       {sessions.map((s) => {
                         const isActive = s.ended_at === null;
@@ -380,7 +377,7 @@ export function TaskDetailPanel() {
                             )}
                             <span className="habit-timer__sep">–</span>
                             {isActive ? (
-                              <span className="habit-timer__time habit-timer__time--active">running…</span>
+                              <span className="habit-timer__time habit-timer__time--muted">–</span>
                             ) : editEnd ? (
                               <input
                                 className="habit-timer__time-input"
@@ -423,6 +420,21 @@ export function TaskDetailPanel() {
             </div>
           );
         })()}
+
+        {/* Note */}
+        <div className="task-detail-section">
+          <span className="task-detail-section__heading">Note</span>
+          <div className="task-detail-section__fields">
+            <textarea
+              className="task-detail-note-input"
+              value={noteInput}
+              onChange={(e) => setNoteInput(e.target.value)}
+              onBlur={commitNote}
+              placeholder="Add a note…"
+              rows={3}
+            />
+          </div>
+        </div>
 
         {/* Schedule: due date + recurrence — hidden for habit tasks */}
         {!isHabitTask && (
