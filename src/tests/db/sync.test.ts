@@ -254,19 +254,38 @@ describe('pullFromSupabase', () => {
     expect(localStorage.getItem(LAST_SYNC_KEY)).toBeNull();
   });
 
-  it('uses created_at filter for habit_completions and updated_at for lists/tasks', async () => {
+  it('uses updated_at filter for all tables except habit_completions which uses created_at', async () => {
     const mockSupa = makePullMockSupabase({});
     const db = await getDB();
-
     await pullFromSupabase(db, mockSupa as never);
 
-    const listsGt = mockSupa._gtSpies['lists'];
-    const tasksGt = mockSupa._gtSpies['tasks'];
-    const habitsGt = mockSupa._gtSpies['habit_completions'];
+    expect(mockSupa._gtSpies['lists']).toHaveBeenCalledWith('updated_at', expect.any(String));
+    expect(mockSupa._gtSpies['tasks']).toHaveBeenCalledWith('updated_at', expect.any(String));
+    expect(mockSupa._gtSpies['habit_completions']).toHaveBeenCalledWith('created_at', expect.any(String));
+    expect(mockSupa._gtSpies['habit_sessions']).toHaveBeenCalledWith('updated_at', expect.any(String));
+  });
 
-    expect(listsGt).toHaveBeenCalledWith('updated_at', expect.any(String));
-    expect(tasksGt).toHaveBeenCalledWith('updated_at', expect.any(String));
-    expect(habitsGt).toHaveBeenCalledWith('created_at', expect.any(String));
+  it('merges remote sessions into IDB with pending_sync: false and without user_id', async () => {
+    const remoteSession = {
+      id: 'remote-session-1',
+      task_id: 'task-abc',
+      date: '2026-04-23',
+      started_at: '2026-04-23T09:00:00.000Z',
+      ended_at: '2026-04-23T09:30:00.000Z',
+      deleted_at: null,
+      updated_at: '2026-04-23T09:30:00.000Z',
+      user_id: 'user-abc',
+    };
+    const mockSupa = makePullMockSupabase({ habit_sessions: [remoteSession] });
+    const db = await getDB();
+    await pullFromSupabase(db, mockSupa as never);
+    const all = await req<HabitSession[]>(
+      db.transaction('habit_sessions').objectStore('habit_sessions').getAll()
+    );
+    const stored = all.find((s) => s.id === 'remote-session-1');
+    expect(stored).toBeDefined();
+    expect(stored!.pending_sync).toBe(false);
+    expect((stored as unknown as Record<string, unknown>).user_id).toBeUndefined();
   });
 });
 

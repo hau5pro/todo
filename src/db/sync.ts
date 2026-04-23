@@ -120,7 +120,7 @@ export async function pullFromSupabase(db: IDBDatabase, supabase: SupabaseClient
   const lastSync = localStorage.getItem(LAST_SYNC_KEY) ?? '1970-01-01T00:00:00Z';
   let hasError = false;
 
-  for (const table of ['folders', 'lists', 'tasks', 'habit_completions'] as const) {
+  for (const table of ['folders', 'lists', 'tasks', 'habit_completions', 'habit_sessions'] as const) {
     const filterField = table === 'habit_completions' ? 'created_at' : 'updated_at';
     const { data, error } = await supabase
       .from(table)
@@ -136,13 +136,13 @@ export async function pullFromSupabase(db: IDBDatabase, supabase: SupabaseClient
     const store = tx.objectStore(table);
 
     for (const remote of data) {
-      const local = await req<ListFolder | List | Task | HabitCompletion | undefined>(store.get(remote.id));
+      const local = await req<ListFolder | List | Task | HabitCompletion | HabitSession | undefined>(store.get(remote.id));
       const remoteTime = remote.updated_at ?? remote.created_at;
       // Use the correct timestamp field per record type: habit_completions has created_at, others have updated_at
       const localTime = local
         ? table === 'habit_completions'
           ? (local as HabitCompletion).created_at
-          : (local as ListFolder | List | Task).updated_at
+          : (local as ListFolder | List | Task | HabitSession).updated_at
         : null;
 
       if (!localTime || remoteTime > localTime) {
