@@ -3416,3 +3416,166 @@ button.nav-section-label--button:hover { color: var(--fg); }
   0%, 100% { box-shadow: 0 0 0 2px color-mix(in srgb, var(--success) 25%, transparent); }
   50%       { box-shadow: 0 0 0 5px color-mix(in srgb, var(--success) 10%, transparent); }
 }
+
+/* ── Habit timer section ── */
+.habit-timer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.habit-timer__clock {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.habit-timer__digits {
+  font-size: 2rem;
+  font-weight: 300;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 2px;
+  color: var(--fg-muted);
+  transition: color 0.2s;
+}
+
+.habit-timer__digits--active { color: var(--success); }
+
+.habit-timer__start-btn,
+.habit-timer__stop-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-family: inherit;
+  cursor: pointer;
+  font-weight: 500;
+  min-height: var(--touch-size);
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.habit-timer__start-btn {
+  background: var(--hover);
+  border: 1px solid var(--border);
+  color: var(--fg);
+}
+
+.habit-timer__stop-btn {
+  background: color-mix(in srgb, var(--success) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--success) 35%, transparent);
+  color: var(--success);
+}
+
+.habit-timer__stop-square {
+  width: 8px;
+  height: 8px;
+  background: var(--success);
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+
+.habit-timer__start-tri {
+  width: 0;
+  height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 8px solid currentColor;
+  flex-shrink: 0;
+}
+
+.habit-timer__sessions-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--fg-muted);
+}
+
+.habit-timer__session-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.habit-timer__session-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border-radius: 7px;
+  font-size: 0.8rem;
+  transition: background 0.12s;
+}
+
+.habit-timer__session-row:hover { background: var(--hover); }
+
+.habit-timer__session-row--active { opacity: 0.8; }
+
+.habit-timer__time {
+  font-variant-numeric: tabular-nums;
+  color: var(--fg);
+  cursor: text;
+  padding: 2px 4px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  transition: border-color 0.12s, background 0.12s;
+  white-space: nowrap;
+}
+
+.habit-timer__session-row:hover .habit-timer__time:not(.habit-timer__time--active) {
+  border-color: var(--border);
+}
+
+.habit-timer__time--active {
+  color: var(--success);
+  cursor: default;
+}
+
+.habit-timer__sep {
+  color: var(--fg-muted);
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+.habit-timer__duration {
+  margin-left: auto;
+  color: var(--fg-muted);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.habit-timer__delete {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  background: none;
+  border: none;
+  color: var(--fg-muted);
+  font-size: 14px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.1s, color 0.1s;
+  flex-shrink: 0;
+}
+
+.habit-timer__session-row:hover .habit-timer__delete { opacity: 1; }
+.habit-timer__delete:hover { color: var(--danger); }
+
+.habit-timer__time-input {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.8rem;
+  font-family: inherit;
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  border-radius: 4px;
+  padding: 2px 6px;
+  width: 54px;
+  text-align: center;
+  outline: none;
+}

@@ -12,6 +12,9 @@ import { formatTime } from '../utils/date';
 import { CalendarPicker } from './CalendarPicker';
 import { RecurrencePicker } from './RecurrencePicker';
 import type { Task } from '../types';
+import { getSessionsForTaskDate, startSession, stopSession, updateSession, deleteSession } from '../db/sessions';
+import { getTodayString } from '../utils/date';
+import type { HabitSession } from '../types';
 
 const EMPTY_TASKS: Task[] = [];
 
@@ -38,8 +41,41 @@ function formatDueDate(date: string): string {
   return dayjs(date).format('MMM D, YYYY');
 }
 
+/** Format an ISO timestamp as h:mm (e.g. "9:05", "14:30"). */
+function formatSessionTime(iso: string): string {
+  const d = new Date(iso);
+  return `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+/** Elapsed time from startedAt to now, formatted as m:ss or h:mm:ss. */
+function formatElapsed(startedAt: string): string {
+  const secs = Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000);
+  const h = Math.floor(secs / 3600);
+  const m = Math.floor((secs % 3600) / 60);
+  const s = secs % 60;
+  if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+/** Duration of a completed session, formatted as "17m" or "1h 5m". */
+function sessionDuration(session: { started_at: string; ended_at: string }): string {
+  const secs = Math.floor(
+    (new Date(session.ended_at).getTime() - new Date(session.started_at).getTime()) / 1000,
+  );
+  const h = Math.floor(secs / 3600);
+  const m = Math.floor((secs % 3600) / 60);
+  if (h > 0) return `${h}h ${m}m`;
+  if (m > 0) return `${m}m`;
+  return `${secs}s`;
+}
+
+/** Convert a local date string ('YYYY-MM-DD') + 'HH:MM' to an ISO timestamp. */
+function timeOnDateToISO(date: string, hhmm: string): string {
+  return new Date(`${date}T${hhmm}:00`).toISOString();
+}
+
 export function TaskDetailPanel() {
-  const { detail, close, updateTask: updateCtx } = useTaskDetail();
+  const { detail, close, updateTask: updateCtx, notifySessionChange } = useTaskDetail();
   const renameTask = useAppStore((s) => s.renameTask);
   const removeTask = useAppStore((s) => s.removeTask);
   const updateTaskFields = useAppStore((s) => s.updateTaskFields);
@@ -61,6 +97,11 @@ export function TaskDetailPanel() {
   const [noteInput, setNoteInput] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [highlightIdx, setHighlightIdx] = useState(-1);
+  const [sessions, setSessions] = useState<HabitSession[]>([]);
+  const [, setTimerTick] = useState(0);
+  const [editingField, setEditingField] = useState<{ sessionId: string; field: 'start' | 'end' } | null>(null);
+  const [fieldInput, setFieldInput] = useState('');
+  const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const groupInputRef = useRef<HTMLInputElement>(null);
@@ -94,6 +135,24 @@ export function TaskDetailPanel() {
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, [calOpen]);
+
+  useEffect(() => {
+    if (!detail || !isHabitTask) { setSessions([]); return; }
+    getSessionsForTaskDate(detail.task.id, getTodayString()).then(setSessions).catch(console.error);
+  }, [detail?.task.id, isHabitTask]);
+
+  useEffect(() => {
+    if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+    const active = sessions.find((s) => s.ended_at === null);
+    if (active) {
+      timerIntervalRef.current = setInterval(() => setTimerTick((t) => t + 1), 1000);
+    } else {
+      timerIntervalRef.current = null;
+    }
+    return () => {
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+    };
+  }, [sessions]);
 
   // Existing groups for this list
   const existingGroups = useMemo(() => {
@@ -168,6 +227,50 @@ export function TaskDetailPanel() {
     setNoteInput(updated.note ?? '');
   }
 
+  async function reloadSessions() {
+    if (!task) return;
+    const fresh = await getSessionsForTaskDate(task.id, getTodayString());
+    setSessions(fresh);
+    notifySessionChange();
+  }
+
+  async function handleTimerStart() {
+    if (!task) return;
+    await startSession(task.id, getTodayString());
+    await reloadSessions();
+  }
+
+  async function handleTimerStop() {
+    const active = sessions.find((s) => s.ended_at === null);
+    if (!active) return;
+    await stopSession(active.id);
+    await reloadSessions();
+  }
+
+  function startEditingField(session: HabitSession, field: 'start' | 'end') {
+    const activeSession = sessions.find((s) => s.ended_at === null);
+    if (activeSession) return; // no editing while timer running
+    setEditingField({ sessionId: session.id, field });
+    setFieldInput(formatSessionTime(field === 'start' ? session.started_at : session.ended_at!));
+  }
+
+  async function commitFieldEdit(session: HabitSession) {
+    if (!editingField || editingField.sessionId !== session.id) return;
+    setEditingField(null);
+    const hhmm = parseTimeInput(fieldInput.replace(':', ''));
+    if (!hhmm) return;
+    const newISO = timeOnDateToISO(session.date, hhmm);
+    const newStartedAt = editingField.field === 'start' ? newISO : session.started_at;
+    const newEndedAt = editingField.field === 'end' ? newISO : session.ended_at!;
+    await updateSession(session.id, newStartedAt, newEndedAt);
+    await reloadSessions();
+  }
+
+  async function handleSessionDelete(sessionId: string) {
+    await deleteSession(sessionId);
+    await reloadSessions();
+  }
+
   async function executeDelete() {
     if (!task) return;
     await removeTask(task.id, task.list_id);
@@ -221,6 +324,106 @@ export function TaskDetailPanel() {
             />
           </div>
         </div>
+
+        {/* Timer — habit tasks only */}
+        {isHabitTask && (() => {
+          const activeSession = sessions.find((s) => s.ended_at === null) ?? null;
+          return (
+            <div className="task-detail-section">
+              <span className="task-detail-section__heading">Timer</span>
+              <div className="habit-timer">
+                <div className="habit-timer__clock">
+                  <span className={`habit-timer__digits${activeSession ? ' habit-timer__digits--active' : ''}`}>
+                    {activeSession ? formatElapsed(activeSession.started_at) : '0:00'}
+                  </span>
+                  {activeSession ? (
+                    <button className="habit-timer__stop-btn" onClick={handleTimerStop}>
+                      <span className="habit-timer__stop-square" /> Stop
+                    </button>
+                  ) : (
+                    <button className="habit-timer__start-btn" onClick={handleTimerStart}>
+                      <span className="habit-timer__start-tri" /> Start
+                    </button>
+                  )}
+                </div>
+                {sessions.length > 0 && (
+                  <>
+                    <span className="habit-timer__sessions-label">Sessions today</span>
+                    <div className="habit-timer__session-list">
+                      {sessions.map((s) => {
+                        const isActive = s.ended_at === null;
+                        const editStart = editingField?.sessionId === s.id && editingField.field === 'start';
+                        const editEnd = editingField?.sessionId === s.id && editingField.field === 'end';
+                        return (
+                          <div
+                            key={s.id}
+                            className={`habit-timer__session-row${isActive ? ' habit-timer__session-row--active' : ''}`}
+                          >
+                            {editStart ? (
+                              <input
+                                className="habit-timer__time-input"
+                                value={fieldInput}
+                                onChange={(e) => setFieldInput(e.target.value)}
+                                onBlur={() => commitFieldEdit(s)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') e.currentTarget.blur();
+                                  if (e.key === 'Escape') setEditingField(null);
+                                }}
+                                autoFocus
+                              />
+                            ) : (
+                              <span
+                                className={`habit-timer__time${isActive ? ' habit-timer__time--active' : ''}`}
+                                onClick={() => startEditingField(s, 'start')}
+                              >
+                                {formatSessionTime(s.started_at)}
+                              </span>
+                            )}
+                            <span className="habit-timer__sep">–</span>
+                            {isActive ? (
+                              <span className="habit-timer__time habit-timer__time--active">running…</span>
+                            ) : editEnd ? (
+                              <input
+                                className="habit-timer__time-input"
+                                value={fieldInput}
+                                onChange={(e) => setFieldInput(e.target.value)}
+                                onBlur={() => commitFieldEdit(s)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') e.currentTarget.blur();
+                                  if (e.key === 'Escape') setEditingField(null);
+                                }}
+                                autoFocus
+                              />
+                            ) : (
+                              <span
+                                className="habit-timer__time"
+                                onClick={() => startEditingField(s, 'end')}
+                              >
+                                {formatSessionTime(s.ended_at!)}
+                              </span>
+                            )}
+                            <span className="habit-timer__duration">
+                              {isActive ? formatElapsed(s.started_at) : sessionDuration(s as { started_at: string; ended_at: string })}
+                            </span>
+                            {!isActive && !activeSession && (
+                              <button
+                                className="habit-timer__delete"
+                                onClick={() => handleSessionDelete(s.id)}
+                                title="Delete session"
+                              >
+                                ×
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Schedule: due date + recurrence — hidden for habit tasks */}
         {!isHabitTask && (
