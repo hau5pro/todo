@@ -1,6 +1,6 @@
 -- Add habit_sessions table for time logging against habit tasks.
--- Sync logic is deferred; this migration creates the schema so the table
--- exists on the remote when sync is eventually implemented.
+-- Sync is fully implemented: push, pull, delete, and pending count
+-- are all handled in src/db/sync.ts and src/hooks/useSync.ts.
 
 CREATE TABLE habit_sessions (
   id UUID PRIMARY KEY,
@@ -9,6 +9,7 @@ CREATE TABLE habit_sessions (
   date DATE NOT NULL,
   started_at TIMESTAMPTZ NOT NULL,
   ended_at TIMESTAMPTZ,
+  updated_at TIMESTAMPTZ NOT NULL,
   deleted_at TIMESTAMPTZ,
   pending_sync BOOLEAN NOT NULL DEFAULT false
 );

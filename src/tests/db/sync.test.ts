@@ -331,7 +331,7 @@ describe('deleteAllCloudData', () => {
   it('calls delete().eq() on every table', async () => {
     const mockSupa = makeDeleteMockSupabase();
     await deleteAllCloudData(mockSupa as never, 'user-abc');
-    const tables = ['habit_completions', 'tasks', 'lists', 'folders', 'user_settings'];
+    const tables = ['habit_sessions', 'habit_completions', 'tasks', 'lists', 'folders', 'user_settings'];
     for (const table of tables) {
       expect(mockSupa.from).toHaveBeenCalledWith(table);
     }
@@ -340,6 +340,7 @@ describe('deleteAllCloudData', () => {
 
   it('throws if any table returns an error', async () => {
     const eqMock = vi.fn()
+      .mockResolvedValueOnce({ error: null })   // habit_sessions
       .mockResolvedValueOnce({ error: null })   // habit_completions
       .mockResolvedValueOnce({ error: { message: 'permission denied' } }) // tasks
       .mockResolvedValue({ error: null });       // rest

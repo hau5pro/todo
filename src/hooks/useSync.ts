@@ -4,19 +4,21 @@ import { pushPending, pullFromSupabase } from '../db/sync';
 import { supabase } from '../supabase/client';
 import { useSettings } from '../contexts/SettingsContext';
 import { registerSyncHandler } from '../sync/orchestrator';
-import type { List, Task, HabitCompletion } from '../types';
+import type { List, Task, HabitCompletion, HabitSession } from '../types';
 
 async function countPending(): Promise<number> {
   const db = await getDB();
-  const [lists, tasks, habits] = await Promise.all([
+  const [lists, tasks, habits, sessions] = await Promise.all([
     req<List[]>(db.transaction('lists').objectStore('lists').getAll()),
     req<Task[]>(db.transaction('tasks').objectStore('tasks').getAll()),
     req<HabitCompletion[]>(db.transaction('habit_completions').objectStore('habit_completions').getAll()),
+    req<HabitSession[]>(db.transaction('habit_sessions').objectStore('habit_sessions').getAll()),
   ]);
   return (
     lists.filter((l) => l.pending_sync).length +
     tasks.filter((t) => t.pending_sync).length +
-    habits.filter((h) => h.pending_sync).length
+    habits.filter((h) => h.pending_sync).length +
+    sessions.filter((s) => s.pending_sync).length
   );
 }
 
