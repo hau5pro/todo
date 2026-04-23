@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { getTasksByList } from '../db/tasks';
 import { getCompletionsForTask, getTodayCompletions, calculateStreak } from '../db/habits';
+import { getActiveSessionsForDate } from '../db/sessions';
 import { getTodayString } from '../utils/date';
 import type { Task } from '../types';
 
@@ -8,6 +9,7 @@ export interface HabitRow {
   task: Task;
   completedToday: boolean;
   streak: number;
+  hasActiveSession: boolean;
 }
 
 export function useHabits(listId: string) {
@@ -20,12 +22,14 @@ export function useHabits(listId: string) {
   const load = useCallback(async (): Promise<HabitRow[]> => {
     const gen = ++loadGenRef.current;
     try {
-      const [tasks, todayCompletions] = await Promise.all([
+      const [tasks, todayCompletions, activeSessions] = await Promise.all([
         getTasksByList(listId),
         getTodayCompletions(today),
+        getActiveSessionsForDate(today),
       ]);
 
       const completedIds = new Set(todayCompletions.map((c) => c.task_id));
+      const activeSessionTaskIds = new Set(activeSessions.map((s) => s.task_id));
 
       const rowsWithStreaks = await Promise.all(
         tasks.map(async (task) => {
@@ -34,6 +38,7 @@ export function useHabits(listId: string) {
             task,
             completedToday: completedIds.has(task.id),
             streak: calculateStreak(completions, task.id, today),
+            hasActiveSession: activeSessionTaskIds.has(task.id),
           };
         })
       );

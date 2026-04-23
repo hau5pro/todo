@@ -4,6 +4,7 @@ import { useHabits } from '../../hooks/useHabits';
 import { createList as dbCreateList } from '../../db/lists';
 import { createTask as dbCreateTask } from '../../db/tasks';
 import { toggleHabitCompletion } from '../../db/habits';
+import { startSession } from '../../db/sessions';
 import { getTodayString } from '../../utils/date';
 
 describe('useHabits', () => {
@@ -105,5 +106,28 @@ describe('useHabits', () => {
     });
 
     expect(returnedRows.find((r) => r.task.id === task.id)?.completedToday).toBe(true);
+  });
+
+  it('hasActiveSession is true when a running session exists for today', async () => {
+    const list = await dbCreateList('Timer Habits', 'daily');
+    const task = await dbCreateTask(list.id, 'Exercise');
+    await startSession(task.id, getTodayString());
+
+    const { result } = renderHook(() => useHabits(list.id));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    const row = result.current.rows.find((r) => r.task.id === task.id);
+    expect(row?.hasActiveSession).toBe(true);
+  });
+
+  it('hasActiveSession is false when no active session exists', async () => {
+    const list = await dbCreateList('Timer Habits 2', 'daily');
+    const task = await dbCreateTask(list.id, 'Read');
+
+    const { result } = renderHook(() => useHabits(list.id));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    const row = result.current.rows.find((r) => r.task.id === task.id);
+    expect(row?.hasActiveSession).toBe(false);
   });
 });
