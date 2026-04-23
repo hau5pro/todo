@@ -33,6 +33,10 @@ describe('stopSession', () => {
     expect(stopped.ended_at).not.toBeNull();
     expect(typeof stopped.ended_at).toBe('string');
   });
+
+  it('throws when session does not exist', async () => {
+    await expect(stopSession('non-existent-id')).rejects.toThrow('Session not found: non-existent-id');
+  });
 });
 
 describe('updateSession', () => {
@@ -47,6 +51,10 @@ describe('updateSession', () => {
     expect(updated.started_at).toBe(newStart);
     expect(updated.ended_at).toBe(newEnd);
   });
+
+  it('throws when session does not exist', async () => {
+    await expect(updateSession('non-existent-id', '2026-04-23T08:00:00.000Z', '2026-04-23T08:30:00.000Z')).rejects.toThrow('Session not found: non-existent-id');
+  });
 });
 
 describe('deleteSession', () => {
@@ -58,6 +66,10 @@ describe('deleteSession', () => {
     await deleteSession(session.id);
     const sessions = await getSessionsForTaskDate(task.id, '2026-04-23');
     expect(sessions).toHaveLength(0);
+  });
+
+  it('throws when session does not exist', async () => {
+    await expect(deleteSession('non-existent-id')).rejects.toThrow('Session not found: non-existent-id');
   });
 });
 

@@ -20,7 +20,8 @@ export async function stopSession(sessionId: string): Promise<HabitSession> {
   const db = await getDB();
   const tx = db.transaction('habit_sessions', 'readwrite');
   const store = tx.objectStore('habit_sessions');
-  const existing = await req<HabitSession>(store.get(sessionId));
+  const existing = await req<HabitSession | undefined>(store.get(sessionId));
+  if (!existing) throw new Error(`Session not found: ${sessionId}`);
   const updated: HabitSession = { ...existing, ended_at: new Date().toISOString(), pending_sync: true };
   await req(store.put(updated));
   return updated;
@@ -34,7 +35,8 @@ export async function updateSession(
   const db = await getDB();
   const tx = db.transaction('habit_sessions', 'readwrite');
   const store = tx.objectStore('habit_sessions');
-  const existing = await req<HabitSession>(store.get(sessionId));
+  const existing = await req<HabitSession | undefined>(store.get(sessionId));
+  if (!existing) throw new Error(`Session not found: ${sessionId}`);
   const updated: HabitSession = { ...existing, started_at: startedAt, ended_at: endedAt, pending_sync: true };
   await req(store.put(updated));
   return updated;
@@ -44,7 +46,8 @@ export async function deleteSession(sessionId: string): Promise<void> {
   const db = await getDB();
   const tx = db.transaction('habit_sessions', 'readwrite');
   const store = tx.objectStore('habit_sessions');
-  const existing = await req<HabitSession>(store.get(sessionId));
+  const existing = await req<HabitSession | undefined>(store.get(sessionId));
+  if (!existing) throw new Error(`Session not found: ${sessionId}`);
   await req(store.put({ ...existing, deleted_at: new Date().toISOString(), pending_sync: true }));
 }
 
