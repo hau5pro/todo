@@ -341,10 +341,7 @@ export function TaskDetailPanel() {
                 </div>
                 {sessions.length > 0 && (
                   <>
-                    <div className="habit-timer__sessions-header">
-                      <span className="habit-timer__sessions-label">Sessions today</span>
-                      <span className="habit-timer__sessions-total">{totalLabel}</span>
-                    </div>
+                    <span className="habit-timer__sessions-label">Sessions today</span>
                     <div className="habit-timer__session-list">
                       {sessions.map((s) => {
                         const isActive = s.ended_at === null;
@@ -411,6 +408,10 @@ export function TaskDetailPanel() {
                           </div>
                         );
                       })}
+                    </div>
+                    <div className="habit-timer__total-row">
+                      <span className="habit-timer__total-label">Total</span>
+                      <span className="habit-timer__total-value">{totalLabel}</span>
                     </div>
                   </>
                 )}
