@@ -339,11 +339,11 @@ export function TaskDetailPanel() {
                     </button>
                   )}
                 </div>
-                {sessions.length > 0 && (
+                {sessions.some((s) => s.ended_at !== null) && (
                   <>
                     <div className="habit-timer__session-list">
-                      {sessions.map((s) => {
-                        const isActive = s.ended_at === null;
+                      {sessions.filter((s) => s.ended_at !== null).map((s) => {
+                        const isActive = false;
                         const editStart = editingField?.sessionId === s.id && editingField.field === 'start';
                         const editEnd = editingField?.sessionId === s.id && editingField.field === 'end';
                         return (
